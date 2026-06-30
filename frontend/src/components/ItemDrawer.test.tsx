@@ -39,6 +39,38 @@ it("saves edits via updateItem then notifies", async () => {
   expect(onChanged).toHaveBeenCalled();
 });
 
+it("shows a parent-feature link for a story and opens it on click", async () => {
+  const story = { ...item, id: 9, kind: "story", title: "My Story", parent_id: 5 };
+  const feature = { ...item, id: 5, kind: "feature", title: "Teton Isolierung" };
+  vi.spyOn(client, "getItem").mockImplementation(
+    async (id: number) => (id === 9 ? story : feature) as never,
+  );
+  const onOpenParent = vi.fn();
+  render(
+    <ItemDrawer
+      itemId={9}
+      onClose={() => {}}
+      onChanged={() => {}}
+      onOpenParent={onOpenParent}
+    />,
+  );
+  await screen.findByDisplayValue("My Story");
+  const link = await screen.findByRole("button", { name: /Teton Isolierung/i });
+  await userEvent.click(link);
+  expect(onOpenParent).toHaveBeenCalledWith(5);
+});
+
+it("renders a Back button that calls onBack when stacked", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  const onBack = vi.fn();
+  render(
+    <ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} onBack={onBack} />,
+  );
+  await screen.findByDisplayValue("Teton Isolierung");
+  await userEvent.click(screen.getByRole("button", { name: /back/i }));
+  expect(onBack).toHaveBeenCalled();
+});
+
 it("deletes via deleteItem after confirm", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue(item as never);
   const del = vi.spyOn(client, "deleteItem").mockResolvedValue();

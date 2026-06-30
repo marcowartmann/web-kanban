@@ -14,8 +14,13 @@ export default function App() {
   const { boards, items, loading, error, reload } = useBoard();
   const [view, setView] = useState<"board" | "admin">("board");
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
-  const [openItemId, setOpenItemId] = useState<number | null>(null);
+  const [itemStack, setItemStack] = useState<number[]>([]);
   const [openStoriesFeatureId, setOpenStoriesFeatureId] = useState<number | null>(null);
+
+  const openItem = (id: number) => setItemStack([id]);
+  const pushItem = (id: number) => setItemStack((s) => [...s, id]);
+  const popItem = () => setItemStack((s) => s.slice(0, -1));
+  const closeItems = () => setItemStack([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<BoardFilters>({});
   const [assigneeOptions, setAssigneeOptions] = useState<string[]>([]);
@@ -45,7 +50,7 @@ export default function App() {
   };
 
   const handleChanged = () => {
-    setOpenItemId(null);
+    closeItems();
     setRefreshKey((k) => k + 1);
     void reload();
   };
@@ -99,7 +104,7 @@ export default function App() {
             board={activeBoard}
             items={items}
             filters={filters}
-            onOpenCard={setOpenItemId}
+            onOpenCard={openItem}
             onOpenStories={setOpenStoriesFeatureId}
             onChanged={handleChanged}
           />
@@ -111,18 +116,21 @@ export default function App() {
           featureId={openStoriesFeatureId}
           refreshSignal={refreshKey}
           onClose={() => setOpenStoriesFeatureId(null)}
-          onOpenItem={setOpenItemId}
+          onOpenItem={openItem}
           onChanged={handleChanged}
         />
       )}
-      {openItemId != null && (
+      {itemStack.map((id, idx) => (
         <ItemDrawer
-          itemId={openItemId}
+          key={`${idx}-${id}`}
+          itemId={id}
           assigneeOptions={assigneeOptions}
-          onClose={() => setOpenItemId(null)}
+          onClose={closeItems}
           onChanged={handleChanged}
+          onBack={idx > 0 ? popItem : undefined}
+          onOpenParent={pushItem}
         />
-      )}
+      ))}
     </div>
   );
 }

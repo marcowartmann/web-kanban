@@ -14,19 +14,39 @@ export default function ItemDrawer({
   assigneeOptions = [],
   onClose,
   onChanged,
+  onBack,
+  onOpenParent,
 }: {
   itemId: number;
   assigneeOptions?: string[];
   onClose: () => void;
   onChanged: () => void;
+  onBack?: () => void;
+  onOpenParent?: (parentId: number) => void;
 }) {
   const [item, setItem] = useState<Item | null>(null);
+  const [parent, setParent] = useState<Item | null>(null);
   const [draft, setDraft] = useState<ItemUpdate>({});
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void getItem(itemId).then(setItem).catch((e) => setError(String(e)));
   }, [itemId]);
+
+  // For stories, load the parent feature so we can show a link to it.
+  useEffect(() => {
+    let active = true;
+    if (item && item.kind === "story" && item.parent_id != null) {
+      void getItem(item.parent_id)
+        .then((p) => active && setParent(p))
+        .catch(() => active && setParent(null));
+    } else {
+      setParent(null);
+    }
+    return () => {
+      active = false;
+    };
+  }, [item]);
 
   const reloadItem = async () => setItem(await getItem(itemId));
 
@@ -42,8 +62,8 @@ export default function ItemDrawer({
     await reloadItem();
   };
 
-  if (error) return <Drawer onClose={onClose}><p className="text-red-600">{error}</p></Drawer>;
-  if (!item) return <Drawer onClose={onClose}><p>Loading…</p></Drawer>;
+  if (error) return <Drawer onClose={onClose} onBack={onBack}><p className="text-red-600">{error}</p></Drawer>;
+  if (!item) return <Drawer onClose={onClose} onBack={onBack}><p>Loading…</p></Drawer>;
 
   const value = <K extends keyof Item>(key: K) =>
     (key in draft ? (draft as Record<string, unknown>)[key as string] : item[key]) as
@@ -74,7 +94,7 @@ export default function ItemDrawer({
   };
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer onClose={onClose} onBack={onBack}>
       <div className="mb-4 flex items-center justify-between">
         <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
           {item.type ?? item.kind}
@@ -85,6 +105,18 @@ export default function ItemDrawer({
           </span>
         )}
       </div>
+
+      {item.kind === "story" && item.parent_id != null && onOpenParent && (
+        <div className="mb-4 rounded bg-blue-50 px-3 py-2">
+          <span className="block text-xs font-medium text-gray-500">Parent feature</span>
+          <button
+            onClick={() => onOpenParent(item.parent_id!)}
+            className="mt-0.5 block max-w-full truncate text-left text-sm font-medium text-blue-700 hover:underline"
+          >
+            {parent ? parent.title : `#${item.parent_id}`}
+          </button>
+        </div>
+      )}
       <div className="flex flex-col gap-3">
         <Field label="Title" value={value("title")} onChange={(v) => set("title", v)} />
         <Field label="Status" value={value("status")} onChange={(v) => set("status", v)} />
@@ -149,13 +181,29 @@ export default function ItemDrawer({
   );
 }
 
-function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+function Drawer({
+  children,
+  onClose,
+  onBack,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  onBack?: () => void;
+}) {
   return (
     <div className="fixed inset-0 z-30 flex justify-end bg-black/30" onClick={onClose}>
       <aside
         className="h-full w-96 overflow-y-auto bg-white p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="mb-3 -ml-1 flex items-center gap-1 rounded px-1 py-0.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          >
+            ← Back
+          </button>
+        )}
         {children}
       </aside>
     </div>
