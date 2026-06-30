@@ -666,8 +666,8 @@ def test_story_before_any_feature_is_warned_and_skipped():
 
 def test_real_fixture_counts_and_duplicates():
     parsed = _parse_fixture()
-    # 8 Risk rows at the bottom of the file
-    assert len(parsed.risks) == 8
+    # 9 Risk rows at the bottom of the file
+    assert len(parsed.risks) == 9
     # Duplicate feature title appears as two separate features
     netapp = [f for f in parsed.features if f.data["title"] == "NetApp AirGap Recovery - ruttm"]
     assert len(netapp) == 2
@@ -843,7 +843,7 @@ def test_import_replaces_all_and_returns_counts(client, db_session):
 
     assert resp.status_code == 200
     body = resp.json()
-    assert body["risks"] == 8
+    assert body["risks"] == 9
     assert body["features"] > 0
     assert body["stories"] > 0
     assert db_session.query(Item).filter_by(title="STALE").count() == 0
