@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from app.models import Item, ItemKind
+from sqlalchemy import select
+
+from app.models import Item, ItemKind, Team, TeamMember
 
 FIXTURE = Path(__file__).parent / "fixtures" / "team_planning.csv"
 
@@ -34,3 +36,23 @@ def test_second_import_does_not_accumulate(client):
         second = client.post("/api/import",
                             files={"file": ("p.csv", fh, "text/csv")}).json()
     assert first == second
+
+
+def test_import_seeds_members_and_teams(client, db_session):
+    with FIXTURE.open("rb") as fh:
+        client.post("/api/import", files={"file": ("p.csv", fh, "text/csv")})
+    members = {m.name for m in db_session.scalars(select(TeamMember))}
+    assert "Marco Wartmann" in members
+    teams = {t.name for t in db_session.scalars(select(Team))}
+    assert "Network" in teams
+
+
+def test_reimport_is_idempotent_and_keeps_manual_members(client, db_session):
+    db_session.add(TeamMember(name="Manual Person"))
+    db_session.commit()
+    for _ in range(2):
+        with FIXTURE.open("rb") as fh:
+            client.post("/api/import", files={"file": ("p.csv", fh, "text/csv")})
+    names = [m.name for m in db_session.scalars(select(TeamMember).order_by(TeamMember.name))]
+    assert names.count("Marco Wartmann") == 1
+    assert "Manual Person" in names

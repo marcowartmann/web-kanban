@@ -2,6 +2,8 @@ import csv
 import io
 from dataclasses import dataclass, field
 
+from sqlalchemy import select
+
 from app.models import ItemKind
 
 # Column-name constants (CSV header strings)
@@ -168,6 +170,38 @@ def _insert_item(db, parsed_item, parent_id, position):
     return item
 
 
+def _seed_teams_and_members(db, parsed) -> None:
+    from app.models import Team, TeamMember
+
+    all_data = []
+    for feature in parsed.features:
+        all_data.append(feature.data)
+        all_data.extend(story.data for story in feature.stories)
+    all_data.extend(risk.data for risk in parsed.risks)
+
+    team_names: set[str] = set()
+    for data in all_data:
+        for field in ("leading_team", "supporting_team"):
+            raw = data.get(field)
+            if raw:
+                for token in str(raw).split(","):
+                    token = token.strip()
+                    if token:
+                        team_names.add(token)
+    existing_teams = {t.name for t in db.scalars(select(Team))}
+    for name in team_names - existing_teams:
+        db.add(Team(name=name))
+
+    member_names: set[str] = set()
+    for data in all_data:
+        assignee = data.get("assignee")
+        if assignee and str(assignee).strip():
+            member_names.add(str(assignee).strip())
+    existing_members = {m.name for m in db.scalars(select(TeamMember))}
+    for name in member_names - existing_members:
+        db.add(TeamMember(name=name))
+
+
 def replace_all(db, parsed):
     from app.models import Item
     from app.schemas import ImportResult
@@ -181,6 +215,7 @@ def replace_all(db, parsed):
             stories += 1
     for r_index, risk in enumerate(parsed.risks):
         _insert_item(db, risk, None, r_index)
+    _seed_teams_and_members(db, parsed)
     db.commit()
     return ImportResult(
         features=len(parsed.features),
