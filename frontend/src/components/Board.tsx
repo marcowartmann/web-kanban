@@ -1,4 +1,10 @@
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { useBoard } from "../hooks/useBoard";
 import { updateItem } from "../api/client";
 import type { BoardFilters } from "./Toolbar";
@@ -25,12 +31,17 @@ export default function Board({
   onOpenStories?: (featureId: number) => void;
 }) {
   const { columns, loading, error, reload } = useBoard(filters);
+  // Require an 8px drag before activating, so a plain click opens the card
+  // instead of starting a (zero-distance) drag that swallows the click.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   if (loading) return <div className="p-8 text-gray-500">Loading board…</div>;
   if (error) return <div className="p-8 text-red-600">{error}</div>;
 
   return (
-    <DndContext onDragEnd={(event) => void handleDragEnd(event, reload)}>
+    <DndContext sensors={sensors} onDragEnd={(event) => void handleDragEnd(event, reload)}>
       <div className="flex gap-4 overflow-x-auto p-6">
         {columns.map((column) => (
           <Column

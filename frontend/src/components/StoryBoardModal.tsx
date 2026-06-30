@@ -1,4 +1,10 @@
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { useCallback, useEffect, useState } from "react";
 import { createItem, getItem, updateItem } from "../api/client";
 import { groupByStatus } from "../lib/groupByStatus";
@@ -41,6 +47,11 @@ export default function StoryBoardModal({
   useEffect(() => {
     void reload();
   }, [reload, refreshSignal]);
+
+  // 8px drag threshold so clicking a story opens it instead of starting a drag.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   const addStory = async () => {
     const title = window.prompt("New story title");
@@ -111,7 +122,7 @@ export default function StoryBoardModal({
               No stories yet. Use “+ Add story”.
             </p>
           ) : (
-            <DndContext onDragEnd={(e) => void onDragEnd(e)}>
+            <DndContext sensors={sensors} onDragEnd={(e) => void onDragEnd(e)}>
               <div className="flex gap-4">
                 {columns.map((column) => (
                   <Column
