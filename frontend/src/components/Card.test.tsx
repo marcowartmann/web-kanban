@@ -47,3 +47,12 @@ it("story card: no Stories button", () => {
   });
   expect(screen.queryByRole("button", { name: /stories \(/i })).toBeNull();
 });
+
+it("shows the assignee when set", () => {
+  renderCard({
+    card: card({ assignee: "Marco Wartmann" }),
+    onOpen: vi.fn(),
+    onOpenStories: vi.fn(),
+  });
+  expect(screen.getByText("Marco Wartmann")).toBeInTheDocument();
+});

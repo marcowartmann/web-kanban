@@ -46,6 +46,9 @@ export default function Card({
         </div>
         <div className="font-medium text-gray-900">{card.title}</div>
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+          {card.assignee && (
+            <span className="font-medium text-gray-700">{card.assignee}</span>
+          )}
           {card.leading_team && <span>{card.leading_team}</span>}
           {card.iteration && <span>{card.iteration}</span>}
           {card.kind === "feature" && <span>{card.children_count} stories</span>}
