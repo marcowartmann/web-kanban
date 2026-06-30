@@ -1141,8 +1141,10 @@ from app.models import Item, ItemKind
 
 
 def _make_feature(db, **kw):
-    item = Item(kind=ItemKind.FEATURE, type="Feature", title="F",
-                status="Analyzing", position=0, **kw)
+    defaults = dict(kind=ItemKind.FEATURE, type="Feature", title="F",
+                    status="Analyzing", position=0)
+    defaults.update(kw)  # allow tests to override any default (e.g. title)
+    item = Item(**defaults)
     db.add(item)
     db.commit()
     db.refresh(item)
