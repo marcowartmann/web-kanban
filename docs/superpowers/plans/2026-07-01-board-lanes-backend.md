@@ -263,7 +263,7 @@ Expected: PASS — boards tests, and the full suite (with the old board tests re
 - [ ] **Step 8: Commit**
 
 ```bash
-git add backend/app/routers/boards.py backend/app/main.py
+git add backend/app/routers/boards.py backend/app/main.py backend/tests/test_api_boards.py
 git add -u backend/app/routers/board.py backend/tests/test_api_board.py
 git commit -m "feat(backend): GET /api/boards with seeded defaults; remove /api/board"
 ```
