@@ -1,0 +1,54 @@
+import type {
+  BoardColumn,
+  ImportResult,
+  Item,
+  ItemCreate,
+  ItemUpdate,
+} from "../types";
+
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const resp = await fetch(url, init);
+  if (!resp.ok) {
+    const detail = await resp.text();
+    throw new Error(`${resp.status} ${resp.statusText}: ${detail}`);
+  }
+  if (resp.status === 204) return undefined as T;
+  return (await resp.json()) as T;
+}
+
+const json = (body: unknown): RequestInit => ({
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+});
+
+export function getBoard(): Promise<BoardColumn[]> {
+  return request<BoardColumn[]>("/api/board");
+}
+
+export function listItems(params: Record<string, string> = {}): Promise<Item[]> {
+  const qs = new URLSearchParams(params).toString();
+  return request<Item[]>(`/api/items${qs ? `?${qs}` : ""}`);
+}
+
+export function getItem(id: number): Promise<Item> {
+  return request<Item>(`/api/items/${id}`);
+}
+
+export function createItem(body: ItemCreate): Promise<Item> {
+  return request<Item>("/api/items", json(body));
+}
+
+export function updateItem(id: number, patch: ItemUpdate): Promise<Item> {
+  return request<Item>(`/api/items/${id}`, { ...json(patch), method: "PATCH" });
+}
+
+export function deleteItem(id: number): Promise<void> {
+  return request<void>(`/api/items/${id}`, { method: "DELETE" });
+}
+
+export function importCsv(file: File): Promise<ImportResult> {
+  const form = new FormData();
+  form.append("file", file);
+  return request<ImportResult>("/api/import", { method: "POST", body: form });
+}
