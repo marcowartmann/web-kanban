@@ -852,7 +852,8 @@ it("adds a team", async () => {
   const create = vi.spyOn(client, "createTeam").mockResolvedValue({ id: 1, name: "Network" });
   render(<AdminView onChanged={() => {}} />);
   fireEvent.change(screen.getByPlaceholderText(/new team name/i), { target: { value: "Network" } });
-  fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+  // AdminView renders two "Add" buttons (Teams + Members); Teams is first.
+  fireEvent.click(screen.getAllByRole("button", { name: /^add$/i })[0]);
   await waitFor(() => expect(create).toHaveBeenCalledWith("Network"));
 });
 
