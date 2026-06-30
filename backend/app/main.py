@@ -13,6 +13,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.routers import imports
+
+app.include_router(imports.router)
+
 
 @app.get("/api/health")
 def health() -> dict[str, str]:

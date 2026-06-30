@@ -152,3 +152,39 @@ def parse_items(rows: list[dict[str, str]]) -> ParsedImport:
             current_feature.stories.append(ParsedItem(kind=kind, data=data))
 
     return result
+
+
+def _insert_item(db, parsed_item, parent_id, position):
+    from app.models import Item
+
+    item = Item(
+        kind=parsed_item.kind,
+        parent_id=parent_id,
+        position=position,
+        **parsed_item.data,
+    )
+    db.add(item)
+    db.flush()  # assign id for child linkage
+    return item
+
+
+def replace_all(db, parsed):
+    from app.models import Item
+    from app.schemas import ImportResult
+
+    stories = 0
+    db.query(Item).delete()
+    for f_index, feature in enumerate(parsed.features):
+        feature_row = _insert_item(db, feature, None, f_index)
+        for s_index, story in enumerate(feature.stories):
+            _insert_item(db, story, feature_row.id, s_index)
+            stories += 1
+    for r_index, risk in enumerate(parsed.risks):
+        _insert_item(db, risk, None, r_index)
+    db.commit()
+    return ImportResult(
+        features=len(parsed.features),
+        stories=stories,
+        risks=len(parsed.risks),
+        warnings=parsed.warnings,
+    )
