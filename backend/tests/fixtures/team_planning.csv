@@ -1,0 +1,337 @@
+﻿"Title","Description / Nutzenhypothese","Type","Kategorie","ART","SDI Prio","Status","T-Shirt Size","WSJF Score","Story Points","Iteration","Leading Team","Supporting Team","Externer Partner","Assignee","Akzeptanzkriterien","Dependencies","BO/Stakeholder","Business Value / Direkter Nutzen (1,2,3,5,8,13,20)","Time Criticality / Zukünftiger Nutzen (1,2,3,5,8,13,20)","Risk Reduction / Dringlichkeit (1,2,3,5,8,13,20)","Cost of Delay","Job Size / Aufwand (1,2,3,5,8,13,20)","Parent","Child","Definition of Done (DoD)"
+"Teton Isolierung Ausarbeitung und Umsetzung","Isolierung der Teton Devices gegenüber internen USZ Netzen. Es soll nur Internet-Zugriff ermöglicht sein.
+-> aus Audit Information Security
+-> mit Information Security dACL Lösung definiert","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","XS","60","","PI1-Q3","Network","","","Marco Wartmann","'-ISE Multi CatalystCenter Deployment
+-IP Base und SDA Transit
+-SDA Client VN/Anycast GW
+-Client Anbindung über LAN und WLAN ermöglichen'","Feature Multiservice Core
+DWDM","","20","20","20","60","1","","Konfiguration dACL + ISE Result Teton",""
+"Konfiguration dACL + ISE Result Teton","'- dACL auf WLC
+- ISE Result mit dACL'","Enabler Story","Infrastruktur, Network - Campus, Network - PO","DP","","Analyzing","","","0.5","PI1-Q3","Network","","","","","","","","","","","","Teton Isolierung Ausarbeitung und Umsetzung","",""
+"ECP Test Abschluss","Verfollständigung der Dokumentation der Anbindung der ECP Testumgebung und Schulungen.","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","XS","45","","PI1-Q3","Network","Cloud Platform","Netcloud","Marco Wartmann","","'- Betriebsstabilisierende Massnahmen
+- Risk'","","20","20","5","45","1","","rotm / Rekonfiguration BGP - 1/4, rotm / Rekonfiguration BGP - 2/4, Rekonfiguration BGP - 4/4, Rekonfiguration BGP - 3/4, Dokumentation, Schulung",""
+"rotm / Rekonfiguration BGP - 1/4","ACI Fabric & NCAE
+ECP Node / Cloud Team","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","ECP Test Abschluss","",""
+"rotm / Rekonfiguration BGP - 2/4","ACI Fabric & NCAE
+ECP Node / Cloud Team","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","ECP Test Abschluss","",""
+"Rekonfiguration BGP - 3/4","ACI Fabric & NCAE
+ECP Node / Cloud Team","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","ECP Test Abschluss","",""
+"Rekonfiguration BGP - 4/4","ACI Fabric & NCAE
+ECP Node / Cloud Team","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","ECP Test Abschluss","",""
+"Dokumentation","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","ECP Test Abschluss","",""
+"Schulung","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","ECP Test Abschluss","",""
+"NetApp AirGap Recovery - ruttm","Ermöglichung einer manuellen Inbetriebnahme von Connectivity Links um einen hochperfomanten Durchsatz bei Recovery Aktionen zu ermöglichen.","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","XS","34","","PI1-Q3","Network","Data Cloud","","Marco Wartmann","","","","8","13","13","34","1","","ruttm / NetApp AirGap Recovery - Konfiguration, NetApp AirGap Recovery - Testing, NetApp AirGap Recovery - Dokumentation ",""
+"ruttm / NetApp AirGap Recovery - Konfiguration","Konfig Erarbeitung & Implementation","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","NetApp AirGap Recovery - ruttm","",""
+"NetApp AirGap Recovery - Testing","Testing","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","NetApp AirGap Recovery - ruttm","",""
+"NetApp AirGap Recovery - Dokumentation ","Dokumentation","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","NetApp AirGap Recovery - ruttm","",""
+"NetApp AirGap Recovery - ruttm","Ermöglichung einer manuellen Inbetriebnahme von Connectivity Links um einen hochperfomanten Durchsatz bei Recovery Aktionen zu ermöglichen.","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","XS","34","","PI1-Q3","Network","Data Cloud","","Marco Wartmann","","","","8","13","13","34","1","","ruttm / NetApp AirGap Recovery - Dokumentation ",""
+"ruttm / NetApp AirGap Recovery - Konfiguration","Konfig Erarbeitung & Implementation","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","NetApp AirGap Recovery - ruttm","",""
+"ruttm / NetApp AirGap Recovery - Testing","Testing","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","NetApp AirGap Recovery - ruttm","",""
+"ruttm / NetApp AirGap Recovery - Dokumentation ","Dokumentation","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","NetApp AirGap Recovery - ruttm","",""
+"AirGap Monitoring","Achtung zwei Lösungen. NetApp und Backup. Einmal von Simon Bolz und einmal von Fabian Berger (Er betreut auch die ""Dioden"").","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","XS","34","","PI1-Q3","Network","Data Cloud","","Marco Wartmann","","","","8","13","13","34","1","","Testing, Dokumentation",""
+"Konfig Erarbeitung & Implementation","'- Konfig - snmp Konfig mit Fabian Berger - wegen Diode Ports (snmp) für Geräte definieren.
+- Implementierung - nur noch SNMP ? und Queerlink für Notfallrecovery?
+- Dokumentation - Viso schon gemacht. zum Teil.'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","AirGap Monitoring","",""
+"Testing","Testing","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","AirGap Monitoring","",""
+"Dokumentation","Dokumentation","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","AirGap Monitoring","",""
+"DWDM Aufteilung SDA / Zonenfirewall RS Transit","Aufteilung von redundaten Links in den Etherchannels auf zwei verschiedene Glasfaser Provider um bei einem Ausfall einer einzelnen Strecke die Konnektivität zu gewährleisten.","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","S","33","","PI1-Q3","Network","","","Marco Wartmann","","Datacenter Fabric Site (Edge Nodes)","","5","20","8","33","1","","marbo / DWDM Aufteilung Ausarbeitung & Erfassung Change, marbo / DWDM Aufteilung Durchführung Change",""
+"marbo / DWDM Aufteilung Ausarbeitung & Erfassung Change","Change erstellen","Enabler Story","Infrastruktur, Network - Campus","DP","","Analyzing","","","0.3","PI1-Q3","Network","","","","","","","","","","","","DWDM Aufteilung SDA / Zonenfirewall RS Transit","",""
+"marbo / DWDM Aufteilung Durchführung Change","Durchführung Change","Enabler Story","Infrastruktur, Network - Campus","DP","","Analyzing","","","0.2","PI1-Q3","Network","","","","","","","","","","","","DWDM Aufteilung SDA / Zonenfirewall RS Transit","",""
+"Fusion Routing Übergänge VN/VRF","Herstellung der Konnektivität zu Client VRFs für die neue SD-Access Infrastrukur","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","S","33","","PI1-Q3","Network","","","Marco Wartmann","'-IP Adresse Konzept
+  -Netbox und IPAM Dokumentation
+-Konfiguration VRF 70002-sdaglob und 89999-default e/ibgp und VRF Lite
+ -Change/Umsetzung
+ -Test's
+
+'","","","5","20","8","33","1","","marbo /FusionRouter Übergang VRF 70002-sdaglob und 89999-default e/ibgp und VRF Lite, marbo /FusionRouter Übergang Change/Umsetzung, marbo /FusionRouter Übergang Netbox und IPAM Dokumentation, marbo /FusionRouter Übergang Tests",""
+"marbo /FusionRouter Übergang VRF 70002-sdaglob und 89999-default e/ibgp und VRF Lite","","Enabler Story","Infrastruktur, Network - Campus","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","Fusion Routing Übergänge VN/VRF","",""
+"marbo /FusionRouter Übergang Change/Umsetzung","","Enabler Story","Infrastruktur, Network - Campus","DP","","Analyzing","","","0.2","PI1-Q3","Network","","","","","","","","","","","","Fusion Routing Übergänge VN/VRF","",""
+"marbo /FusionRouter Übergang Netbox und IPAM Dokumentation","","Enabler Story","Infrastruktur, Network - Campus","DP","","Analyzing","","","0.8","PI1-Q3","Network","","","","","","","","","","","","Fusion Routing Übergänge VN/VRF","",""
+"marbo /FusionRouter Übergang Tests","","Enabler Story","Infrastruktur, Network - Campus","","","Analyzing","","","0.4","PI1-Q3","Network","","","","","","","","","","","","Fusion Routing Übergänge VN/VRF","",""
+"Campus PE Router Analyse & Konzeption","'- Lösungsevaluation aufgrund Multicast Problem (Risk)
+- Konzeption'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","L","30","","PI1-Q3","Network","","Netcloud","Marco Wartmann","'-ISE Multi CatalystCenter Deployment
+-IP Base und SDA Transit
+-SDA Client VN/Anycast GW
+-Client Anbindung über LAN und WLAN ermöglichen'","Netcloud
+Multicast Risk","","20","20","20","60","2","","",""
+"Fusion Router","Bereitstellung der neuen Fusion Router für zukünftige Konnektivität zwischen verschiedenen logischen Netzwerk Building Blocks. Diese wird als Ausgangslage für die Anbindung der neuen SD-Access Infrastruktur benötigt.","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","S","26.5","","PI1-Q3","Network","","","Marco Wartmann","","","","20","20","13","53","2","","",""
+"Fiberanbindung Züripharm - Schlieren","Bereitstellung der Glasfaseranbindung zwischen Züripharm und bestehendem USZ Netzwerk in Schlieren","Enabler Feature","Strategisch/Business, Network - Campus","DP","15","Analyzing","S","23","","PI1-Q3","Network","","","Marco Wartmann","'-ISE Multi CatalystCenter Deployment
+-IP Base und SDA Transit
+-SDA Client VN/Anycast GW
+-Client Anbindung über LAN und WLAN ermöglichen'","Feature Multiservice Core
+","","13","13","20","46","2","","",""
+"Planung Spectrum Migration Windows -> Linux","'- Planung der Migration auf Linux, da Windows Edition EOL 26/11
+. VM Bestellung 0.5SP
+- Vorbereitungen 3SP
+- Migration 2SP
+- Dokumentation 1SP'","Enabler Feature","Infrastruktur, Network - Monitoring","DP","","Analyzing","S","23","","PI1-Q3","Network","","","Marco Wartmann","","","","5","5","13","23","1","","",""
+"LoadBalancer iSeries Lifecycle Analyse und Beschaffung","'- I zu R Series Lifecycle
+- EoSS bei I Serie 26/12'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","M","21.5","","PI1-Q3","Network","","","Marco Wartmann","","","","3","20","20","43","2","","",""
+"Planung Umzug WUER6 D3a","'- Planung
+in einzelnen Features verteilt'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","","20.5","","PI1-Q3","Network","","","Marco Wartmann","","","","13","20","8","41","2","","",""
+"Umsetzung Umzug WUER6 D3a","'- Umsetzung
+in einzelnen Features verteilt'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","","20.5","","PI1-Q3","Network","","","Marco Wartmann","","","","13","20","8","41","2","","",""
+"SDA Fabric Site Datacenter","'- Border Nodes
+- Edge Nodes 
+- WLAN und LAN Ausbau WUER6 und HOFWI56 (Bis mitte Sept.)'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","M","19","","PI1-Q3","Network","FieldOps","","Marco Wartmann","'-ISE Multi CatalystCenter Deployment
+-IP Base und SDA Transit
+-SDA Client VN/Anycast GW
+-Client Anbindung über LAN und WLAN ermöglichen'","Feature Multiservice Core
+Feature SDA IP Addressing
+DWDM
+Leerung WUER6 D3a","","5","20","13","38","2","","",""
+"SDA Fabric Site Schlieren Border Nodes","'- Aufbau und Inbetriebnahme der Border Nodes in Schlieren'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","M","19","","PI1-Q3","Network","FieldOps","","Marco Wartmann","'-ISE Multi CatalystCenter Deployment
+-IP Base und SDA Transit
+-SDA Client VN/Anycast GW
+-Client Anbindung über LAN und WLAN ermöglichen'","Feature Multiservice Core
+Feature SDA IP Addressing
+","","5","20","13","38","2","","",""
+"Intermediate Nodes Züripharm","'- Bestellung Fiber
+- Inbetriebnahme und Abnahme'","Enabler Feature","Strategisch/Business, Network - Campus","DP","15","Analyzing","M","19","","PI1-Q3","Network","FieldOps","","Marco Wartmann","'-ISE Multi CatalystCenter Deployment
+-IP Base und SDA Transit
+-SDA Client VN/Anycast GW
+-Client Anbindung über LAN und WLAN ermöglichen'","Feature Multiservice Core
+","","5","20","13","38","2","","",""
+"Konzept Züripharm Netzwerk Migration","'- Analyse
+- Abklärungen Abraxas
+- Abklärungen Züripharm (Sandra)
+- Design
+- Hardwarebestellung
+- Migrationskonzept'","Enabler Feature","Strategisch/Business, Network - Campus","DP","15","Analyzing","M","19","","PI1-Q3","Network","","","Marco Wartmann","","Feature Multiservice Core
+","","5","20","13","38","2","","",""
+"Multiservice Core","'-Neuer 100Gb Backbone
+-Multiservice tauglich'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","S","19","","PI1-Q3","Network","","","Marco Wartmann","","","","5","20","13","38","2","","",""
+"Migration DMVPN WUER6 D3a","'- Vorbereitung 1-2SP
+- Migration 1SP
+- Dokumentation 1SP
+'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","XS","18","","PI1-Q3","Network","","","Marco Wartmann","","'- Betriebsstabilisierende Massnahmen
+- Risk
+- WUER6 D3a Leerung'","","5","8","5","18","1","","ruttm / DMVPN D3a - Vorbereitung, ruttm / DMVPN D3a - Migration & Dokumentation",""
+"ruttm / DMVPN D3a - Vorbereitung","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","2","PI1-Q3","Network","","EveryWare","","","","","","","","","","Migration DMVPN WUER6 D3a","",""
+"ruttm / DMVPN D3a - Migration & Dokumentation","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","2","PI1-Q3","Network","","EveryWare","","","","","","","","","","Migration DMVPN WUER6 D3a","",""
+"SDA Overlay IP Addressing","'- IP Konzept für neues SDA
+- Netbox
+- IPAM'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","M","12.666666666666666","","PI1-Q3","Network","","","Marco Wartmann","'-ISE Multi CatalystCenter Deployment
+-IP Base und SDA Transit
+-SDA Client VN/Anycast GW
+-Client Anbindung über LAN und WLAN ermöglichen'","Feature Multiservice Core
+","","5","20","13","38","3","","",""
+"DC Fabric 04 Analyse & Konfigurationsbereinigung","!!! kann momentan nicht geplant werden -> Risk, Betriebsstabilisierung !!!
+
+- Analyse / Troubleshooting
+- Monitoring
+- Bereinigung der Konfigurationen gemäss Cisco Standard
+- Abbau Monitring nach finalem Fix
+","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","L","12","","PI1-Q3","Network","Cloud Platform","Netcloud","Marco Wartmann","","'- Betriebsstabilisierende Massnahmen
+- Risk'","","20","20","20","60","5","","",""
+"WUER6 L2 Interconnect","'-Vorbereitung (und evtl. Durchführung) Migration WUER6 L2-Interconnect
+Fabric-02/-03 zu SDB1/2           
+- wenn sd-wuer6 im D3a abgebaut werden, muss der L2-Interconnect-Fallback auf
+ein Switch-Paar im D4 verschoben werden           
+- Vorbereitung: neue Patchungen, Port-Configs           
+- Test der Phys-Links (ohne Config auf SDBx-Seite)           
+- Prod-Config der SDBx-Seite           
+- Update Dokus           
+
+'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","M","7.5","","PI1-Q3","Network","","EveryWare","Marco Wartmann","","","","20","20","20","60","8","","Vorbereitung, Implementierung",""
+"Vorbereitung","'- neue Patchungen
+- Portkonfig'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","1.5","PI1-Q3","Network","","","","","","","","","","","","WUER6 L2 Interconnect","",""
+"Implementierung","'- Test der Phys-Links (ohne Config auf SDBx-Seite)           
+- Prod-Config der SDBx-Seite           
+- Update Dokus      
+'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","3","PI1-Q3","Network","","","","","","","","","","","","WUER6 L2 Interconnect","",""
+"DC Fabric Standard SVI Migration Q3","'- ongoing Migration SVI
+1SP / Iteration'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","L","7.2","","PI1-Q3","Network","alle DDI-Arts","Netcloud","Marco Wartmann","3 - n SVI migriert","Feature DC Fabric Endpoint Migration","","8","8","20","36","5","","rotm / Vorbereitung Migration 3 Subnets (DC, ISE, Exchange), Teil 2, Teil 3, Teil 4, Teil 5, Teil 1, rotm / Migration 3 Subnets (DC, ISE, Exchange) und Dokumentation / 2 SP",""
+"rotm / Vorbereitung Migration 3 Subnets (DC, ISE, Exchange)","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Standard SVI Migration Q3","",""
+"rotm / Migration 3 Subnets (DC, ISE, Exchange) und Dokumentation / 2 SP","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Standard SVI Migration Q3","",""
+"Teil 1","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Standard SVI Migration Q3","",""
+"Teil 2","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Standard SVI Migration Q3","",""
+"Teil 3","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Standard SVI Migration Q3","",""
+"Teil 4","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Standard SVI Migration Q3","",""
+"Teil 5","","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Standard SVI Migration Q3","",""
+"DC Fabric ECP WUER6 SVI Migration","1) Switches: das Plattform-Mgmt Vlan (3049) auf die Mgmt/Vmotion-Links hinzufügen
+2) ECP Nodes: das Plattform-Mgmt Vlan von den BGP-Links auf die Mgmt/Vmotion-Links umkonfigurieren
+
+3) Switches: das Plattform-Mgmt Vlan von den BGP-Links entfernen
+
+4) ACI-Fabric: die neuen Transit-Netze und BGP-Sessions (inkl. BFD) konfigurieren
+5) ECP Nodes: neue Edge-Nodes und BGP-Sessions konfigurieren
+
+6) ACI-Fabric & ECP Nodes: Inbetriebnahme der neuen BGP-Sessions
+
+7) ECP Nodes: Testing der neuen BGP-Verbindungother team
+
+8) ECP Nodes: Migration des Data-Loads auf die neuen BGP-Sessions
+
+9) Routers & ECP Nodes: Abbau der alten BGP-Sessions und alten Transit-Netze","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","L","7.2","","PI1-Q3","Network","Data Cloud","Netcloud, soultec","Marco Wartmann","SVI migriert","","","8","8","20","36","5","","Switch Config Add VLAN, Switch Config Remove VLAN, ACI Fabric Config, ACI Fabric Inbetriebnahme, Decom & Doku",""
+"Switch Config Add VLAN","Switches: das Plattform-Mgmt Vlan (3049) auf die Mgmt/Vmotion-Links hinzufügen","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","0.5","PI1-Q3","Network","","","","","","","","","","","","DC Fabric ECP WUER6 SVI Migration","",""
+"Switch Config Remove VLAN","Switches: das Plattform-Mgmt Vlan von den BGP-Links entfernen","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","0.5","PI1-Q3","Network","","","","","","","","","","","","DC Fabric ECP WUER6 SVI Migration","",""
+"ACI Fabric Config","ACI-Fabric: die neuen Transit-Netze und BGP-Sessions (inkl. BFD) konfigurieren","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","2","PI1-Q3","Network","","","","","","","","","","","","DC Fabric ECP WUER6 SVI Migration","",""
+"ACI Fabric Inbetriebnahme","ACI-Fabric & ECP Nodes: Inbetriebnahme der neuen BGP-Sessions","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","0.5","PI1-Q3","Network","","","","","","","","","","","","DC Fabric ECP WUER6 SVI Migration","",""
+"Decom & Doku","Routers & ECP Nodes: Abbau der alten BGP-Sessions und alten Transit-Netze
+Doku","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","2","PI1-Q3","Network","","","","","","","","","","","","DC Fabric ECP WUER6 SVI Migration","",""
+"DC Fabric neues Transit für LB SDB1","'- Physical Links
+
+- Transit Subnets
+- L3 Out ACI
+- Doku
+- Testing (VIP)'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","M","7.2","","PI1-Q3","Network","","Netcloud, EveryWare","Marco Wartmann","Neuer Transit aufgebaut
+Test SVI gestestet","","","8","8","20","36","5","","Physical Link Vorbereitung, Physical Link Abnahme, L3 Out Config, Testing, Dokumentation",""
+"Physical Link Vorbereitung","Bestellung Patchung
+Switchport Konfiguration","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric neues Transit für LB SDB1","",""
+"Physical Link Abnahme","Check Links","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","0.5","PI1-Q3","Network","","","","","","","","","","","","DC Fabric neues Transit für LB SDB1","",""
+"L3 Out Config","Mach die Config","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","3","PI1-Q3","Network","","","","","","","","","","","","DC Fabric neues Transit für LB SDB1","",""
+"Testing","Mach die Tests","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","2","PI1-Q3","Network","","","","","","","","","","","","DC Fabric neues Transit für LB SDB1","",""
+"Dokumentation","Mach die Doku","Enabler Story","Infrastruktur, Network - Datacenter","DP","","","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric neues Transit für LB SDB1","",""
+"DC Fabric Überarbeitung Dokumentation ","'- Dokumentation
+- neues Subnet
+- neues VRF
+- etc...
+2 - 3SP'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","XS","7","","PI1-Q3","Network","","","Marco Wartmann","","'- Betriebsstabilisierende Massnahmen
+- Risk'","","3","2","9","14","2","","",""
+"Dekommisierung alte ECP Prod und ECP PoC","'- Vorbereitung
+- Deconf
+- Doku
+3SP'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","XS","6.333333333333333","","PI1-Q3","Network","","","Marco Wartmann","","'- Betriebsstabilisierende Massnahmen
+- Risk'","","8","8","3","19","3","","",""
+"LifeCycle Netzwerk Distribution Router CDB1/AUFN","'-  Erneuerung C650x Plattform'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","S","6","","PI1-Q3","Network","FieldOps","","Marco Wartmann","","","","8","20","20","48","8","","",""
+"LifeCycle Netzwerk Distribution Router CDB2/OST","'-  Erneuerung C650x Plattform'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","S","6","","PI1-Q3","Network","FieldOps","","Marco Wartmann","","","","8","20","20","48","8","","",""
+"LoadBalancer Service Onboarding zweite Person","'- Onboarding
+- Schulung'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","M","5.8","","PI1-Q3","Network","","","Marco Wartmann","","","","1","20","8","29","5","","",""
+"SDA Automation","'- NCAE'","Enabler Feature","Infrastruktur, Strategisch/Business, Network - Campus","DP","","Analyzing","M","5.75","","PI1-Q3","Network","","Netcloud","Marco Wartmann","'- VM mit ressourcen erstellen lassen
+- OVA Deployen
+- Maglev Setup durchführen
+-Grundsetup
+-Anbindung ISE als Multiintegration Reader Node
+-Reader zu Author konvertieren
+-Tests'","Risk Multi-Catalyst Center Integration","","13","20","13","46","8","","",""
+"SDA Fabric Management (Catalyst Center)","'- Basiskonfiguration Catalyst Center
+- ISE Integration
+- Backup'","Enabler Feature","Infrastruktur, Strategisch/Business, Network - Campus","DP","","Analyzing","M","5.75","","PI1-Q3","Network","","Netcloud","Marco Wartmann","'- VM mit ressourcen erstellen lassen
+- OVA Deployen
+- Maglev Setup durchführen
+- Grundsetup
+- Anbindung ISE als Multiintegration Reader Node
+- Reader zu Author konvertieren
+- Tests'","Risk Multi-Catalyst Center Integration","","13","20","13","46","8","","CatalystCenter VM, SDA Catalyst Center Grundsetup, SDA Catalyst Center Anbindung ISE als Multiintegration Reader Node, SDA Catalyst Center Reader zu Author konvertieren, SDA Catalyst Center Test",""
+"CatalystCenter VM","Catalyst Center VM für Lab Testing Multi-Catalyst Center Integration
+","Enabler Story","Infrastruktur, Network - Campus","DP","","Analyzing","S","","","PI1-Q3","Network","Data Cloud","","","","DEVLAB1 Tacacs gelöst. AAA Network sieht ISE PSN wieder","","","","","","","SDA Fabric Management (Catalyst Center)","",""
+"SDA Catalyst Center Grundsetup","","Enabler Story","Infrastruktur, Network - Campus","","","Analyzing","","","","PI1-Q3","Network","","","","","","","","","","","","SDA Fabric Management (Catalyst Center)","",""
+"SDA Catalyst Center Anbindung ISE als Multiintegration Reader Node","","Enabler Story","Infrastruktur, Network - Campus","","","Analyzing","","","","PI1-Q3","Network","","","","","","","","","","","","SDA Fabric Management (Catalyst Center)","",""
+"SDA Catalyst Center Reader zu Author konvertieren","","Enabler Story","Infrastruktur, Network - Campus","","","Analyzing","","","","PI1-Q3","Network","","","","","","","","","","","","SDA Fabric Management (Catalyst Center)","",""
+"SDA Catalyst Center Test","","Enabler Story","Infrastruktur, Network - Campus","","","Analyzing","","","","PI1-Q3","Network","","","","","","","","","","","","SDA Fabric Management (Catalyst Center)","",""
+"Analyse und Konzept RADIUS LoadBalancing","'- Analyse
+- Konzept'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","L","5.4","","PI1-Q3","Network","","Netcloud","Marco Wartmann","","","","2","20","5","27","5","","",""
+"Abschluss Migration Filemaker -> Netbox","'- Abgleich Filemaker - Netbox
+2SP'","Enabler Feature","Infrastruktur, Network - Monitoring","DP","","Analyzing","XS","5","","PI1-Q3","Network","","","Marco Wartmann","","'- Betriebsstabilisierende Massnahmen
+- Risk'","","2","1","2","5","1","","",""
+"ISE pxGrid / Certificate Konzept","'- pxGrid Konzept
+- Betriebskonzept
+- CA Konzept'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","S","4.5","","PI1-Q3","Network","","Netcloud","Marco Wartmann","","","","3","3","3","9","2","","",""
+"VCF9 Netzwerk Integration","'- Implementierung
+- Doku
+- Schulung'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Funnel","L","3","","PI1-Q3","Network","","","Marco Wartmann","","'- Betriebsstabilisierende Massnahmen
+- Risk'","","8","8","8","24","8","","",""
+"CM1 Netzwerk Provisorium Baustelle","Genaue Termin noch unbekannt aber sicher im Q3","Feature","Bau, Network - Campus","DP","","Analyzing","","2.4","","PI1-Q3","Network","FieldOps","","Marco Wartmann","","User ART, Bauprojekte","Adrian Senn","8","2","2","12","5","","",""
+"AAA Service Onboarding Tim Waldesbühl","'- Onboarding
+- Schulung'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","L","2","","PI1-Q3","Network","","","Marco Wartmann","","","","5","8","3","16","8","","",""
+"SDA Service Onboarding Tim Waldesbühl","'- Onboarding
+- Schulung'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Analyzing","L","2","","PI1-Q3","Network","","","Marco Wartmann","","","","5","8","3","16","8","","Tim Begleitung Bossi Teil 1, Tim Begleitung Bossi Teil 2",""
+"Tim Begleitung Bossi Teil 1","'- Grundsetup
+- Anbindung ISE als Multiintegration Reader Node'","Enabler Story","Infrastruktur, Network - Campus","DP","","Analyzing","","","","PI1-Q3","Network","","","","","","","","","","","","SDA Service Onboarding Tim Waldesbühl","",""
+"Tim Begleitung Bossi Teil 2","","Enabler Story","Infrastruktur, Network - Campus","DP","","Analyzing","","","","PI1-Q3","Network","","","","","","","","","","","","SDA Service Onboarding Tim Waldesbühl","",""
+"AP Lifecycle Campus","'- Lifecycle
+4SP/Iteration
+'","Enabler Feature","LifeCycle, Infrastruktur, Network - Campus","DP","","Analyzing","L","1.95","","PI1-Q3","Network","FieldOps","","Marco Wartmann","","","","13","13","13","39","20","","",""
+"Konzept DevOps ""Zone""","'- Konzept'","Enabler Feature","Infrastruktur, Network - PO","DP","","Analyzing","S","1.875","","PI1-Q3","Network","","","Marco Wartmann","","","","5","5","5","15","8","","",""
+"Zonenfirewall Lifecycle","'- Konzepterarbeitung mit Cybersecurity'","Enabler Feature","Infrastruktur, Network - PO","DP","","Analyzing","S","1.875","","PI1-Q3","Network","","","Marco Wartmann","","","","5","5","5","15","8","","",""
+"DC Fabric Endpoint Migration Q3","'- ongoing Migration aller Endpoins in Datacenter
+8SP / Iteration benötigt für efolgreichen Verlauf in Projektplanung'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","XL","1.8","","PI1-Q3","Network","","","Marco Wartmann","","Fabric Standard SVI Migrationen
+Fabric LB SDB1 Transit","","8","8","20","36","20","","ransa / mgmt0 von CI-General und CI-Simplivity migrieren , EP's Migration Teil 1 , Teil 2, Teil 3, Teil 4, Teil 5, ransa / Migration ESXi WUER6 Vorbereitung, ransa / Migration ESXi WUER6",""
+"ransa / mgmt0 von CI-General und CI-Simplivity migrieren ","'- Port Config
+- Terminkoordination Everyware
+- Migration
+- Nachbearbeitung
+- Doku'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","2","PI1-Q3","Network","","EveryWare","","","","","","","","","","DC Fabric Endpoint Migration Q3","",""
+"ransa / Migration ESXi WUER6 Vorbereitung","'- Port Config
+- Terminkoordination Everyware
+- CAB Eingabe
+- Koordination mit Laura, Fabian und Steven'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","3","PI1-Q3","Network","","EveryWare","","","","","","","","","","DC Fabric Endpoint Migration Q3","",""
+"ransa / Migration ESXi WUER6","'- Migration
+- Nachbearbeitung
+- Doku
+'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","EveryWare","","","","","","","","","","DC Fabric Endpoint Migration Q3","",""
+"EP's Migration Teil 1 ","'- Vorbereitung
+- Abklärung
+- Change
+- Doku'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Endpoint Migration Q3","",""
+"Teil 2","'- Vorbereitung
+- Abklärung
+- Change
+- Doku
+'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","1","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Endpoint Migration Q3","",""
+"Teil 3","'- Vorbereitung
+- Abklärung
+- Change
+- Doku
+'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","2","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Endpoint Migration Q3","",""
+"Teil 4","'- Vorbereitung
+- Abklärung
+- Change
+- Doku
+'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","3","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Endpoint Migration Q3","",""
+"Teil 5","'- Vorbereitung
+- Abklärung
+- Change
+- Doku
+'","Enabler Story","Infrastruktur, Network - Datacenter","DP","","Analyzing","","","5","PI1-Q3","Network","","","","","","","","","","","","DC Fabric Endpoint Migration Q3","",""
+"Erarbeitung Schnittstelle DP ART zu Bauprojekten","'- Wie wird der DP Art involviert in Bauprojekte, wie stellen wir sicher, dass Aktivitäten im PI Backlog berücksichtigt werde. 
+- Erarbeitung von Grundlagen für Bauprojekte z.B. wie muss ein Access Point installiert werden
+- Erarbeitung von Prozessen in der Schnittestelle zum DP ART'","Enabler Feature","Bau, Network - PO","DP","","Analyzing","M","1.625","","PI1-Q3","Network","FieldOps, ART Leadership","","Marco Wartmann","","User ART, Bau und LCM","Adrian Senn","5","5","3","13","8","","",""
+"VCF9 PAIS Netzwerk Integration","'- Implementierung
+- Doku
+- Schulung'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Analyzing","L","1.5","","PI1-Q3","Network","","","Marco Wartmann","","'- Betriebsstabilisierende Massnahmen
+- Risk'","","3","8","1","12","8","","",""
+"Netzwerk Multicast Setup","'- Backbone Multicast Setup funktioniert auf den C9x Plattformen nicht korrekt im HSRP Setup
+- Stop der aktuellen BKB LifeCycle Aktivitäten'","Risk","Team Risk","DP","","New","","","","PI1-Q3","Network","","Netcloud","Marco Wartmann","","LifeCycle Backbone Distribution Router","","","","","","","","",""
+"ISE Multi-Catalyst Integration","'- Ingegration noch im Limited Availabily Status
+- Abklärung mit Cisco offen'","Risk","Team Risk","DP","","New","","","","PI1-Q3","Network","","Netcloud, Cisco","Marco Wartmann","","LifeCycle Backbone Distribution Router","","","","","","","","",""
+"Migration Synergy Frame WUER6 D4","'- Migrationsverschiebungen aufgrund Betriebsstabilität'","Risk","ART Risk","DP","","New","","","","PI1-Q3","Network","","","Marco Wartmann","","LifeCycle Backbone Distribution Router","","","","","","","","",""
+"Migration VOIP Systeme WUER6 D4","'- Abklärungen zu Betriebsstabilisierung ausstehend (Roman/Steven)'","Risk","ART Risk","DP","","New","","","","PI1-Q3","Network","","","Marco Wartmann","","LifeCycle Backbone Distribution Router","","","","","","","","",""
+"Konfigstandardisierung / Bereinigung Farbic04","'- Abklärungen zu Betriebsstabilisierung ausstehend (Roman/Steven)'","Risk","ART Risk","DP","","New","","","","PI1-Q3","Network","","","Marco Wartmann","","LifeCycle Backbone Distribution Router","","","","","","","","",""
+"DC SVI Migration","'- Abklärungen zu Betriebsstabilisierung ausstehend (Roman/Steven)
+- aktuell fehlende automatische Redundanz -> manuelle Intervention nötig'","Risk","ART Risk","DP","","New","","","","PI1-Q3","Network","","","Marco Wartmann","","LifeCycle Backbone Distribution Router","","","","","","","","",""
+"Nexus MPLS Device EoS Support","'- EoS'","Risk","Team Risk","DP","","New","","","","PI1-Q3","Network","","","Marco Wartmann","","LifeCycle Backbone Distribution Router","","","","","","","","",""
+"LifeCycle SDB2 Loadbalancer ","","Enabler Feature","LifeCycle, Network - Datacenter","DP","","Funnel","L","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"Client Staging Switches","'- Abklärung Verwendung
+- Planung Change
+- evtl. Hardwarebestellung'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Funnel","S","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"LoadBalancer Doku Update","'- veraltete Dokus updaten'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Funnel","M","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"LoadBalancer Analyse Pendenzen","'- Analyse'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Funnel","M","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"ISE Hardware Inbetriebnahme","'- Hardware Einbau
+- Netzwerkanbindung'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Funnel","S","","","PI2-Q4","Network","","Netcloud","Marco Wartmann","","","","","","","","","","",""
+"ISE Deployment Erweiterung","'- Erweiterung des Deployment um 4 weitere Nodes für bessere Performance'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Funnel","S","","","PI2-Q4","Network","","Netcloud","Marco Wartmann","","","","","","","","","","",""
+"Schnittstellen Dokumentation ION","'- Dokumentation alles Schnittstellen innerhalb der Netzwerk Infrastruktur'","Enabler Feature","Infrastruktur, Network - PO","DP","","Funnel","L","","","PI2-Q4","Network","","Netcloud","Marco Wartmann","","","","","","","","","","",""
+"Asset Management Analyze und Planung für Zero Trust","'- tbd'","Enabler Feature","Infrastruktur, Network - PO","DP","","Funnel","","","","PI2-Q4","Network","","Netcloud","Marco Wartmann","","","","","","","","","","",""
+"VXLAN Lab","'- Aufbau VXLAN Fabric im LAB'","Enabler Feature","Infrastruktur, Network - Lab","DP","","Funnel","M","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"DWDM Umzug OST V61","'- Umzug des DWDM aufgrund Auflösung OST V61'","Enabler Feature","Infrastruktur, Network - Datacenter","DP","","Funnel","","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"WiFi 7 SSID Gesamtkonzept","'- Konzept WiFi 7 SSID USZ'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Funnel","L","","","PI2-Q4","Network","","Netcloud","Marco Wartmann","","","","","","","","","","",""
+"WiFi 7 SSID Einführung Stettbach","'- Einführung'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Funnel","M","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"Elasticsearch Log Collection Dev Stage für Network Lab","'- Offerte und Bestellung wetiere Dienstleistung
+- Initial Elastic Setup
+- SNMP Collector
+- Syslog Collector
+- Netflow Collector'","Enabler Feature","Infrastruktur, Network - Campus","DP","","Funnel","M","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"Wagi21 Aus,Neu&Umbau","Bereitstellung der benötigten Switches für das Wagi21 (neuer Raum) inklusive technischer Vorbereitung, Abstimmung zur Umsetzung und bei Bedarf Unterstützung beim Ausbau bestehender Komponenten.
+","Enabler Feature","Infrastruktur, Bau, Network - Campus","DP","","Analyzing","XS","","","PI1-Q3","Network","FieldOps","","Marco Wartmann","","","","","","","","","","",""
+"Betriebshandbuch","'- Wie weiter??
+'","Enabler Feature","Infrastruktur","DP","","Funnel","XL","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"Bereinigung Fileablage","'- Bereinigung
+'","Enabler Feature","Infrastruktur","DP","","Funnel","L","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"OneNote Migration","'- Wie weiter??
+- Migration zu Wiki??
+'","Enabler Feature","Infrastruktur","DP","","Funnel","L","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"Neuvalidierung Zero Trust Konzept","'- Wie weiter??
+https://wiki.usz.ch/display/W1DA/Netzwerksegmentierung+Detailkonzept'","Enabler Feature","Infrastruktur","DP","","Funnel","L","","","PI2-Q4","Network","","","Marco Wartmann","","","","","","","","","","",""
+"Darkfiber Schlieren ZüriPharma","","Risk","Team Risk","","","New","","","","","Network","","","","","","","","","","","","","",""
+"Personelle Ressourcen / Single Point of Knowledge","","Risk","Team Risk","","","New","","","","","Network","","","","","","","","","","","","","",""
