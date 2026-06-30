@@ -24,7 +24,8 @@ In scope:
 
 Out of scope:
 
-- The existing `backend/docker-compose.yml` (db-only) — kept unchanged for local dev.
+- The existing `backend/docker-compose.yml` (db-only) — kept for local dev (received the
+  same one-line postgres:18 volume-path fix; otherwise unchanged).
 - Production TLS / reverse proxy / domain config, secrets management, CI/CD.
 - Application code changes (the React client already uses relative `/api`).
 
@@ -137,7 +138,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kanban}
       POSTGRES_DB: ${POSTGRES_DB:-kanban}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # postgres:18+ stores data in a version subdir; mount the parent dir
+      # (mounting .../data fails on 18+ with an "unused mount/volume" error).
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kanban}"]
       interval: 5s
