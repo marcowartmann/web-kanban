@@ -48,7 +48,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -104,6 +104,7 @@ export default defineConfig({
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
+    "noEmit": true,
     "strict": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
