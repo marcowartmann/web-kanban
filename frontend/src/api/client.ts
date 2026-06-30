@@ -4,6 +4,8 @@ import type {
   Item,
   ItemCreate,
   ItemUpdate,
+  Team,
+  TeamMember,
 } from "../types";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
@@ -51,4 +53,31 @@ export function importCsv(file: File): Promise<ImportResult> {
   const form = new FormData();
   form.append("file", file);
   return request<ImportResult>("/api/import", { method: "POST", body: form });
+}
+
+export function getTeams(): Promise<Team[]> {
+  return request<Team[]>("/api/teams");
+}
+
+export function createTeam(name: string): Promise<Team> {
+  return request<Team>("/api/teams", json({ name }));
+}
+
+export function deleteTeam(id: number): Promise<void> {
+  return request<void>(`/api/teams/${id}`, { method: "DELETE" });
+}
+
+export function getTeamMembers(): Promise<TeamMember[]> {
+  return request<TeamMember[]>("/api/team-members");
+}
+
+export function createTeamMember(body: {
+  name: string;
+  team_id?: number | null;
+}): Promise<TeamMember> {
+  return request<TeamMember>("/api/team-members", json(body));
+}
+
+export function deleteTeamMember(id: number): Promise<void> {
+  return request<void>(`/api/team-members/${id}`, { method: "DELETE" });
 }

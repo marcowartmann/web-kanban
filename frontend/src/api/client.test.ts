@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createItem, getBoard, importCsv, updateItem } from "./client";
+import { createItem, createTeamMember, getBoard, getTeams, importCsv, updateItem } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -46,5 +46,21 @@ describe("api client", () => {
   it("throws on non-ok responses", async () => {
     mockFetch(404, "Item not found");
     await expect(updateItem(1, {})).rejects.toThrow("404");
+  });
+
+  it("getTeams fetches /api/teams", async () => {
+    const spy = mockFetch(200, [{ id: 1, name: "Network" }]);
+    const teams = await getTeams();
+    expect(spy).toHaveBeenCalledWith("/api/teams", undefined);
+    expect(teams[0].name).toBe("Network");
+  });
+
+  it("createTeamMember posts name + team_id", async () => {
+    const spy = mockFetch(201, { id: 1, name: "Marco", team_id: 2, team_name: "Network" });
+    await createTeamMember({ name: "Marco", team_id: 2 });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/team-members");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "Marco", team_id: 2 });
   });
 });

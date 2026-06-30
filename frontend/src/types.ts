@@ -83,3 +83,15 @@ export interface ItemUpdate {
   job_size?: number | null;
   wsjf_score?: number | null;
 }
+
+export interface Team {
+  id: number;
+  name: string;
+}
+
+export interface TeamMember {
+  id: number;
+  name: string;
+  team_id: number | null;
+  team_name: string | null;
+}
