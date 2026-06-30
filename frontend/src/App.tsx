@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Board from "./components/Board";
 import ItemDrawer from "./components/ItemDrawer";
+import NewItemBar from "./components/NewItemBar";
 
 export default function App() {
   const [openItemId, setOpenItemId] = useState<number | null>(null);
@@ -13,8 +14,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white px-6 py-4">
+      <header className="flex items-center justify-between border-b bg-white px-6 py-4">
         <h1 className="text-lg font-semibold text-gray-900">SAFe Kanban</h1>
+        <NewItemBar onCreated={handleChanged} />
       </header>
       <Board key={refreshKey} onOpenCard={setOpenItemId} />
       {openItemId != null && (

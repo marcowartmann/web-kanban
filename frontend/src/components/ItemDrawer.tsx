@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { deleteItem, getItem, updateItem } from "../api/client";
+import { createItem, deleteItem, getItem, updateItem } from "../api/client";
 import type { Item, ItemUpdate } from "../types";
 import Field from "./Field";
 
@@ -24,6 +24,20 @@ export default function ItemDrawer({
   useEffect(() => {
     void getItem(itemId).then(setItem).catch((e) => setError(String(e)));
   }, [itemId]);
+
+  const reloadItem = async () => setItem(await getItem(itemId));
+
+  const addStory = async () => {
+    const title = window.prompt("New story title");
+    if (!title) return;
+    await createItem({ kind: "story", title, parent_id: itemId });
+    await reloadItem();
+  };
+
+  const removeStory = async (storyId: number) => {
+    await deleteItem(storyId);
+    await reloadItem();
+  };
 
   if (error) return <Drawer onClose={onClose}><p className="text-red-600">{error}</p></Drawer>;
   if (!item) return <Drawer onClose={onClose}><p>Loading…</p></Drawer>;
@@ -81,13 +95,31 @@ export default function ItemDrawer({
         <Field label="Job Size" type="number" value={value("job_size")} onChange={(v) => set("job_size", v)} />
       </div>
 
-      {item.children && item.children.length > 0 && (
+      {item.kind === "feature" && (
         <div className="mt-5">
-          <h3 className="mb-2 text-sm font-semibold text-gray-700">Stories</h3>
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-700">Stories</h3>
+            <button
+              onClick={addStory}
+              className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+            >
+              + Add story
+            </button>
+          </div>
           <ul className="flex flex-col gap-1">
-            {item.children.map((child) => (
-              <li key={child.id} className="rounded bg-gray-50 px-2 py-1 text-sm">
-                {child.title}
+            {(item.children ?? []).map((child) => (
+              <li
+                key={child.id}
+                className="flex items-center justify-between rounded bg-gray-50 px-2 py-1 text-sm"
+              >
+                <span>{child.title}</span>
+                <button
+                  aria-label={`remove story ${child.id}`}
+                  onClick={() => removeStory(child.id)}
+                  className="text-gray-400 hover:text-red-600"
+                >
+                  ×
+                </button>
               </li>
             ))}
           </ul>
