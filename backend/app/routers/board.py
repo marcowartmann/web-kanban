@@ -26,10 +26,12 @@ def get_board(db: Session = Depends(get_db)) -> list[BoardColumn]:
     grouped: dict[str, list[BoardCard]] = {}
     for item in db.scalars(stmt):
         status = (item.status or "").strip() or _UNSCHEDULED
-        card = BoardCard.model_validate(item)
-        card.children_count = len(item.children)
-        card.children_points = sum(
-            (c.story_points or 0) for c in item.children
+        children = item.children
+        card = BoardCard.model_validate(item).model_copy(
+            update={
+                "children_count": len(children),
+                "children_points": sum((c.story_points or 0) for c in children),
+            }
         )
         grouped.setdefault(status, []).append(card)
     return [
