@@ -94,3 +94,26 @@ class ImportResult(BaseModel):
     stories: int
     risks: int
     warnings: list[str]
+
+
+class TeamCreate(BaseModel):
+    name: str
+
+
+class TeamRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+
+
+class TeamMemberCreate(BaseModel):
+    name: str
+    team_id: int | None = None
+
+
+class TeamMemberRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    team_id: int | None
+    team_name: str | None = None

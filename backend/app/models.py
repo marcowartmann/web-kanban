@@ -57,3 +57,26 @@ class Item(Base):
         cascade="all, delete-orphan",
         order_by="Item.position",
     )
+
+
+class Team(Base):
+    __tablename__ = "teams"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    members: Mapped[list["TeamMember"]] = relationship(back_populates="team")
+
+
+class TeamMember(Base):
+    __tablename__ = "team_members"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True)
+    team_id: Mapped[int | None] = mapped_column(
+        ForeignKey("teams.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    team: Mapped["Team | None"] = relationship(back_populates="members")
