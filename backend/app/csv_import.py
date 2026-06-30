@@ -181,8 +181,8 @@ def _seed_teams_and_members(db, parsed) -> None:
 
     team_names: set[str] = set()
     for data in all_data:
-        for field in ("leading_team", "supporting_team"):
-            raw = data.get(field)
+        for attr in ("leading_team", "supporting_team"):
+            raw = data.get(attr)
             if raw:
                 for token in str(raw).split(","):
                     token = token.strip()
