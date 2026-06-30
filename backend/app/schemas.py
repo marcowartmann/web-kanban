@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models import ItemKind
 
@@ -144,11 +144,11 @@ class BoardRead(BaseModel):
 
 
 class LaneCreate(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=128)
 
 
 class LaneUpdate(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=128)
 
 
 class LaneOrder(BaseModel):
