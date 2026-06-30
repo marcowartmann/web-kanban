@@ -18,9 +18,11 @@ export async function handleDragEnd(
 export default function Board({
   filters = {},
   onOpenCard,
+  onOpenStories,
 }: {
   filters?: BoardFilters;
   onOpenCard: (id: number) => void;
+  onOpenStories?: (featureId: number) => void;
 }) {
   const { columns, loading, error, reload } = useBoard(filters);
 
@@ -31,7 +33,12 @@ export default function Board({
     <DndContext onDragEnd={(event) => void handleDragEnd(event, reload)}>
       <div className="flex gap-4 overflow-x-auto p-6">
         {columns.map((column) => (
-          <Column key={column.status} column={column} onOpenCard={onOpenCard} />
+          <Column
+            key={column.status}
+            column={column}
+            onOpenCard={onOpenCard}
+            onOpenStories={onOpenStories}
+          />
         ))}
       </div>
     </DndContext>

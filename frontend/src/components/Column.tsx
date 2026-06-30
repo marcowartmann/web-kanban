@@ -5,9 +5,11 @@ import Card from "./Card";
 export default function Column({
   column,
   onOpenCard,
+  onOpenStories,
 }: {
   column: BoardColumn;
   onOpenCard: (id: number) => void;
+  onOpenStories?: (featureId: number) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.status });
   return (
@@ -25,7 +27,12 @@ export default function Column({
       </h2>
       <div className="flex flex-col gap-2">
         {column.cards.map((card) => (
-          <Card key={card.id} card={card} onOpen={onOpenCard} />
+          <Card
+            key={card.id}
+            card={card}
+            onOpen={onOpenCard}
+            onOpenStories={onOpenStories}
+          />
         ))}
       </div>
     </div>

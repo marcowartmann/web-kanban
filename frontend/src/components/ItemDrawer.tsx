@@ -140,7 +140,7 @@ export default function ItemDrawer({
 
 function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-10 flex justify-end bg-black/30" onClick={onClose}>
+    <div className="fixed inset-0 z-30 flex justify-end bg-black/30" onClick={onClose}>
       <aside
         className="h-full w-96 overflow-y-auto bg-white p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}

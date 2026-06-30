@@ -4,9 +4,15 @@ import type { ItemKind } from "../types";
 export interface BoardFilters {
   iteration?: string;
   leading_team?: string;
-  kind?: ItemKind;
+  kinds?: ItemKind[];
   q?: string;
 }
+
+const KIND_OPTIONS: { value: ItemKind; label: string }[] = [
+  { value: "feature", label: "Feature" },
+  { value: "story", label: "Story" },
+  { value: "risk", label: "Risk" },
+];
 
 export default function Toolbar({
   filters,
@@ -27,6 +33,14 @@ export default function Toolbar({
 
   const set = (patch: Partial<BoardFilters>) =>
     onChange({ ...filters, ...patch });
+
+  const toggleKind = (kind: ItemKind, checked: boolean) => {
+    const current = filters.kinds ?? [];
+    const next = checked
+      ? [...current, kind]
+      : current.filter((k) => k !== kind);
+    set({ kinds: next });
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -68,20 +82,19 @@ export default function Toolbar({
           ))}
         </select>
       </label>
-      <label className="text-xs text-gray-500">
-        Kind
-        <select
-          value={filters.kind ?? ""}
-          onChange={(e) =>
-            set({ kind: (e.target.value || undefined) as ItemKind | undefined })
-          }
-          className="ml-1 rounded border border-gray-300 px-1 py-1 text-sm"
-        >
-          <option value="">All</option>
-          <option value="feature">Feature</option>
-          <option value="risk">Risk</option>
-        </select>
-      </label>
+      <fieldset className="flex items-center gap-2 text-xs text-gray-500">
+        <span>Kind</span>
+        {KIND_OPTIONS.map((k) => (
+          <label key={k.value} className="flex items-center gap-1">
+            <input
+              type="checkbox"
+              checked={(filters.kinds ?? []).includes(k.value)}
+              onChange={(e) => toggleKind(k.value, e.target.checked)}
+            />
+            {k.label}
+          </label>
+        ))}
+      </fieldset>
     </div>
   );
 }

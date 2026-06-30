@@ -16,3 +16,35 @@ it("emits an iteration filter on select", async () => {
   await userEvent.selectOptions(screen.getByLabelText(/iteration/i), "PI1-Q3");
   expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ iteration: "PI1-Q3" }));
 });
+
+it("adds a kind when its checkbox is ticked", async () => {
+  const onChange = vi.fn();
+  render(
+    <Toolbar
+      filters={{ kinds: ["feature", "risk"] }}
+      onChange={onChange}
+      iterations={["PI1-Q3"]}
+      teams={["Network"]}
+    />,
+  );
+  await userEvent.click(screen.getByRole("checkbox", { name: /story/i }));
+  expect(onChange).toHaveBeenLastCalledWith(
+    expect.objectContaining({ kinds: ["feature", "risk", "story"] }),
+  );
+});
+
+it("removes a kind when its checkbox is unticked", async () => {
+  const onChange = vi.fn();
+  render(
+    <Toolbar
+      filters={{ kinds: ["feature", "risk"] }}
+      onChange={onChange}
+      iterations={["PI1-Q3"]}
+      teams={["Network"]}
+    />,
+  );
+  await userEvent.click(screen.getByRole("checkbox", { name: /risk/i }));
+  expect(onChange).toHaveBeenLastCalledWith(
+    expect.objectContaining({ kinds: ["feature"] }),
+  );
+});

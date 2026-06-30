@@ -4,7 +4,7 @@ import type { BoardColumn } from "../types";
 import type { BoardFilters } from "../components/Toolbar";
 
 function matches(card: BoardColumn["cards"][number], f: BoardFilters): boolean {
-  if (f.kind && card.kind !== f.kind) return false;
+  if (f.kinds?.length && !f.kinds.includes(card.kind)) return false;
   if (f.iteration && card.iteration !== f.iteration) return false;
   if (f.leading_team && card.leading_team !== f.leading_team) return false;
   if (f.q && !card.title.toLowerCase().includes(f.q.toLowerCase())) return false;

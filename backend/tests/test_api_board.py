@@ -35,8 +35,13 @@ def test_board_card_aggregates_children(client, db_session):
     assert card["children_points"] == 2.0
 
 
-def test_board_excludes_child_stories_as_cards(client, db_session):
+def test_board_includes_child_stories_as_cards(client, db_session):
     _seed(db_session)
     columns = client.get("/api/board").json()
     titles = [card["title"] for col in columns for card in col["cards"]]
-    assert "S1" not in titles and "S2" not in titles
+    # stories are now first-class cards on the board...
+    assert "S1" in titles and "S2" in titles
+    # ...while the parent feature still reports its child aggregate
+    analyzing = next(c for c in columns if c["status"] == "Analyzing")
+    feature_card = next(c for c in analyzing["cards"] if c["title"] == "F1")
+    assert feature_card["children_count"] == 2

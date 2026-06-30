@@ -10,9 +10,11 @@ const kindStyles: Record<string, string> = {
 export default function Card({
   card,
   onOpen,
+  onOpenStories,
 }: {
   card: BoardCard;
   onOpen: (id: number) => void;
+  onOpenStories?: (featureId: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: card.id });
@@ -52,6 +54,19 @@ export default function Card({
           )}
         </div>
       </button>
+
+      {/* Sibling of the draggable button (nested <button> would be invalid DOM). */}
+      {card.kind === "feature" && onOpenStories && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenStories(card.id);
+          }}
+          className="mt-1 w-full rounded bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+        >
+          Stories ({card.children_count})
+        </button>
+      )}
     </div>
   );
 }

@@ -3,13 +3,15 @@ import Board from "./components/Board";
 import ImportButton from "./components/ImportButton";
 import ItemDrawer from "./components/ItemDrawer";
 import NewItemBar from "./components/NewItemBar";
+import StoryBoardModal from "./components/StoryBoardModal";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import { listItems } from "./api/client";
 
 export default function App() {
   const [openItemId, setOpenItemId] = useState<number | null>(null);
+  const [openStoriesFeatureId, setOpenStoriesFeatureId] = useState<number | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [filters, setFilters] = useState<BoardFilters>({});
+  const [filters, setFilters] = useState<BoardFilters>({ kinds: ["feature", "risk"] });
   const [iterations, setIterations] = useState<string[]>([]);
   const [teams, setTeams] = useState<string[]>([]);
 
@@ -35,7 +37,21 @@ export default function App() {
         </div>
       </header>
       <Toolbar filters={filters} onChange={setFilters} iterations={iterations} teams={teams} />
-      <Board key={refreshKey} filters={filters} onOpenCard={setOpenItemId} />
+      <Board
+        key={refreshKey}
+        filters={filters}
+        onOpenCard={setOpenItemId}
+        onOpenStories={setOpenStoriesFeatureId}
+      />
+      {openStoriesFeatureId != null && (
+        <StoryBoardModal
+          featureId={openStoriesFeatureId}
+          refreshSignal={refreshKey}
+          onClose={() => setOpenStoriesFeatureId(null)}
+          onOpenItem={setOpenItemId}
+          onChanged={handleChanged}
+        />
+      )}
       {openItemId != null && (
         <ItemDrawer
           itemId={openItemId}

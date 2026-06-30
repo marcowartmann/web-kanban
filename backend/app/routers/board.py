@@ -22,7 +22,9 @@ def _status_key(status: str) -> tuple[int, str]:
 
 @router.get("/board", response_model=list[BoardColumn])
 def get_board(db: Session = Depends(get_db)) -> list[BoardColumn]:
-    stmt = select(Item).where(Item.parent_id.is_(None)).order_by(Item.position)
+    # All items are cards (features, stories, risks), grouped by status. Feature
+    # cards still carry their child-story aggregate; stories/risks report 0.
+    stmt = select(Item).order_by(Item.position)
     grouped: dict[str, list[BoardCard]] = {}
     for item in db.scalars(stmt):
         status = (item.status or "").strip() or _UNSCHEDULED
