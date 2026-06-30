@@ -108,11 +108,19 @@ class LaneRead(BaseModel):
 
 
 class BoardRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     kinds: list[str]
     position: int
     lanes: list[LaneRead]
+
+    @field_validator("kinds", mode="before")
+    @classmethod
+    def _split_csv_kinds(cls, value: object) -> object:
+        if isinstance(value, str):
+            return [k for k in value.split(",") if k]
+        return value
 
 
 class LaneCreate(BaseModel):
