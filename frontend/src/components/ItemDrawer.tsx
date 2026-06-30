@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createItem, deleteItem, getItem, updateItem } from "../api/client";
 import type { Item, ItemUpdate } from "../types";
 import Field from "./Field";
+import SearchableSelect from "./SearchableSelect";
 
 const NUMERIC_FIELDS = new Set([
   "story_points", "business_value", "time_criticality",
@@ -10,10 +11,12 @@ const NUMERIC_FIELDS = new Set([
 
 export default function ItemDrawer({
   itemId,
+  assigneeOptions = [],
   onClose,
   onChanged,
 }: {
   itemId: number;
+  assigneeOptions?: string[];
   onClose: () => void;
   onChanged: () => void;
 }) {
@@ -87,7 +90,15 @@ export default function ItemDrawer({
         <Field label="Status" value={value("status")} onChange={(v) => set("status", v)} />
         <Field label="Iteration" value={value("iteration")} onChange={(v) => set("iteration", v)} />
         <Field label="Leading Team" value={value("leading_team")} onChange={(v) => set("leading_team", v)} />
-        <Field label="Assignee" value={value("assignee")} onChange={(v) => set("assignee", v)} />
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-gray-500">Assignee</span>
+          <SearchableSelect
+            value={(value("assignee") as string | null) || null}
+            options={assigneeOptions}
+            onChange={(v) => setDraft((d) => ({ ...d, assignee: v ?? "" }))}
+            placeholder="Search team member…"
+          />
+        </label>
         <Field label="Story Points" type="number" value={value("story_points")} onChange={(v) => set("story_points", v)} />
         <Field label="Business Value" type="number" value={value("business_value")} onChange={(v) => set("business_value", v)} />
         <Field label="Time Criticality" type="number" value={value("time_criticality")} onChange={(v) => set("time_criticality", v)} />
