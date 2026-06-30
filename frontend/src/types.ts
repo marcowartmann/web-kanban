@@ -57,4 +57,29 @@ export interface ItemCreate {
   [key: string]: unknown;
 }
 
-export type ItemUpdate = Partial<Omit<Item, "id" | "kind" | "parent_id">>;
+// Mirrors backend ItemUpdate (extra="forbid"): only these fields may be PATCHed.
+// `type`, `art`, `cost_of_delay`, `kind`, `parent_id`, and timestamps are NOT editable.
+export interface ItemUpdate {
+  title?: string | null;
+  description?: string | null;
+  status?: string | null;
+  position?: number | null;
+  tshirt_size?: string | null;
+  iteration?: string | null;
+  leading_team?: string | null;
+  supporting_team?: string | null;
+  externer_partner?: string | null;
+  assignee?: string | null;
+  kategorie?: string | null;
+  sdi_prio?: string | null;
+  akzeptanzkriterien?: string | null;
+  dependencies?: string | null;
+  bo_stakeholder?: string | null;
+  definition_of_done?: string | null;
+  story_points?: number | null;
+  business_value?: number | null;
+  time_criticality?: number | null;
+  risk_reduction?: number | null;
+  job_size?: number | null;
+  wsjf_score?: number | null;
+}
