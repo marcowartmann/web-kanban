@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createItem, createTeamMember, getBoard, getTeams, importCsv, updateItem } from "./client";
+import { createItem, createTeamMember, getBoard, getBoards, getTeams, importCsv, reorderLanes, updateItem } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -62,5 +62,21 @@ describe("api client", () => {
     expect(url).toBe("/api/team-members");
     expect(init?.method).toBe("POST");
     expect(JSON.parse(init?.body as string)).toEqual({ name: "Marco", team_id: 2 });
+  });
+
+  it("getBoards fetches /api/boards", async () => {
+    const spy = mockFetch(200, [{ id: 1, name: "Main", kinds: ["feature"], position: 0, lanes: [] }]);
+    const boards = await getBoards();
+    expect(spy).toHaveBeenCalledWith("/api/boards", undefined);
+    expect(boards[0].name).toBe("Main");
+  });
+
+  it("reorderLanes PUTs lane_ids", async () => {
+    const spy = mockFetch(200, []);
+    await reorderLanes(7, [3, 1, 2]);
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/boards/7/lanes/order");
+    expect(init?.method).toBe("PUT");
+    expect(JSON.parse(init?.body as string)).toEqual({ lane_ids: [3, 1, 2] });
   });
 });

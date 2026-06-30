@@ -1,9 +1,11 @@
 import type {
+  Board,
   BoardColumn,
   ImportResult,
   Item,
   ItemCreate,
   ItemUpdate,
+  Lane,
   Team,
   TeamMember,
 } from "../types";
@@ -80,4 +82,27 @@ export function createTeamMember(body: {
 
 export function deleteTeamMember(id: number): Promise<void> {
   return request<void>(`/api/team-members/${id}`, { method: "DELETE" });
+}
+
+export function getBoards(): Promise<Board[]> {
+  return request<Board[]>("/api/boards");
+}
+
+export function addLane(boardId: number, name: string): Promise<Lane> {
+  return request<Lane>(`/api/boards/${boardId}/lanes`, json({ name }));
+}
+
+export function renameLane(laneId: number, name: string): Promise<Lane> {
+  return request<Lane>(`/api/lanes/${laneId}`, { ...json({ name }), method: "PATCH" });
+}
+
+export function deleteLane(laneId: number): Promise<void> {
+  return request<void>(`/api/lanes/${laneId}`, { method: "DELETE" });
+}
+
+export function reorderLanes(boardId: number, laneIds: number[]): Promise<Lane[]> {
+  return request<Lane[]>(`/api/boards/${boardId}/lanes/order`, {
+    ...json({ lane_ids: laneIds }),
+    method: "PUT",
+  });
 }

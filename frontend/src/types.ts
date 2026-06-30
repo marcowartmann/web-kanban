@@ -95,3 +95,17 @@ export interface TeamMember {
   team_id: number | null;
   team_name: string | null;
 }
+
+export interface Lane {
+  id: number;
+  name: string;
+  position: number;
+}
+
+export interface Board {
+  id: number;
+  name: string;
+  kinds: ItemKind[];
+  position: number;
+  lanes: Lane[];
+}
