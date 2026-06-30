@@ -487,7 +487,7 @@ export default function Card({
       className="w-full rounded-lg border border-gray-200 bg-white p-3 text-left shadow-sm hover:shadow"
     >
       <div className="mb-1 flex items-center justify-between gap-2">
-        <span className={`rounded px-1.5 py-0.5 text-xs ${kindStyles[card.kind]}`}>
+        <span className={`rounded px-1.5 py-0.5 text-xs ${kindStyles[card.kind] ?? "bg-gray-100 text-gray-800"}`}>
           {card.type ?? card.kind}
         </span>
         {card.wsjf_score != null && (
@@ -701,7 +701,7 @@ export default function Card({
         className="w-full rounded-lg border border-gray-200 bg-white p-3 text-left shadow-sm hover:shadow"
       >
         <div className="mb-1 flex items-center justify-between gap-2">
-          <span className={`rounded px-1.5 py-0.5 text-xs ${kindStyles[card.kind]}`}>
+          <span className={`rounded px-1.5 py-0.5 text-xs ${kindStyles[card.kind] ?? "bg-gray-100 text-gray-800"}`}>
             {card.type ?? card.kind}
           </span>
           {card.wsjf_score != null && (
