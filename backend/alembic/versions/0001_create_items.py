@@ -44,8 +44,10 @@ def upgrade() -> None:
         sa.Column("cost_of_delay", sa.Numeric),
         sa.Column("job_size", sa.Numeric),
         sa.Column("definition_of_done", sa.Text),
-        sa.Column("created_at", sa.DateTime, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime, server_default=sa.func.now()),
+        sa.Column("created_at", sa.DateTime, server_default=sa.func.now(),
+                  nullable=False),
+        sa.Column("updated_at", sa.DateTime, server_default=sa.func.now(),
+                  nullable=False),
     )
     op.create_index("ix_items_parent_id", "items", ["parent_id"])
     op.create_index("ix_items_status", "items", ["status"])
