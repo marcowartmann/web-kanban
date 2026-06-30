@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.models import ItemKind
 
@@ -127,11 +127,20 @@ class LaneRead(BaseModel):
 
 
 class BoardRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     kinds: list[str]
     position: int
     lanes: list[LaneRead]
+
+    @field_validator("kinds", mode="before")
+    @classmethod
+    def _split_csv_kinds(cls, value: object) -> object:
+        # Accept either the ORM's CSV string ("feature,story") or an already-split list.
+        if isinstance(value, str):
+            return [k for k in value.split(",") if k]
+        return value
 
 
 class LaneCreate(BaseModel):
