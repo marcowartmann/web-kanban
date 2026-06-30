@@ -1,8 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getBoard } from "../api/client";
 import type { BoardColumn } from "../types";
+import type { BoardFilters } from "../components/Toolbar";
 
-export function useBoard() {
+function matches(card: BoardColumn["cards"][number], f: BoardFilters): boolean {
+  if (f.kind && card.kind !== f.kind) return false;
+  if (f.iteration && card.iteration !== f.iteration) return false;
+  if (f.leading_team && card.leading_team !== f.leading_team) return false;
+  if (f.q && !card.title.toLowerCase().includes(f.q.toLowerCase())) return false;
+  return true;
+}
+
+export function useBoard(filters: BoardFilters = {}) {
   const [columns, setColumns] = useState<BoardColumn[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,5 +32,14 @@ export function useBoard() {
     void reload();
   }, [reload]);
 
-  return { columns, loading, error, reload, setColumns };
+  const filtered = useMemo(
+    () =>
+      columns.map((col) => ({
+        ...col,
+        cards: col.cards.filter((card) => matches(card, filters)),
+      })),
+    [columns, filters],
+  );
+
+  return { columns: filtered, raw: columns, loading, error, reload, setColumns };
 }

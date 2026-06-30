@@ -1,6 +1,7 @@
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { useBoard } from "../hooks/useBoard";
 import { updateItem } from "../api/client";
+import type { BoardFilters } from "./Toolbar";
 import Column from "./Column";
 
 export async function handleDragEnd(
@@ -15,11 +16,13 @@ export async function handleDragEnd(
 }
 
 export default function Board({
+  filters = {},
   onOpenCard,
 }: {
+  filters?: BoardFilters;
   onOpenCard: (id: number) => void;
 }) {
-  const { columns, loading, error, reload } = useBoard();
+  const { columns, loading, error, reload } = useBoard(filters);
 
   if (loading) return <div className="p-8 text-gray-500">Loading board…</div>;
   if (error) return <div className="p-8 text-red-600">{error}</div>;
