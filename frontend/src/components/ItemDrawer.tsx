@@ -12,17 +12,19 @@ const NUMERIC_FIELDS = new Set([
 export default function ItemDrawer({
   itemId,
   assigneeOptions = [],
+  openIds = [],
   onClose,
   onChanged,
-  onBack,
   onOpenParent,
+  onOpenChild,
 }: {
   itemId: number;
   assigneeOptions?: string[];
+  openIds?: number[];
   onClose: () => void;
   onChanged: () => void;
-  onBack?: () => void;
   onOpenParent?: (parentId: number) => void;
+  onOpenChild?: (storyId: number) => void;
 }) {
   const [item, setItem] = useState<Item | null>(null);
   const [parent, setParent] = useState<Item | null>(null);
@@ -62,8 +64,8 @@ export default function ItemDrawer({
     await reloadItem();
   };
 
-  if (error) return <Drawer onClose={onClose} onBack={onBack}><p className="text-red-600">{error}</p></Drawer>;
-  if (!item) return <Drawer onClose={onClose} onBack={onBack}><p>Loading…</p></Drawer>;
+  if (error) return <Drawer onClose={onClose}><p className="text-red-600">{error}</p></Drawer>;
+  if (!item) return <Drawer onClose={onClose}><p>Loading…</p></Drawer>;
 
   const value = <K extends keyof Item>(key: K) =>
     (key in draft ? (draft as Record<string, unknown>)[key as string] : item[key]) as
@@ -93,8 +95,15 @@ export default function ItemDrawer({
     onChanged();
   };
 
+  // Only offer the parent link when the parent isn't already open beside us.
+  const showParentLink =
+    item.kind === "story" &&
+    item.parent_id != null &&
+    onOpenParent != null &&
+    !openIds.includes(item.parent_id);
+
   return (
-    <Drawer onClose={onClose} onBack={onBack}>
+    <Drawer onClose={onClose}>
       <div className="mb-4 flex items-center justify-between">
         <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
           {item.type ?? item.kind}
@@ -106,11 +115,11 @@ export default function ItemDrawer({
         )}
       </div>
 
-      {item.kind === "story" && item.parent_id != null && onOpenParent && (
+      {showParentLink && (
         <div className="mb-4 rounded bg-blue-50 px-3 py-2">
           <span className="block text-xs font-medium text-gray-500">Parent feature</span>
           <button
-            onClick={() => onOpenParent(item.parent_id!)}
+            onClick={() => onOpenParent!(item.parent_id!)}
             className="mt-0.5 block max-w-full truncate text-left text-sm font-medium text-blue-700 hover:underline"
           >
             {parent ? parent.title : `#${item.parent_id}`}
@@ -153,13 +162,24 @@ export default function ItemDrawer({
             {(item.children ?? []).map((child) => (
               <li
                 key={child.id}
-                className="flex items-center justify-between rounded bg-gray-50 px-2 py-1 text-sm"
+                className={`flex items-center justify-between rounded px-2 py-1 text-sm ${
+                  openIds.includes(child.id) ? "bg-blue-100" : "bg-gray-50"
+                }`}
               >
-                <span>{child.title}</span>
+                {onOpenChild ? (
+                  <button
+                    onClick={() => onOpenChild(child.id)}
+                    className="min-w-0 flex-1 truncate text-left text-blue-700 hover:underline"
+                  >
+                    {child.title}
+                  </button>
+                ) : (
+                  <span className="min-w-0 flex-1 truncate">{child.title}</span>
+                )}
                 <button
                   aria-label={`remove story ${child.id}`}
                   onClick={() => removeStory(child.id)}
-                  className="text-gray-400 hover:text-red-600"
+                  className="ml-2 shrink-0 text-gray-400 hover:text-red-600"
                 >
                   ×
                 </button>
@@ -181,31 +201,24 @@ export default function ItemDrawer({
   );
 }
 
-function Drawer({
-  children,
-  onClose,
-  onBack,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-  onBack?: () => void;
-}) {
+// A single docked panel. The full-screen backdrop is owned by the parent so
+// multiple panels can sit side by side in one right-docked row.
+function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-30 flex justify-end bg-black/30" onClick={onClose}>
-      <aside
-        className="h-full w-96 overflow-y-auto bg-white p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="mb-3 -ml-1 flex items-center gap-1 rounded px-1 py-0.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
-          >
-            ← Back
-          </button>
-        )}
-        {children}
-      </aside>
-    </div>
+    <aside
+      className="flex h-full w-96 shrink-0 flex-col border-l bg-white shadow-xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex justify-end border-b px-2 py-1.5">
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="rounded px-2 py-0.5 text-lg leading-none text-gray-400 hover:text-gray-700"
+        >
+          ×
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-6">{children}</div>
+    </aside>
   );
 }

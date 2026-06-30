@@ -60,15 +60,43 @@ it("shows a parent-feature link for a story and opens it on click", async () => 
   expect(onOpenParent).toHaveBeenCalledWith(5);
 });
 
-it("renders a Back button that calls onBack when stacked", async () => {
-  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
-  const onBack = vi.fn();
+it("hides the parent link when the parent is already open beside it", async () => {
+  const story = { ...item, id: 9, kind: "story", title: "My Story", parent_id: 5 };
+  vi.spyOn(client, "getItem").mockResolvedValue(story as never);
   render(
-    <ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} onBack={onBack} />,
+    <ItemDrawer
+      itemId={9}
+      openIds={[9, 5]}
+      onClose={() => {}}
+      onChanged={() => {}}
+      onOpenParent={() => {}}
+    />,
   );
+  await screen.findByDisplayValue("My Story");
+  expect(screen.queryByText(/parent feature/i)).not.toBeInTheDocument();
+});
+
+it("opens a child story via onOpenChild when its title is clicked", async () => {
+  const feature = {
+    ...item,
+    children: [{ ...item, id: 6, kind: "story", title: "Child Story", parent_id: 5 }],
+  };
+  vi.spyOn(client, "getItem").mockResolvedValue(feature as never);
+  const onOpenChild = vi.fn();
+  render(
+    <ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} onOpenChild={onOpenChild} />,
+  );
+  await userEvent.click(await screen.findByRole("button", { name: "Child Story" }));
+  expect(onOpenChild).toHaveBeenCalledWith(6);
+});
+
+it("closes via the × button", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  const onClose = vi.fn();
+  render(<ItemDrawer itemId={5} onClose={onClose} onChanged={() => {}} />);
   await screen.findByDisplayValue("Teton Isolierung");
-  await userEvent.click(screen.getByRole("button", { name: /back/i }));
-  expect(onBack).toHaveBeenCalled();
+  await userEvent.click(screen.getByRole("button", { name: /close/i }));
+  expect(onClose).toHaveBeenCalled();
 });
 
 it("deletes via deleteItem after confirm", async () => {

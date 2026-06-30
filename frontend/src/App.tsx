@@ -14,13 +14,26 @@ export default function App() {
   const { boards, items, loading, error, reload } = useBoard();
   const [view, setView] = useState<"board" | "admin">("board");
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
-  const [itemStack, setItemStack] = useState<number[]>([]);
+  // Panels are docked right-to-left: the rightmost is the primary item, and a
+  // related item docks beside it as [story, feature] (feature always on the right).
+  const [panels, setPanels] = useState<number[]>([]);
   const [openStoriesFeatureId, setOpenStoriesFeatureId] = useState<number | null>(null);
 
-  const openItem = (id: number) => setItemStack([id]);
-  const pushItem = (id: number) => setItemStack((s) => [...s, id]);
-  const popItem = () => setItemStack((s) => s.slice(0, -1));
-  const closeItems = () => setItemStack([]);
+  const openItem = (id: number) => setPanels([id]);
+  // A child story docks to the LEFT of the feature (the rightmost panel).
+  const openChild = (storyId: number) =>
+    setPanels((p) => {
+      const feature = p[p.length - 1];
+      return feature != null ? [storyId, feature] : [storyId];
+    });
+  // A parent feature docks to the RIGHT; the story shifts to the left.
+  const openParent = (featureId: number) =>
+    setPanels((p) => {
+      const story = p[0];
+      return story != null ? [story, featureId] : [featureId];
+    });
+  const closePanel = (id: number) => setPanels((p) => p.filter((x) => x !== id));
+  const closePanels = () => setPanels([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<BoardFilters>({});
   const [assigneeOptions, setAssigneeOptions] = useState<string[]>([]);
@@ -50,7 +63,7 @@ export default function App() {
   };
 
   const handleChanged = () => {
-    closeItems();
+    closePanels();
     setRefreshKey((k) => k + 1);
     void reload();
   };
@@ -120,17 +133,25 @@ export default function App() {
           onChanged={handleChanged}
         />
       )}
-      {itemStack.map((id, idx) => (
-        <ItemDrawer
-          key={`${idx}-${id}`}
-          itemId={id}
-          assigneeOptions={assigneeOptions}
-          onClose={closeItems}
-          onChanged={handleChanged}
-          onBack={idx > 0 ? popItem : undefined}
-          onOpenParent={pushItem}
-        />
-      ))}
+      {panels.length > 0 && (
+        <div
+          className="fixed inset-0 z-30 flex justify-end bg-black/30"
+          onClick={closePanels}
+        >
+          {panels.map((id) => (
+            <ItemDrawer
+              key={id}
+              itemId={id}
+              assigneeOptions={assigneeOptions}
+              openIds={panels}
+              onClose={() => closePanel(id)}
+              onChanged={handleChanged}
+              onOpenParent={openParent}
+              onOpenChild={openChild}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
