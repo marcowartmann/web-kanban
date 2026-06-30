@@ -1,34 +1,53 @@
-import { useEffect, useState } from "react";
-import Board from "./components/Board";
+import { useEffect, useMemo, useState } from "react";
+import BoardTabs from "./components/BoardTabs";
+import BoardView from "./components/BoardView";
 import ImportButton from "./components/ImportButton";
 import ItemDrawer from "./components/ItemDrawer";
 import NewItemBar from "./components/NewItemBar";
 import StoryBoardModal from "./components/StoryBoardModal";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import AdminView from "./components/admin/AdminView";
-import { getTeamMembers, listItems } from "./api/client";
+import { useBoard } from "./hooks/useBoard";
+import { getTeamMembers } from "./api/client";
 
 export default function App() {
+  const { boards, items, loading, error, reload } = useBoard();
   const [view, setView] = useState<"board" | "admin">("board");
+  const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
   const [openItemId, setOpenItemId] = useState<number | null>(null);
   const [openStoriesFeatureId, setOpenStoriesFeatureId] = useState<number | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [filters, setFilters] = useState<BoardFilters>({ kinds: ["feature", "risk"] });
-  const [iterations, setIterations] = useState<string[]>([]);
-  const [teams, setTeams] = useState<string[]>([]);
+  const [filters, setFilters] = useState<BoardFilters>({});
   const [assigneeOptions, setAssigneeOptions] = useState<string[]>([]);
 
   useEffect(() => {
-    void listItems().then((items) => {
-      setIterations([...new Set(items.map((i) => i.iteration).filter(Boolean) as string[])].sort());
-      setTeams([...new Set(items.map((i) => i.leading_team).filter(Boolean) as string[])].sort());
-    });
+    if (activeBoardId == null && boards.length) setActiveBoardId(boards[0].id);
+  }, [boards, activeBoardId]);
+
+  useEffect(() => {
     void getTeamMembers().then((ms) => setAssigneeOptions(ms.map((m) => m.name)));
   }, [refreshKey]);
+
+  const activeBoard = boards.find((b) => b.id === activeBoardId) ?? null;
+
+  const iterations = useMemo(
+    () => [...new Set(items.map((i) => i.iteration).filter(Boolean) as string[])].sort(),
+    [items],
+  );
+  const teams = useMemo(
+    () => [...new Set(items.map((i) => i.leading_team).filter(Boolean) as string[])].sort(),
+    [items],
+  );
+
+  const selectBoard = (id: number) => {
+    setActiveBoardId(id);
+    setFilters((f) => ({ ...f, kinds: undefined })); // reset kind narrowing per board
+  };
 
   const handleChanged = () => {
     setOpenItemId(null);
     setRefreshKey((k) => k + 1);
+    void reload();
   };
 
   const navButton = (target: "board" | "admin", label: string) => (
@@ -60,19 +79,32 @@ export default function App() {
         )}
       </header>
 
-      {view === "board" ? (
+      {view === "admin" ? (
+        <AdminView onChanged={handleChanged} />
+      ) : loading && !activeBoard ? (
+        <div className="p-8 text-gray-500">Loading board…</div>
+      ) : error ? (
+        <div className="p-8 text-red-600">{error}</div>
+      ) : activeBoard ? (
         <>
-          <Toolbar filters={filters} onChange={setFilters} iterations={iterations} teams={teams} />
-          <Board
-            key={refreshKey}
+          <BoardTabs boards={boards} activeId={activeBoardId} onSelect={selectBoard} />
+          <Toolbar
+            filters={filters}
+            onChange={setFilters}
+            iterations={iterations}
+            teams={teams}
+            kindOptions={activeBoard.kinds}
+          />
+          <BoardView
+            board={activeBoard}
+            items={items}
             filters={filters}
             onOpenCard={setOpenItemId}
             onOpenStories={setOpenStoriesFeatureId}
+            onChanged={handleChanged}
           />
         </>
-      ) : (
-        <AdminView onChanged={handleChanged} />
-      )}
+      ) : null}
 
       {openStoriesFeatureId != null && (
         <StoryBoardModal

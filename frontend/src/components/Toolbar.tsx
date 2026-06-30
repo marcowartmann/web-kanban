@@ -8,22 +8,18 @@ export interface BoardFilters {
   q?: string;
 }
 
-const KIND_OPTIONS: { value: ItemKind; label: string }[] = [
-  { value: "feature", label: "Feature" },
-  { value: "story", label: "Story" },
-  { value: "risk", label: "Risk" },
-];
-
 export default function Toolbar({
   filters,
   onChange,
   iterations,
   teams,
+  kindOptions,
 }: {
   filters: BoardFilters;
   onChange: (next: BoardFilters) => void;
   iterations: string[];
   teams: string[];
+  kindOptions: ItemKind[];
 }) {
   const [searchValue, setSearchValue] = useState(filters.q ?? "");
 
@@ -84,14 +80,14 @@ export default function Toolbar({
       </label>
       <fieldset className="flex items-center gap-2 text-xs text-gray-500">
         <span>Kind</span>
-        {KIND_OPTIONS.map((k) => (
-          <label key={k.value} className="flex items-center gap-1">
+        {kindOptions.map((kind) => (
+          <label key={kind} className="flex items-center gap-1">
             <input
               type="checkbox"
-              checked={(filters.kinds ?? []).includes(k.value)}
-              onChange={(e) => toggleKind(k.value, e.target.checked)}
+              checked={(filters.kinds ?? []).includes(kind)}
+              onChange={(e) => toggleKind(kind, e.target.checked)}
             />
-            {k.label}
+            {kind.charAt(0).toUpperCase() + kind.slice(1)}
           </label>
         ))}
       </fieldset>

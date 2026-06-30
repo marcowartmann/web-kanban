@@ -1,6 +1,5 @@
 import type {
   Board,
-  BoardColumn,
   ImportResult,
   Item,
   ItemCreate,
@@ -25,10 +24,6 @@ const json = (body: unknown): RequestInit => ({
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(body),
 });
-
-export function getBoard(): Promise<BoardColumn[]> {
-  return request<BoardColumn[]>("/api/board");
-}
 
 export function listItems(params: Record<string, string> = {}): Promise<Item[]> {
   const qs = new URLSearchParams(params).toString();

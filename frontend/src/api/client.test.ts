@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createItem, createTeamMember, getBoard, getBoards, getTeams, importCsv, reorderLanes, updateItem } from "./client";
+import { createItem, createTeamMember, getBoards, getTeams, importCsv, reorderLanes, updateItem } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -13,13 +13,6 @@ function mockFetch(status: number, body: unknown) {
 }
 
 describe("api client", () => {
-  it("getBoard fetches /api/board", async () => {
-    const spy = mockFetch(200, [{ status: "Analyzing", cards: [] }]);
-    const board = await getBoard();
-    expect(spy).toHaveBeenCalledWith("/api/board", undefined);
-    expect(board[0].status).toBe("Analyzing");
-  });
-
   it("updateItem sends PATCH with JSON body", async () => {
     const spy = mockFetch(200, { id: 1, status: "New" });
     await updateItem(1, { status: "New" });
