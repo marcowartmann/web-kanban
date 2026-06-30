@@ -13,11 +13,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import imports, items, board
+from app.routers import imports, items, board, teams
 
 app.include_router(imports.router)
 app.include_router(items.router)
 app.include_router(board.router)
+app.include_router(teams.router)
 
 
 @app.get("/api/health")
