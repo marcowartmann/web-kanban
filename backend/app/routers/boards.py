@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models import Board, Lane
-from app.schemas import BoardRead, LaneCreate, LaneRead, LaneUpdate
+from app.schemas import BoardRead, LaneCreate, LaneOrder, LaneRead, LaneUpdate
 
 router = APIRouter(prefix="/api", tags=["boards"])
 
@@ -96,3 +96,27 @@ def delete_lane(lane_id: int, db: Session = Depends(get_db)) -> None:
         raise HTTPException(status_code=404, detail="Lane not found")
     db.delete(lane)
     db.commit()
+
+
+@router.put("/boards/{board_id}/lanes/order", response_model=list[LaneRead])
+def reorder_lanes(
+    board_id: int, payload: LaneOrder, db: Session = Depends(get_db)
+) -> list[Lane]:
+    if db.get(Board, board_id) is None:
+        raise HTTPException(status_code=404, detail="Board not found")
+    lanes = {
+        lane.id: lane
+        for lane in db.scalars(select(Lane).where(Lane.board_id == board_id))
+    }
+    if set(payload.lane_ids) != set(lanes) or len(payload.lane_ids) != len(lanes):
+        raise HTTPException(
+            status_code=422, detail="lane_ids must match the board's lanes exactly"
+        )
+    for position, lane_id in enumerate(payload.lane_ids):
+        lanes[lane_id].position = position
+    db.commit()
+    return list(
+        db.scalars(
+            select(Lane).where(Lane.board_id == board_id).order_by(Lane.position)
+        )
+    )
