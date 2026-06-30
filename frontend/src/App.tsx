@@ -56,6 +56,10 @@ export default function App() {
     () => [...new Set(items.map((i) => i.leading_team).filter(Boolean) as string[])].sort(),
     [items],
   );
+  const assignees = useMemo(
+    () => [...new Set(items.map((i) => i.assignee).filter(Boolean) as string[])].sort(),
+    [items],
+  );
 
   const selectBoard = (id: number) => {
     setActiveBoardId(id);
@@ -111,6 +115,7 @@ export default function App() {
             onChange={setFilters}
             iterations={iterations}
             teams={teams}
+            assignees={assignees}
             kindOptions={activeBoard.kinds}
           />
           <BoardView

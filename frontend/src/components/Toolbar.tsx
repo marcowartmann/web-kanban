@@ -4,6 +4,7 @@ import type { ItemKind } from "../types";
 export interface BoardFilters {
   iteration?: string;
   leading_team?: string;
+  assignee?: string;
   kinds?: ItemKind[];
   q?: string;
 }
@@ -13,12 +14,14 @@ export default function Toolbar({
   onChange,
   iterations,
   teams,
+  assignees,
   kindOptions,
 }: {
   filters: BoardFilters;
   onChange: (next: BoardFilters) => void;
   iterations: string[];
   teams: string[];
+  assignees: string[];
   kindOptions: ItemKind[];
 }) {
   const [searchValue, setSearchValue] = useState(filters.q ?? "");
@@ -75,6 +78,19 @@ export default function Toolbar({
           <option value="">All</option>
           {teams.map((t) => (
             <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+      </label>
+      <label className="text-xs text-gray-500">
+        Assignee
+        <select
+          value={filters.assignee ?? ""}
+          onChange={(e) => set({ assignee: e.target.value || undefined })}
+          className="ml-1 rounded border border-gray-300 px-1 py-1 text-sm"
+        >
+          <option value="">All</option>
+          {assignees.map((a) => (
+            <option key={a} value={a}>{a}</option>
           ))}
         </select>
       </label>

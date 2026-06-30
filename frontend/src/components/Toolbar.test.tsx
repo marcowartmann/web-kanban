@@ -5,16 +5,23 @@ import Toolbar from "./Toolbar";
 
 it("emits the search query on type", async () => {
   const onChange = vi.fn();
-  render(<Toolbar filters={{}} onChange={onChange} iterations={["PI1-Q3"]} teams={["Network"]} kindOptions={["feature", "story", "risk"]} />);
+  render(<Toolbar filters={{}} onChange={onChange} iterations={["PI1-Q3"]} teams={["Network"]} assignees={["Marco Wartmann"]} kindOptions={["feature", "story", "risk"]} />);
   await userEvent.type(screen.getByPlaceholderText(/search/i), "teton");
   expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ q: "teton" }));
 });
 
 it("emits an iteration filter on select", async () => {
   const onChange = vi.fn();
-  render(<Toolbar filters={{}} onChange={onChange} iterations={["PI1-Q3"]} teams={["Network"]} kindOptions={["feature", "story", "risk"]} />);
+  render(<Toolbar filters={{}} onChange={onChange} iterations={["PI1-Q3"]} teams={["Network"]} assignees={["Marco Wartmann"]} kindOptions={["feature", "story", "risk"]} />);
   await userEvent.selectOptions(screen.getByLabelText(/iteration/i), "PI1-Q3");
   expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ iteration: "PI1-Q3" }));
+});
+
+it("emits an assignee filter on select", async () => {
+  const onChange = vi.fn();
+  render(<Toolbar filters={{}} onChange={onChange} iterations={["PI1-Q3"]} teams={["Network"]} assignees={["Marco Wartmann", "Adrian Senn"]} kindOptions={["feature", "story", "risk"]} />);
+  await userEvent.selectOptions(screen.getByLabelText(/assignee/i), "Adrian Senn");
+  expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ assignee: "Adrian Senn" }));
 });
 
 it("adds a kind when its checkbox is ticked", async () => {
@@ -25,6 +32,7 @@ it("adds a kind when its checkbox is ticked", async () => {
       onChange={onChange}
       iterations={["PI1-Q3"]}
       teams={["Network"]}
+      assignees={["Marco Wartmann"]}
       kindOptions={["feature", "story", "risk"]}
     />,
   );
@@ -42,6 +50,7 @@ it("removes a kind when its checkbox is unticked", async () => {
       onChange={onChange}
       iterations={["PI1-Q3"]}
       teams={["Network"]}
+      assignees={["Marco Wartmann"]}
       kindOptions={["feature", "story", "risk"]}
     />,
   );
