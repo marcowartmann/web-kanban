@@ -1,3 +1,4 @@
+import { useDroppable } from "@dnd-kit/core";
 import type { BoardColumn } from "../types";
 import Card from "./Card";
 
@@ -8,8 +9,14 @@ export default function Column({
   column: BoardColumn;
   onOpenCard: (id: number) => void;
 }) {
+  const { setNodeRef, isOver } = useDroppable({ id: column.status });
   return (
-    <div className="flex w-72 shrink-0 flex-col rounded-xl bg-gray-100 p-3">
+    <div
+      ref={setNodeRef}
+      className={`flex w-72 shrink-0 flex-col rounded-xl p-3 ${
+        isOver ? "bg-blue-50 ring-2 ring-blue-300" : "bg-gray-100"
+      }`}
+    >
       <h2 className="mb-3 flex items-center justify-between text-sm font-semibold text-gray-700">
         <span>{column.status}</span>
         <span className="rounded-full bg-gray-200 px-2 text-xs">
