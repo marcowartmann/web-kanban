@@ -13,11 +13,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import imports, items, board, teams, team_members
+from app.routers import imports, items, boards, teams, team_members
 
 app.include_router(imports.router)
 app.include_router(items.router)
-app.include_router(board.router)
+app.include_router(boards.router)
 app.include_router(teams.router)
 app.include_router(team_members.router)
 
