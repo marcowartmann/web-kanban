@@ -117,3 +117,30 @@ class TeamMemberRead(BaseModel):
     name: str
     team_id: int | None
     team_name: str | None = None
+
+
+class LaneRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    position: int
+
+
+class BoardRead(BaseModel):
+    id: int
+    name: str
+    kinds: list[str]
+    position: int
+    lanes: list[LaneRead]
+
+
+class LaneCreate(BaseModel):
+    name: str
+
+
+class LaneUpdate(BaseModel):
+    name: str
+
+
+class LaneOrder(BaseModel):
+    lane_ids: list[int]

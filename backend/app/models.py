@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Enum, ForeignKey, Integer, Numeric, String, Text, func
+from sqlalchemy import Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -80,3 +80,34 @@ class TeamMember(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     team: Mapped["Team | None"] = relationship(back_populates="members")
+
+
+class Board(Base):
+    __tablename__ = "boards"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True)
+    kinds: Mapped[str] = mapped_column(String(128))  # CSV, e.g. "feature,story"
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    lanes: Mapped[list["Lane"]] = relationship(
+        back_populates="board",
+        cascade="all, delete-orphan",
+        order_by="Lane.position",
+    )
+
+
+class Lane(Base):
+    __tablename__ = "lanes"
+    __table_args__ = (UniqueConstraint("board_id", "name", name="uq_lane_board_name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    board_id: Mapped[int] = mapped_column(
+        ForeignKey("boards.id", ondelete="CASCADE")
+    )
+    name: Mapped[str] = mapped_column(String(128))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    board: Mapped["Board"] = relationship(back_populates="lanes")
