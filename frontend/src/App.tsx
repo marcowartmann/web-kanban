@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Board from "./components/Board";
+import ImportButton from "./components/ImportButton";
 import ItemDrawer from "./components/ItemDrawer";
 import NewItemBar from "./components/NewItemBar";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
@@ -28,7 +29,10 @@ export default function App() {
     <div className="min-h-screen bg-gray-50">
       <header className="flex items-center justify-between border-b bg-white px-6 py-4">
         <h1 className="text-lg font-semibold text-gray-900">SAFe Kanban</h1>
-        <NewItemBar onCreated={handleChanged} />
+        <div className="flex items-center gap-3">
+          <ImportButton onImported={handleChanged} />
+          <NewItemBar onCreated={handleChanged} />
+        </div>
       </header>
       <Toolbar filters={filters} onChange={setFilters} iterations={iterations} teams={teams} />
       <Board key={refreshKey} filters={filters} onOpenCard={setOpenItemId} />
