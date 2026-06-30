@@ -1,61 +1,71 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
+import type { ItemKind } from "../types";
 import Toolbar from "./Toolbar";
+
+const baseProps = {
+  iterations: ["PI1-Q3"],
+  teams: ["Network"],
+  assignees: ["Marco Wartmann", "Adrian Senn"],
+  kindOptions: ["feature", "story", "risk"] as ItemKind[],
+};
 
 it("emits the search query on type", async () => {
   const onChange = vi.fn();
-  render(<Toolbar filters={{}} onChange={onChange} iterations={["PI1-Q3"]} teams={["Network"]} assignees={["Marco Wartmann"]} kindOptions={["feature", "story", "risk"]} />);
+  render(<Toolbar filters={{}} onChange={onChange} {...baseProps} />);
   await userEvent.type(screen.getByPlaceholderText(/search/i), "teton");
   expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ q: "teton" }));
 });
 
-it("emits an iteration filter on select", async () => {
+it("emits an iteration filter when an option is picked", async () => {
   const onChange = vi.fn();
-  render(<Toolbar filters={{}} onChange={onChange} iterations={["PI1-Q3"]} teams={["Network"]} assignees={["Marco Wartmann"]} kindOptions={["feature", "story", "risk"]} />);
-  await userEvent.selectOptions(screen.getByLabelText(/iteration/i), "PI1-Q3");
+  render(<Toolbar filters={{}} onChange={onChange} {...baseProps} />);
+  await userEvent.click(screen.getByRole("button", { name: /iteration/i }));
+  await userEvent.click(screen.getByRole("option", { name: "PI1-Q3" }));
   expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ iteration: "PI1-Q3" }));
 });
 
-it("emits an assignee filter on select", async () => {
+it("emits an assignee filter when an option is picked", async () => {
   const onChange = vi.fn();
-  render(<Toolbar filters={{}} onChange={onChange} iterations={["PI1-Q3"]} teams={["Network"]} assignees={["Marco Wartmann", "Adrian Senn"]} kindOptions={["feature", "story", "risk"]} />);
-  await userEvent.selectOptions(screen.getByLabelText(/assignee/i), "Adrian Senn");
+  render(<Toolbar filters={{}} onChange={onChange} {...baseProps} />);
+  await userEvent.click(screen.getByRole("button", { name: /assignee/i }));
+  await userEvent.click(screen.getByRole("option", { name: "Adrian Senn" }));
   expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ assignee: "Adrian Senn" }));
 });
 
-it("adds a kind when its checkbox is ticked", async () => {
+it("adds a kind when its pill is clicked", async () => {
   const onChange = vi.fn();
-  render(
-    <Toolbar
-      filters={{ kinds: ["feature", "risk"] }}
-      onChange={onChange}
-      iterations={["PI1-Q3"]}
-      teams={["Network"]}
-      assignees={["Marco Wartmann"]}
-      kindOptions={["feature", "story", "risk"]}
-    />,
-  );
-  await userEvent.click(screen.getByRole("checkbox", { name: /story/i }));
+  render(<Toolbar filters={{ kinds: ["feature", "risk"] }} onChange={onChange} {...baseProps} />);
+  await userEvent.click(screen.getByRole("button", { name: /story/i }));
   expect(onChange).toHaveBeenLastCalledWith(
     expect.objectContaining({ kinds: ["feature", "risk", "story"] }),
   );
 });
 
-it("removes a kind when its checkbox is unticked", async () => {
+it("removes a kind when its active pill is clicked", async () => {
   const onChange = vi.fn();
-  render(
-    <Toolbar
-      filters={{ kinds: ["feature", "risk"] }}
-      onChange={onChange}
-      iterations={["PI1-Q3"]}
-      teams={["Network"]}
-      assignees={["Marco Wartmann"]}
-      kindOptions={["feature", "story", "risk"]}
-    />,
-  );
-  await userEvent.click(screen.getByRole("checkbox", { name: /risk/i }));
+  render(<Toolbar filters={{ kinds: ["feature", "risk"] }} onChange={onChange} {...baseProps} />);
+  await userEvent.click(screen.getByRole("button", { name: /risk/i }));
   expect(onChange).toHaveBeenLastCalledWith(
     expect.objectContaining({ kinds: ["feature"] }),
   );
+});
+
+it("clears every filter when Clear all is clicked", async () => {
+  const onChange = vi.fn();
+  render(
+    <Toolbar
+      filters={{ q: "x", iteration: "PI1-Q3", kinds: ["feature"] }}
+      onChange={onChange}
+      {...baseProps}
+    />,
+  );
+  await userEvent.click(screen.getByRole("button", { name: /clear all/i }));
+  expect(onChange).toHaveBeenCalledWith({});
+});
+
+it("hides Clear all when no filter is active", () => {
+  render(<Toolbar filters={{}} onChange={() => {}} {...baseProps} />);
+  expect(screen.queryByRole("button", { name: /clear all/i })).not.toBeInTheDocument();
 });

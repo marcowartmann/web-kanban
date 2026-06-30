@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ItemKind } from "../types";
+import FilterSelect from "./FilterSelect";
 
 export interface BoardFilters {
   iteration?: string;
@@ -33,11 +34,11 @@ export default function Toolbar({
   const set = (patch: Partial<BoardFilters>) =>
     onChange({ ...filters, ...patch });
 
-  const toggleKind = (kind: ItemKind, checked: boolean) => {
+  const toggleKind = (kind: ItemKind) => {
     const current = filters.kinds ?? [];
-    const next = checked
-      ? [...current, kind]
-      : current.filter((k) => k !== kind);
+    const next = current.includes(kind)
+      ? current.filter((k) => k !== kind)
+      : [...current, kind];
     set({ kinds: next });
   };
 
@@ -47,66 +48,90 @@ export default function Toolbar({
     set({ q: value });
   };
 
+  const hasActive =
+    !!filters.q ||
+    !!filters.iteration ||
+    !!filters.leading_team ||
+    !!filters.assignee ||
+    !!filters.kinds?.length;
+
   return (
-    <div className="flex flex-wrap items-end gap-3 border-b bg-white px-6 py-3">
-      <input
-        placeholder="Search title…"
-        value={searchValue}
-        onChange={handleSearchChange}
-        className="rounded border border-gray-300 px-2 py-1 text-sm"
+    <div className="flex flex-wrap items-center gap-3 border-b bg-white px-6 py-3">
+      <div className="relative">
+        <svg
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+        >
+          <circle cx="9" cy="9" r="6" />
+          <path strokeLinecap="round" d="M14.5 14.5L18 18" />
+        </svg>
+        <input
+          placeholder="Search title…"
+          value={searchValue}
+          onChange={handleSearchChange}
+          className="w-56 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-3 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+        />
+      </div>
+
+      <FilterSelect
+        label="Iteration"
+        value={filters.iteration}
+        options={iterations}
+        onChange={(v) => set({ iteration: v })}
       />
-      <label className="text-xs text-gray-500">
-        Iteration
-        <select
-          value={filters.iteration ?? ""}
-          onChange={(e) => set({ iteration: e.target.value || undefined })}
-          className="ml-1 rounded border border-gray-300 px-1 py-1 text-sm"
+      <FilterSelect
+        label="Team"
+        value={filters.leading_team}
+        options={teams}
+        onChange={(v) => set({ leading_team: v })}
+      />
+      <FilterSelect
+        label="Assignee"
+        value={filters.assignee}
+        options={assignees}
+        onChange={(v) => set({ assignee: v })}
+      />
+
+      <div className="flex items-center gap-1.5">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          Kind
+        </span>
+        {kindOptions.map((kind) => {
+          const active = (filters.kinds ?? []).includes(kind);
+          return (
+            <button
+              key={kind}
+              type="button"
+              aria-pressed={active}
+              onClick={() => toggleKind(kind)}
+              className={`rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-100 ${
+                active
+                  ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {kind.charAt(0).toUpperCase() + kind.slice(1)}
+            </button>
+          );
+        })}
+      </div>
+
+      {hasActive && (
+        <button
+          type="button"
+          onClick={() => onChange({})}
+          className="ml-auto inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
         >
-          <option value="">All</option>
-          {iterations.map((it) => (
-            <option key={it} value={it}>{it}</option>
-          ))}
-        </select>
-      </label>
-      <label className="text-xs text-gray-500">
-        Team
-        <select
-          value={filters.leading_team ?? ""}
-          onChange={(e) => set({ leading_team: e.target.value || undefined })}
-          className="ml-1 rounded border border-gray-300 px-1 py-1 text-sm"
-        >
-          <option value="">All</option>
-          {teams.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-      </label>
-      <label className="text-xs text-gray-500">
-        Assignee
-        <select
-          value={filters.assignee ?? ""}
-          onChange={(e) => set({ assignee: e.target.value || undefined })}
-          className="ml-1 rounded border border-gray-300 px-1 py-1 text-sm"
-        >
-          <option value="">All</option>
-          {assignees.map((a) => (
-            <option key={a} value={a}>{a}</option>
-          ))}
-        </select>
-      </label>
-      <fieldset className="flex items-center gap-2 text-xs text-gray-500">
-        <span>Kind</span>
-        {kindOptions.map((kind) => (
-          <label key={kind} className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              checked={(filters.kinds ?? []).includes(kind)}
-              onChange={(e) => toggleKind(kind, e.target.checked)}
-            />
-            {kind.charAt(0).toUpperCase() + kind.slice(1)}
-          </label>
-        ))}
-      </fieldset>
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
+            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+          </svg>
+          Clear all
+        </button>
+      )}
     </div>
   );
 }
