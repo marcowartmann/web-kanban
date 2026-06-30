@@ -5,12 +5,13 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { updateItem } from "../api/client";
 import { UNSCHEDULED, buildBoardCards, groupIntoLanes } from "../lib/boardLanes";
 import type { Board, BoardCard, Item } from "../types";
 import type { BoardFilters } from "./Toolbar";
 import Column from "./Column";
+import LaneEditor from "./LaneEditor";
 
 export async function handleCardDragEnd(
   event: DragEndEvent,
@@ -60,21 +61,34 @@ export default function BoardView({
     return groupIntoLanes(visible(cards, board, filters), board.lanes);
   }, [items, board, filters]);
 
+  const [editing, setEditing] = useState(false);
+
   return (
-    <DndContext
-      sensors={sensors}
-      onDragEnd={(event) => void handleCardDragEnd(event, onChanged)}
-    >
-      <div className="flex gap-4 overflow-x-auto p-6">
-        {columns.map((column) => (
-          <Column
-            key={column.status}
-            column={column}
-            onOpenCard={onOpenCard}
-            onOpenStories={onOpenStories}
-          />
-        ))}
+    <div>
+      <div className="flex justify-end px-6 pt-3">
+        <button
+          onClick={() => setEditing((v) => !v)}
+          className="rounded border border-gray-300 px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
+        >
+          {editing ? "Done" : "Edit lanes"}
+        </button>
       </div>
-    </DndContext>
+      {editing && <LaneEditor board={board} onChanged={onChanged} />}
+      <DndContext
+        sensors={sensors}
+        onDragEnd={(event) => void handleCardDragEnd(event, onChanged)}
+      >
+        <div className="flex gap-4 overflow-x-auto p-6">
+          {columns.map((column) => (
+            <Column
+              key={column.status}
+              column={column}
+              onOpenCard={onOpenCard}
+              onOpenStories={onOpenStories}
+            />
+          ))}
+        </div>
+      </DndContext>
+    </div>
   );
 }
