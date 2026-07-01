@@ -79,48 +79,54 @@ export default function StoryBoardModal({
 
   return (
     <div
-      className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 p-6"
+      className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[85vh] w-full max-w-5xl flex-col rounded-xl bg-white shadow-xl"
+        className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b px-5 py-3">
-          <h2 className="truncate text-base font-semibold text-gray-900">
-            {feature ? feature.title : "Loading…"}
-            <span className="ml-1 font-normal text-gray-400">— Stories</span>
+        <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-5 py-3">
+          <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold text-gray-900">
+            <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+              Feature
+            </span>
+            <span className="truncate">{feature ? feature.title : "Loading…"}</span>
+            <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+              {feature?.children?.length ?? 0} stories
+            </span>
           </h2>
           <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={() => onOpenItem(featureId)}
-              className="rounded bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700"
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >
               Edit feature
             </button>
             <button
               onClick={addStory}
-              className="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white"
+              className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
             >
               + Add story
             </button>
             <button
               onClick={onClose}
               aria-label="Close"
-              className="rounded px-2 py-1 text-lg leading-none text-gray-400 hover:text-gray-700"
+              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
             >
-              ×
+              ✕
             </button>
           </div>
         </div>
 
         {error && <p className="px-5 py-2 text-sm text-red-600">{error}</p>}
 
-        <div className="overflow-auto p-4">
+        <div className="overflow-auto bg-gray-50 p-4">
           {feature && isEmpty ? (
-            <p className="p-6 text-sm text-gray-500">
-              No stories yet. Use “+ Add story”.
-            </p>
+            <div className="flex flex-col items-center justify-center gap-1 p-12 text-center">
+              <p className="text-sm font-medium text-gray-600">No stories yet</p>
+              <p className="text-sm text-gray-400">Use “+ Add story” to add the first one.</p>
+            </div>
           ) : (
             <DndContext sensors={sensors} onDragEnd={(e) => void onDragEnd(e)}>
               <div className="flex gap-4">
