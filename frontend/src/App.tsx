@@ -8,10 +8,11 @@ import StoryBoardModal from "./components/StoryBoardModal";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
+import TimelineView from "./components/TimelineView";
 import { useBoard } from "./hooks/useBoard";
 import { getTeamMembers } from "./api/client";
 
-type View = "board" | "admin" | "planning";
+type View = "board" | "admin" | "planning" | "timeline";
 
 export default function App() {
   const { boards, items, links, loading, error, reload } = useBoard();
@@ -97,6 +98,7 @@ export default function App() {
           <nav className="flex gap-1">
             {navButton("board", "Board")}
             {navButton("planning", "Planning")}
+            {navButton("timeline", "Timeline")}
             {navButton("admin", "Admin")}
           </nav>
         </div>
@@ -112,6 +114,14 @@ export default function App() {
         <AdminView onChanged={handleChanged} planningIntervals={planningIntervals} />
       ) : view === "planning" ? (
         <PlanningView
+          items={items}
+          links={links}
+          planningIntervals={planningIntervals}
+          onOpenCard={openItem}
+          onChanged={handleChanged}
+        />
+      ) : view === "timeline" ? (
+        <TimelineView
           items={items}
           links={links}
           planningIntervals={planningIntervals}
