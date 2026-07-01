@@ -37,6 +37,33 @@ it("handleTimelineDragEnd updates iteration from the drop target slot", async ()
   expect(update).toHaveBeenLastCalledWith(11, { iteration: null });
 });
 
+it("filters feature lanes by title or id via the search field", async () => {
+  const items = [
+    feature(1, { title: "Checkout" }),
+    story(11, 1, 1),
+    feature(2, { title: "Payments" }),
+    story(21, 2, 1),
+  ];
+  render(<TimelineView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />);
+  const search = screen.getByRole("textbox", { name: /filter by feature title or id/i });
+
+  // by title (case-insensitive substring): only the Checkout lane + its story
+  await userEvent.type(search, "check");
+  expect(screen.getByText("Checkout")).toBeInTheDocument();
+  expect(screen.queryByText("Payments")).not.toBeInTheDocument();
+  expect(screen.getByText("S11")).toBeInTheDocument();
+  expect(screen.queryByText("S21")).not.toBeInTheDocument();
+
+  // the clear button restores every lane
+  await userEvent.click(screen.getByRole("button", { name: /clear feature filter/i }));
+  expect(screen.getByText("Payments")).toBeInTheDocument();
+
+  // by id, with a leading "#" ignored
+  await userEvent.type(search, "#2");
+  expect(screen.getByText("Payments")).toBeInTheDocument();
+  expect(screen.queryByText("Checkout")).not.toBeInTheDocument();
+});
+
 it("dependencies mode narrows to the selected item's transitive component", async () => {
   const items = [feature(1), story(11, 1, 1), story(12, 1, 2), story(13, 1, 3)];
   const links = [

@@ -39,6 +39,7 @@ export default function TimelineView({
 }) {
   const [pi, setPi] = useState<string | null>(planningIntervals[0] ?? null);
   const [showAll, setShowAll] = useState(true);
+  const [query, setQuery] = useState("");
   const [highlight, setHighlight] = useState<Set<number> | null>(null);
   const onHighlight = (ids: number[] | null) => setHighlight(ids ? new Set(ids) : null);
   const [mode, setMode] = useState<"feature" | "deps">("feature");
@@ -63,6 +64,19 @@ export default function TimelineView({
     () => (pi ? groupByFeature(items, pi, { showAll }) : []),
     [items, pi, showAll],
   );
+  // Filter the feature lanes by a single query matching the feature title
+  // (case-insensitive substring) or its id (a leading "#" is ignored). An
+  // empty query shows every lane; the "No feature" orphan lane is hidden
+  // while a query is active.
+  const filteredLanes = useMemo(() => {
+    const q = query.trim().toLowerCase().replace(/^#/, "");
+    if (!q) return lanes;
+    return lanes.filter(
+      (lane) =>
+        lane.feature != null &&
+        (lane.feature.title.toLowerCase().includes(q) || String(lane.feature.id).includes(q)),
+    );
+  }, [lanes, query]);
   const depsLane: FeatureLane = useMemo(() => {
     let base: Item[] = [];
     if (pi) {
@@ -111,6 +125,35 @@ export default function TimelineView({
             <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Lanes</span>
             <button onClick={() => setShowAll(true)} className={pill(showAll)}>Show all</button>
             <button onClick={() => setShowAll(false)} className={pill(!showAll)}>Only planned</button>
+            <div className="relative ml-auto">
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              >
+                <circle cx="9" cy="9" r="6" />
+                <path strokeLinecap="round" d="M14.5 14.5L18 18" />
+              </svg>
+              <input
+                aria-label="Filter by feature title or ID"
+                placeholder="Filter features…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-56 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-8 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+              />
+              {query && (
+                <button
+                  aria-label="Clear feature filter"
+                  onClick={() => setQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -126,19 +169,25 @@ export default function TimelineView({
         </div>
         <DndContext sensors={sensors} onDragEnd={(e) => void handleTimelineDragEnd(e, onChanged)}>
           <div className="flex flex-col">
-            {(mode === "feature" ? lanes : [depsLane]).map((lane) => (
-              <TimelineLane
-                key={lane.feature ? lane.feature.id : "orphan"}
-                lane={lane}
-                columns={columns}
-                cardInfo={cardInfo}
-                highlight={highlight}
-                selectedIds={mode === "deps" ? selected : undefined}
-                onHighlight={onHighlight}
-                onOpenCard={mode === "deps" ? toggleSelect : onOpenCard}
-                onOpenFeature={mode === "deps" ? toggleSelect : onOpenCard}
-              />
-            ))}
+            {mode === "feature" && filteredLanes.length === 0 && query.trim() ? (
+              <div className="px-2 py-8 text-sm text-gray-400">
+                No features match “{query.trim()}”.
+              </div>
+            ) : (
+              (mode === "feature" ? filteredLanes : [depsLane]).map((lane) => (
+                <TimelineLane
+                  key={lane.feature ? lane.feature.id : "orphan"}
+                  lane={lane}
+                  columns={columns}
+                  cardInfo={cardInfo}
+                  highlight={highlight}
+                  selectedIds={mode === "deps" ? selected : undefined}
+                  onHighlight={onHighlight}
+                  onOpenCard={mode === "deps" ? toggleSelect : onOpenCard}
+                  onOpenFeature={mode === "deps" ? toggleSelect : onOpenCard}
+                />
+              ))
+            )}
           </div>
         </DndContext>
       </div>
