@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { createPlanningInterval, deletePlanningInterval, getPlanningIntervals } from "../../api/client";
 import type { PlanningInterval } from "../../types";
+import AdminCard, {
+  adminAddButtonClass,
+  adminEmptyClass,
+  adminInputClass,
+  adminRemoveButtonClass,
+  adminRowClass,
+} from "./AdminCard";
 
 export default function PlanningIntervalsSection({ onChanged }: { onChanged: () => void }) {
   const [intervals, setIntervals] = useState<PlanningInterval[]>([]);
@@ -24,33 +31,39 @@ export default function PlanningIntervalsSection({ onChanged }: { onChanged: () 
   };
 
   return (
-    <section className="rounded-lg border bg-white p-4">
-      <h2 className="mb-3 text-sm font-semibold text-gray-700">Planning Intervals</h2>
-      <div className="mb-3 flex gap-2">
+    <AdminCard
+      title="Planning Intervals"
+      icon="🗓️"
+      accent="bg-violet-50 text-violet-600"
+      count={intervals.length}
+    >
+      <div className="mb-4 flex gap-2">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && void add()}
           placeholder="New planning interval"
-          className="rounded border border-gray-300 px-2 py-1 text-sm"
+          className={`${adminInputClass} flex-1`}
         />
-        <button onClick={add} className="rounded bg-blue-600 px-3 py-1 text-sm text-white">
+        <button onClick={add} className={adminAddButtonClass}>
           Add
         </button>
       </div>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-0.5">
         {intervals.map((p) => (
-          <li key={p.id} className="flex items-center justify-between rounded bg-gray-50 px-2 py-1 text-sm">
-            <span>{p.name}</span>
+          <li key={p.id} className={adminRowClass}>
+            <span className="truncate font-medium text-gray-800">{p.name}</span>
             <button
               aria-label={`remove planning interval ${p.id}`}
               onClick={() => remove(p.id)}
-              className="text-gray-400 hover:text-red-600"
+              className={adminRemoveButtonClass}
             >
               ×
             </button>
           </li>
         ))}
+        {intervals.length === 0 && <li className={adminEmptyClass}>No planning intervals yet.</li>}
       </ul>
-    </section>
+    </AdminCard>
   );
 }

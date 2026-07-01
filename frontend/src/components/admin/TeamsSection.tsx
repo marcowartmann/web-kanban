@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { createTeam, deleteTeam, getTeams } from "../../api/client";
 import type { Team } from "../../types";
+import AdminCard, {
+  adminAddButtonClass,
+  adminEmptyClass,
+  adminInputClass,
+  adminRemoveButtonClass,
+  adminRowClass,
+} from "./AdminCard";
 
 export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -24,36 +31,34 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
   };
 
   return (
-    <section className="rounded-lg border bg-white p-4">
-      <h2 className="mb-3 text-sm font-semibold text-gray-700">Teams</h2>
-      <div className="mb-3 flex gap-2">
+    <AdminCard title="Teams" icon="👥" accent="bg-blue-50 text-blue-600" count={teams.length}>
+      <div className="mb-4 flex gap-2">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && void add()}
           placeholder="New team name"
-          className="rounded border border-gray-300 px-2 py-1 text-sm"
+          className={`${adminInputClass} flex-1`}
         />
-        <button onClick={add} className="rounded bg-blue-600 px-3 py-1 text-sm text-white">
+        <button onClick={add} className={adminAddButtonClass}>
           Add
         </button>
       </div>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-0.5">
         {teams.map((t) => (
-          <li
-            key={t.id}
-            className="flex items-center justify-between rounded bg-gray-50 px-2 py-1 text-sm"
-          >
-            <span>{t.name}</span>
+          <li key={t.id} className={adminRowClass}>
+            <span className="truncate font-medium text-gray-800">{t.name}</span>
             <button
               aria-label={`remove team ${t.id}`}
               onClick={() => remove(t.id)}
-              className="text-gray-400 hover:text-red-600"
+              className={adminRemoveButtonClass}
             >
               ×
             </button>
           </li>
         ))}
+        {teams.length === 0 && <li className={adminEmptyClass}>No teams yet.</li>}
       </ul>
-    </section>
+    </AdminCard>
   );
 }

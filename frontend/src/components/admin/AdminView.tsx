@@ -11,13 +11,21 @@ export default function AdminView({
   planningIntervals?: string[];
 }) {
   return (
-    <div className="space-y-4 p-6">
-      <div className="grid gap-4 md:grid-cols-2">
+    <div className="mx-auto max-w-6xl px-6 py-8">
+      <header className="mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">Administration</h1>
+        <p className="mt-0.5 text-sm text-gray-500">
+          Manage teams, members, planning intervals, and capacity.
+        </p>
+      </header>
+      <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3">
         <TeamsSection onChanged={onChanged} />
         <TeamMembersSection onChanged={onChanged} />
         <PlanningIntervalsSection onChanged={onChanged} />
       </div>
-      <CapacitySection planningIntervals={planningIntervals} />
+      <div className="mt-4">
+        <CapacitySection planningIntervals={planningIntervals} />
+      </div>
     </div>
   );
 }

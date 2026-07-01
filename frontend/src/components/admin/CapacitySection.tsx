@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getCapacities, getTeamMembers, upsertCapacity } from "../../api/client";
 import { ITERATION_SLOTS, iterationLabel } from "../../lib/iterations";
 import type { Capacity, TeamMember } from "../../types";
+import { adminCardClass } from "./AdminCard";
 
 export default function CapacitySection({
   planningIntervals,
@@ -47,10 +48,22 @@ export default function CapacitySection({
     setCapacities((cs) => [...cs.filter((c) => c.id !== saved.id), saved]);
   };
 
+  const iconChip = (
+    <span
+      className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-base text-amber-600"
+      aria-hidden
+    >
+      📊
+    </span>
+  );
+
   if (!planningIntervals.length) {
     return (
-      <section className="rounded-xl border border-gray-200 bg-white p-4">
-        <h2 className="mb-2 text-sm font-semibold text-gray-700">Capacity</h2>
+      <section className={adminCardClass}>
+        <header className="mb-2 flex items-center gap-2.5">
+          {iconChip}
+          <h2 className="text-sm font-semibold text-gray-900">Capacity</h2>
+        </header>
         <p className="text-sm text-gray-500">
           No planning intervals yet. Set a Planning Interval on stories first.
         </p>
@@ -59,45 +72,55 @@ export default function CapacitySection({
   }
 
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-4">
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <h2 className="text-sm font-semibold text-gray-700">Capacity (SP)</h2>
-        <span className="ml-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+    <section className={adminCardClass}>
+      <div className="mb-4 flex flex-wrap items-center gap-2.5">
+        {iconChip}
+        <h2 className="text-sm font-semibold text-gray-900">Capacity</h2>
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+          SP
+        </span>
+        <span className="ml-auto text-[11px] font-semibold uppercase tracking-wide text-gray-400">
           Planning Interval
         </span>
-        {planningIntervals.map((p) => (
-          <button
-            key={p}
-            onClick={() => setPi(p)}
-            className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
-              p === pi
-                ? "border-blue-600 bg-blue-600 text-white"
-                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            {p}
-          </button>
-        ))}
+        <div className="flex flex-wrap gap-1.5">
+          {planningIntervals.map((p) => (
+            <button
+              key={p}
+              onClick={() => setPi(p)}
+              className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
+                p === pi
+                  ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-gray-500">
-              <th className="py-1 pr-3 font-medium">Member</th>
+            <tr className="border-b border-gray-200 text-left text-[11px] uppercase tracking-wide text-gray-400">
+              <th className="py-2 pr-3 font-semibold">Member</th>
               {ITERATION_SLOTS.map((slot) => (
-                <th key={slot} className="px-2 py-1 font-medium">{iterationLabel(slot)}</th>
+                <th key={slot} className="px-2 py-2 text-center font-semibold">
+                  {iterationLabel(slot)}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {members.map((m) => (
-              <tr key={m.id} className="border-t">
-                <td className="py-1 pr-3 text-gray-800">{m.name}</td>
+              <tr key={m.id} className="border-b border-gray-100 last:border-0">
+                <td className="whitespace-nowrap py-1.5 pr-3 font-medium text-gray-800">
+                  {m.name}
+                </td>
                 {ITERATION_SLOTS.map((slot) => {
                   const key = `${m.id}:${slot}`;
                   return (
-                    <td key={slot} className="px-1 py-1">
+                    <td key={slot} className="px-1 py-1.5 text-center">
                       <input
                         type="number"
                         min="0"
@@ -105,7 +128,7 @@ export default function CapacitySection({
                         value={values[key] ?? ""}
                         onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
                         onBlur={(e) => void commit(m.id, slot, e.target.value)}
-                        className="w-16 rounded border border-gray-200 px-2 py-1 text-sm"
+                        className="w-16 rounded-lg border border-gray-200 px-2 py-1.5 text-center text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
                       />
                     </td>
                   );
@@ -114,7 +137,9 @@ export default function CapacitySection({
             ))}
             {members.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-2 text-gray-400">No team members yet.</td>
+                <td colSpan={ITERATION_SLOTS.length + 1} className="py-4 text-center text-gray-400">
+                  No team members yet.
+                </td>
               </tr>
             )}
           </tbody>
