@@ -1,4 +1,5 @@
 import type { BoardCard, BoardColumn, Item, LinkRow } from "../types";
+import { linkCounts } from "./links";
 
 export const UNSCHEDULED = "Unscheduled";
 
@@ -14,20 +15,7 @@ export function buildBoardCards(items: Item[], links: LinkRow[] = []): BoardCard
     }
   }
 
-  const blocksCount = new Map<number, number>();
-  const blockedByCount = new Map<number, number>();
-  const relatedCount = new Map<number, number>();
-  const bump = (m: Map<number, number>, id: number) => m.set(id, (m.get(id) ?? 0) + 1);
-  for (const link of links) {
-    if (link.relation === "blocks") {
-      bump(blocksCount, link.source_id);
-      bump(blockedByCount, link.target_id);
-    } else if (link.relation === "relates_to") {
-      // symmetric: both endpoints are "related"
-      bump(relatedCount, link.source_id);
-      bump(relatedCount, link.target_id);
-    }
-  }
+  const counts = linkCounts(links);
 
   return items.map((it) => {
     const kids = childrenByParent.get(it.id) ?? [];
@@ -35,9 +23,9 @@ export function buildBoardCards(items: Item[], links: LinkRow[] = []): BoardCard
       ...it,
       children_count: kids.length,
       children_points: kids.reduce((sum, c) => sum + (c.story_points ?? 0), 0),
-      blocked_by_count: blockedByCount.get(it.id) ?? 0,
-      blocks_count: blocksCount.get(it.id) ?? 0,
-      related_count: relatedCount.get(it.id) ?? 0,
+      blocked_by_count: counts.blockedBy.get(it.id) ?? 0,
+      blocks_count: counts.blocks.get(it.id) ?? 0,
+      related_count: counts.related.get(it.id) ?? 0,
     };
   });
 }

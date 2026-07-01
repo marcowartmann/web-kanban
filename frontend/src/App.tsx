@@ -113,6 +113,7 @@ export default function App() {
       ) : view === "planning" ? (
         <PlanningView
           items={items}
+          links={links}
           planningIntervals={planningIntervals}
           onOpenCard={openItem}
           onChanged={handleChanged}

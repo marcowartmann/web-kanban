@@ -1,4 +1,5 @@
 import { useDroppable } from "@dnd-kit/core";
+import type { CardLinkInfo } from "../lib/planningLinks";
 import type { Item } from "../types";
 import StoryPlanCard from "./StoryPlanCard";
 
@@ -9,6 +10,7 @@ export default function PlanningColumn({
   capacity,
   stories,
   parentTitles,
+  linkInfo,
   onOpen,
 }: {
   id: string;
@@ -17,6 +19,7 @@ export default function PlanningColumn({
   capacity?: number;
   stories: Item[];
   parentTitles: Map<number, string>;
+  linkInfo?: Map<number, CardLinkInfo>;
   onOpen: (id: number) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -50,6 +53,7 @@ export default function PlanningColumn({
             key={s.id}
             story={s}
             parentTitle={s.parent_id != null ? parentTitles.get(s.parent_id) : undefined}
+            info={linkInfo?.get(s.id)}
             onOpen={onOpen}
           />
         ))}

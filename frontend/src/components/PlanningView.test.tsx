@@ -40,7 +40,7 @@ it("shows Backlog + Iteration 1–5 + IP and a slot's Load / Cap", async () => {
     story({ id: 2, title: "Slotted Story", iteration: 2, story_points: 3 }),
   ];
   render(
-    <PlanningView items={items} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
+    <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
   );
   expect(screen.getByText("Backlog")).toBeInTheDocument();
   expect(screen.getByText("IP")).toBeInTheDocument();
@@ -55,7 +55,7 @@ it("scopes the stories to the selected team", async () => {
     story({ id: 2, title: "Plat Story", iteration: 2, leading_team: "Platform" }),
   ];
   render(
-    <PlanningView items={items} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
+    <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
   );
   expect(await screen.findByText("Plat Story")).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Network" }));
@@ -69,7 +69,7 @@ it("filters to an assignee and scopes capacity to them", async () => {
     story({ id: 2, title: "Manuela Story", iteration: 2, story_points: 2, assignee: "Manuela" }),
   ];
   render(
-    <PlanningView items={items} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
+    <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
   );
   // Everyone: load 3+2 vs the one member's Cap 5.
   expect(await screen.findByText("Manuela Story")).toBeInTheDocument();

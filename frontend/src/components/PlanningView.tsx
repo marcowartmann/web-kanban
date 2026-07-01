@@ -14,7 +14,8 @@ import {
   iterationLabel,
   slotPoints,
 } from "../lib/iterations";
-import type { Capacity, Item, Team, TeamMember } from "../types";
+import { computePlanningLinks } from "../lib/planningLinks";
+import type { Capacity, Item, LinkRow, Team, TeamMember } from "../types";
 import FilterSelect from "./FilterSelect";
 import PlanningColumn from "./PlanningColumn";
 
@@ -30,11 +31,13 @@ export async function handlePlanDragEnd(
 
 export default function PlanningView({
   items,
+  links,
   planningIntervals,
   onOpenCard,
   onChanged,
 }: {
   items: Item[];
+  links: LinkRow[];
   planningIntervals: string[];
   onOpenCard: (id: number) => void;
   onChanged: () => void | Promise<void>;
@@ -91,6 +94,13 @@ export default function PlanningView({
     if (assigneeName) scoped = scoped.filter((i) => i.assignee === assigneeName);
     return groupStoriesByIteration(scoped, pi);
   }, [items, pi, team, assigneeName]);
+
+  // Dependency badges + timeline conflicts, computed over the full (unfiltered)
+  // item list so a blocker hidden by the team/assignee filter is still detected.
+  const cardInfo = useMemo(
+    () => computePlanningLinks(items, links, pi ?? ""),
+    [items, links, pi],
+  );
 
   const caps = useMemo(() => {
     if (!pi) return null;
@@ -160,6 +170,7 @@ export default function PlanningView({
               title="Backlog"
               stories={groups.backlog}
               parentTitles={parentTitles}
+              linkInfo={cardInfo}
               onOpen={onOpenCard}
             />
             {ITERATION_SLOTS.map((slot) => (
@@ -171,6 +182,7 @@ export default function PlanningView({
                 capacity={caps ? caps[slot] : undefined}
                 stories={groups.slots[slot]}
                 parentTitles={parentTitles}
+                linkInfo={cardInfo}
                 onOpen={onOpenCard}
               />
             ))}
