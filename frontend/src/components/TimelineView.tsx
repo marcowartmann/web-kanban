@@ -64,11 +64,15 @@ export default function TimelineView({
     [items, pi, showAll],
   );
   const depsLane: FeatureLane = useMemo(() => {
-    const base = pi
-      ? selected.size
-        ? items.filter((it) => dependencyComponent(items, links, selected).has(it.id))
-        : items.filter((it) => it.kind === "story" && it.planning_interval === pi)
-      : [];
+    let base: Item[] = [];
+    if (pi) {
+      if (selected.size) {
+        const component = dependencyComponent(items, links, selected);
+        base = items.filter((it) => component.has(it.id));
+      } else {
+        base = items.filter((it) => it.kind === "story" && it.planning_interval === pi);
+      }
+    }
     const flat = layoutFlat(base, pi ?? "");
     return { feature: null, backlog: flat.backlog, slots: flat.slots };
   }, [items, links, pi, selected]);
