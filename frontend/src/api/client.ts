@@ -6,6 +6,8 @@ import type {
   ItemCreate,
   ItemUpdate,
   Lane,
+  LinkRow,
+  RelationOption,
   Team,
   TeamMember,
 } from "../types";
@@ -45,6 +47,26 @@ export function updateItem(id: number, patch: ItemUpdate): Promise<Item> {
 
 export function deleteItem(id: number): Promise<void> {
   return request<void>(`/api/items/${id}`, { method: "DELETE" });
+}
+
+export function getLinkRelations(): Promise<RelationOption[]> {
+  return request<RelationOption[]>("/api/link-relations");
+}
+
+export function listLinks(): Promise<LinkRow[]> {
+  return request<LinkRow[]>("/api/links");
+}
+
+export function createLink(body: {
+  source_id: number;
+  target_id: number;
+  relation: string;
+}): Promise<LinkRow> {
+  return request<LinkRow>("/api/links", json(body));
+}
+
+export function deleteLink(linkId: number): Promise<void> {
+  return request<void>(`/api/links/${linkId}`, { method: "DELETE" });
 }
 
 export function importCsv(file: File): Promise<ImportResult> {

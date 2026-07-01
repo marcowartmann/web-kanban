@@ -31,16 +31,48 @@ export interface Item {
   job_size: number | null;
   definition_of_done: string | null;
   children?: Item[];
+  links?: LinkedItem[];
 }
 
 export interface BoardCard extends Item {
   children_count: number;
   children_points: number;
+  blocked_by_count?: number;
+  blocks_count?: number;
 }
 
 export interface BoardColumn {
   status: string;
   cards: BoardCard[];
+}
+
+export interface ItemRef {
+  id: number;
+  title: string;
+  kind: ItemKind;
+  status: string | null;
+  planning_interval: string | null;
+}
+
+export interface LinkedItem {
+  link_id: number;
+  relation: string;
+  direction: "outgoing" | "incoming";
+  label: string;
+  item: ItemRef;
+}
+
+export interface RelationOption {
+  relation: string;
+  direction: "outgoing" | "incoming" | "both";
+  label: string;
+}
+
+export interface LinkRow {
+  id: number;
+  source_id: number;
+  target_id: number;
+  relation: string;
 }
 
 export interface ImportResult {

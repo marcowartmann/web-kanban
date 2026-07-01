@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createItem, createTeamMember, getBoards, getTeams, importCsv, reorderLanes, updateItem } from "./client";
+import { createItem, createLink, createTeamMember, deleteLink, getBoards, getTeams, importCsv, listLinks, reorderLanes, updateItem } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
 function mockFetch(status: number, body: unknown) {
+  const nullBodyStatuses = new Set([204, 205, 304]);
   return vi.spyOn(globalThis, "fetch").mockResolvedValue(
-    new Response(typeof body === "string" ? body : JSON.stringify(body), {
+    new Response(nullBodyStatuses.has(status) ? null : (typeof body === "string" ? body : JSON.stringify(body)), {
       status,
       headers: { "Content-Type": "application/json" },
     }),
@@ -71,5 +72,27 @@ describe("api client", () => {
     expect(url).toBe("/api/boards/7/lanes/order");
     expect(init?.method).toBe("PUT");
     expect(JSON.parse(init?.body as string)).toEqual({ lane_ids: [3, 1, 2] });
+  });
+
+  it("createLink posts the edge body", async () => {
+    const spy = mockFetch(201, { id: 1, source_id: 2, target_id: 3, relation: "blocks" });
+    await createLink({ source_id: 2, target_id: 3, relation: "blocks" });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/links");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ source_id: 2, target_id: 3, relation: "blocks" });
+  });
+
+  it("deleteLink sends DELETE", async () => {
+    const spy = mockFetch(204, "");
+    await deleteLink(7);
+    expect(spy.mock.calls[0][0]).toBe("/api/links/7");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("listLinks fetches all edges", async () => {
+    mockFetch(200, [{ id: 1, source_id: 2, target_id: 3, relation: "blocks" }]);
+    const rows = await listLinks();
+    expect(rows).toHaveLength(1);
   });
 });
