@@ -32,6 +32,9 @@ export default function StoryPlanCard({
         ? "border-red-300 ring-2 ring-red-400"
         : "border-amber-300 ring-2 ring-amber-400";
 
+  const hasLinks =
+    (info?.blocks_count ?? 0) + (info?.blocked_by_count ?? 0) + (info?.related_count ?? 0) > 0;
+
   const opacity = isDragging ? "opacity-50" : dimmed ? "opacity-30" : "";
 
   return (
@@ -47,18 +50,32 @@ export default function StoryPlanCard({
         )}
         <div className="flex items-start justify-between gap-2">
           <div className="font-medium text-gray-900">{story.title}</div>
-          {conflicts.length > 0 && (
-            <span
-              role="img"
-              aria-label="timeline conflict"
-              title={conflicts.map((c) => c.message).join("\n")}
-              onMouseEnter={() => onHighlight?.([story.id, ...(info?.conflictPartners ?? [])])}
-              onMouseLeave={() => onHighlight?.(null)}
-              className={`shrink-0 cursor-help ${hasError ? "text-red-600" : "text-amber-600"}`}
-            >
-              ⚠
-            </span>
-          )}
+          <span className="flex shrink-0 items-center gap-1">
+            {hasLinks && (
+              <span
+                role="img"
+                aria-label="dependencies"
+                title="Highlight all dependencies"
+                onMouseEnter={() => onHighlight?.([story.id, ...(info?.linkPartners ?? [])])}
+                onMouseLeave={() => onHighlight?.(null)}
+                className="cursor-help text-gray-400"
+              >
+                🔗
+              </span>
+            )}
+            {conflicts.length > 0 && (
+              <span
+                role="img"
+                aria-label="timeline conflict"
+                title={conflicts.map((c) => c.message).join("\n")}
+                onMouseEnter={() => onHighlight?.([story.id, ...(info?.conflictPartners ?? [])])}
+                onMouseLeave={() => onHighlight?.(null)}
+                className={`cursor-help ${hasError ? "text-red-600" : "text-amber-600"}`}
+              >
+                ⚠
+              </span>
+            )}
+          </span>
         </div>
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
           {story.assignee && (

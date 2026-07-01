@@ -16,6 +16,8 @@ export interface CardLinkInfo {
   conflicts: CardConflict[];
   /** Item ids on the other end of this card's conflicts (for hover highlighting). */
   conflictPartners: number[];
+  /** Item ids of every dependency partner (any relation), for hover highlighting. */
+  linkPartners: number[];
 }
 
 /**
@@ -43,6 +45,19 @@ export function computePlanningLinks(
     return n != null && n >= 1 && n <= 6 ? n : null;
   };
 
+  // Every dependency partner of an item (both ends of each blocks/relates_to edge).
+  const neighbors = new Map<number, Set<number>>();
+  const addNeighbor = (a: number, b: number) => {
+    let set = neighbors.get(a);
+    if (!set) neighbors.set(a, (set = new Set()));
+    set.add(b);
+  };
+  for (const link of links) {
+    if (link.relation !== "blocks" && link.relation !== "relates_to") continue;
+    addNeighbor(link.source_id, link.target_id);
+    addNeighbor(link.target_id, link.source_id);
+  }
+
   const counts = linkCounts(links);
   const info = new Map<number, CardLinkInfo>();
   const ids = new Set<number>([
@@ -57,6 +72,7 @@ export function computePlanningLinks(
       related_count: counts.related.get(id) ?? 0,
       conflicts: [],
       conflictPartners: [],
+      linkPartners: [...(neighbors.get(id) ?? [])],
     });
   }
 

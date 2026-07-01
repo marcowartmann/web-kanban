@@ -16,7 +16,7 @@ const renderCard = (info?: CardLinkInfo) =>
   );
 
 it("shows dependency count badges", () => {
-  renderCard({ blocks_count: 1, blocked_by_count: 2, related_count: 3, conflicts: [], conflictPartners: [] });
+  renderCard({ blocks_count: 1, blocked_by_count: 2, related_count: 3, conflicts: [], conflictPartners: [], linkPartners: [] });
   expect(screen.getByText(/blocked by 2/i)).toBeInTheDocument();
   expect(screen.getByText(/blocks 1/i)).toBeInTheDocument();
   expect(screen.getByText(/related 3/i)).toBeInTheDocument();
@@ -24,7 +24,7 @@ it("shows dependency count badges", () => {
 
 it("shows a red ring + warning marker with a tooltip for an error conflict", () => {
   const { container } = renderCard({
-    blocks_count: 0, blocked_by_count: 1, related_count: 0, conflictPartners: [],
+    blocks_count: 0, blocked_by_count: 1, related_count: 0, conflictPartners: [], linkPartners: [],
     conflicts: [{ severity: "error", message: "Blocked by \"X\" (#9) scheduled in Iteration 5 (after this)" }],
   });
   expect(screen.getByRole("img", { name: /timeline conflict/i })).toBeInTheDocument();
@@ -34,7 +34,7 @@ it("shows a red ring + warning marker with a tooltip for an error conflict", () 
 
 it("uses an amber ring for warnings only", () => {
   const { container } = renderCard({
-    blocks_count: 0, blocked_by_count: 1, related_count: 0, conflictPartners: [],
+    blocks_count: 0, blocked_by_count: 1, related_count: 0, conflictPartners: [], linkPartners: [],
     conflicts: [{ severity: "warning", message: "Same iteration as blocker \"X\" (#9)" }],
   });
   expect(container.querySelector(".ring-amber-400")).toBeTruthy();
@@ -56,7 +56,7 @@ it("highlights the card + conflict partners on ⚠ hover, and clears on leave", 
         onHighlight={onHighlight}
         info={{
           blocks_count: 0, blocked_by_count: 1, related_count: 0,
-          conflictPartners: [9],
+          conflictPartners: [9], linkPartners: [9],
           conflicts: [{ severity: "error", message: "Blocked by \"X\" (#9)" }],
         }}
         onOpen={() => {}}
@@ -68,6 +68,36 @@ it("highlights the card + conflict partners on ⚠ hover, and clears on leave", 
   expect(onHighlight).toHaveBeenCalledWith([1, 9]);
   fireEvent.mouseLeave(warn);
   expect(onHighlight).toHaveBeenLastCalledWith(null);
+});
+
+it("shows a dependencies icon that highlights all link partners on hover", () => {
+  const onHighlight = vi.fn();
+  render(
+    <DndContext>
+      <StoryPlanCard
+        story={story}
+        onHighlight={onHighlight}
+        info={{
+          blocks_count: 1, blocked_by_count: 0, related_count: 1,
+          conflicts: [], conflictPartners: [], linkPartners: [7, 8],
+        }}
+        onOpen={() => {}}
+      />
+    </DndContext>,
+  );
+  const dep = screen.getByRole("img", { name: /dependencies/i });
+  fireEvent.mouseEnter(dep);
+  expect(onHighlight).toHaveBeenCalledWith([1, 7, 8]);
+  fireEvent.mouseLeave(dep);
+  expect(onHighlight).toHaveBeenLastCalledWith(null);
+});
+
+it("shows no dependencies icon when the card has no links", () => {
+  renderCard({
+    blocks_count: 0, blocked_by_count: 0, related_count: 0,
+    conflicts: [], conflictPartners: [], linkPartners: [],
+  });
+  expect(screen.queryByRole("img", { name: /dependencies/i })).not.toBeInTheDocument();
 });
 
 it("dims the card when dimmed", () => {

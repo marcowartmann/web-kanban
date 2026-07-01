@@ -79,6 +79,19 @@ it("records conflict partner ids on both ends (for hover highlighting)", () => {
   expect(info2.get(4)!.conflictPartners).toContain(3);
 });
 
+it("records all dependency partners (any relation) for highlighting", () => {
+  const links: LinkRow[] = [
+    { id: 10, source_id: 1, target_id: 2, relation: "blocks" },
+    { id: 11, source_id: 1, target_id: 3, relation: "relates_to" },
+  ];
+  const info = computePlanningLinks([story(1, 1), story(2, 2), story(3, 3)], links, "PI1-Q3");
+  expect(info.get(1)!.linkPartners.sort()).toEqual([2, 3]);
+  expect(info.get(2)!.linkPartners).toEqual([1]);
+  expect(info.get(3)!.linkPartners).toEqual([1]);
+  // correctly-ordered blocks -> no conflict, but still a link partner
+  expect(info.get(1)!.conflicts).toHaveLength(0);
+});
+
 it("has no conflict when the blocked item is not in the viewed PI", () => {
   const items = [story(1, 5, "PI1-Q3"), story(2, 2, "PI2-Q4")];
   const info = computePlanningLinks(items, [blocks(10, 1, 2)], "PI1-Q3");
