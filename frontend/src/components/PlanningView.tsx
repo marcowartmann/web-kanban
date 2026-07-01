@@ -14,7 +14,7 @@ import {
   iterationLabel,
   slotPoints,
 } from "../lib/iterations";
-import { memberCapacityRows } from "../lib/capacity";
+import { loadCapacityRows } from "../lib/capacity";
 import { computePlanningLinks } from "../lib/planningLinks";
 import type { Capacity, Item, LinkRow, Team, TeamMember } from "../types";
 import CapacityGrid from "./CapacityGrid";
@@ -119,15 +119,22 @@ export default function PlanningView({
     return capacityBySlot(capacities, pi, memberIds);
   }, [capacities, pi, teamId, assigneeName, members]);
 
-  // Per-member capacity rows for the grid, scoped to the selected team (all when
-  // "All teams"), independent of the assignee filter.
+  // Per-member load/capacity rows for the grid, scoped to the selected team (all
+  // when "All teams"), independent of the assignee filter.
   const teamMembers = useMemo(
     () => (teamId != null ? members.filter((m) => m.team_id === teamId) : members),
     [members, teamId],
   );
+  const teamStories = useMemo(
+    () =>
+      (team ? items.filter((i) => i.leading_team === team.name) : items).filter(
+        (i) => i.kind === "story" && i.planning_interval === pi,
+      ),
+    [items, team, pi],
+  );
   const capacityRows = useMemo(
-    () => (pi ? memberCapacityRows(teamMembers, capacities, pi) : []),
-    [teamMembers, capacities, pi],
+    () => (pi ? loadCapacityRows(teamMembers, capacities, teamStories, pi) : []),
+    [teamMembers, capacities, teamStories, pi],
   );
 
   if (!planningIntervals.length) {
