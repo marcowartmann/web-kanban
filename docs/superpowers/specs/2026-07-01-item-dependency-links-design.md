@@ -205,9 +205,15 @@ export interface LinkRow {
 - Links grouped by `label` ("Blocked by", "Blocks", "Relates to"). Each row shows
   the other item's title + a small kind chip, is **click-to-open** side-by-side,
   and has an `×` to `deleteLink` then reload.
-- The existing parent/child open handlers (`onOpenParent`, `onOpenChild`) are
-  generalized into a single **`onOpenItem(id)`** passed from the app; the parent
-  link and story list reuse it. (Keeps one code path for the side-by-side stack.)
+- Click-to-open uses a new **`onOpenItem(id)`** prop passed from the app (docks
+  the linked item to the left of the current stack). The existing
+  `onOpenParent`/`onOpenChild` handlers and their behavior are left unchanged —
+  `onOpenItem` is additive, used only by the dependency rows. *(As-built: kept
+  the handlers separate rather than folding them into one, to avoid disturbing
+  the existing parent/child panel semantics.)*
+- Link add/remove reloads the drawer item locally and fires an optional
+  **`onLinksChanged`** callback (wired to the board `reload`) so card badges
+  refresh immediately, without calling `onChanged` (which would close the drawer).
 - **Add link** row: a relation-label dropdown fed by `getLinkRelations()` +
   a `SearchableSelect` over items (queried via `listItems({ q })`, excludes the
   current item). Choosing a relation option + target →
@@ -219,12 +225,14 @@ export interface LinkRow {
 
 **Board wiring** — `useBoard` fetches links alongside items
 (`Promise.all([getBoards(), listItems(), listLinks()])`). `buildBoardCards(items,
-links)` computes each card's `blocked_by_count` (incoming `blocks` edges) and
-`blocks_count` (outgoing `blocks` edges) from the links list, keyed by item id;
-`groupByStatus.toCard` defaults both to `0`.
+links)` computes each card's `blocked_by_count` (incoming `blocks` edges),
+`blocks_count` (outgoing `blocks` edges), and `related_count` (both endpoints of a
+`relates_to` edge) from the links list, keyed by item id; `groupByStatus.toCard`
+defaults them to `0`.
 
 **Card (`Card.tsx`)** — a compact badge when counts are present, e.g.
-`⛔ blocked by {blocked_by_count}` and/or `blocks {blocks_count}`, styled like the
+`⛔ blocked by {blocked_by_count}`, `blocks {blocks_count}`, and
+`related {related_count}`, styled like the
 existing chips. Hidden when both are zero.
 
 ## Error handling

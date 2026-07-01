@@ -18,6 +18,7 @@ export default function ItemDrawer({
   onOpenParent,
   onOpenChild,
   onOpenItem,
+  onLinksChanged,
 }: {
   itemId: number;
   assigneeOptions?: string[];
@@ -27,6 +28,7 @@ export default function ItemDrawer({
   onOpenParent?: (parentId: number) => void;
   onOpenChild?: (storyId: number) => void;
   onOpenItem?: (id: number) => void;
+  onLinksChanged?: () => void | Promise<void>;
 }) {
   const [item, setItem] = useState<Item | null>(null);
   const [parent, setParent] = useState<Item | null>(null);
@@ -73,6 +75,7 @@ export default function ItemDrawer({
       setAdding(false);
       setPickRelation(null);
       await reloadItem();
+      await onLinksChanged?.();
     } catch (e) {
       setError(String(e));
     }
@@ -82,6 +85,7 @@ export default function ItemDrawer({
     try {
       await deleteLink(linkId);
       await reloadItem();
+      await onLinksChanged?.();
     } catch (e) {
       setError(String(e));
     }

@@ -81,3 +81,19 @@ it("hides the blocked-by badge when count is 0", () => {
   render(<DndContext><Card card={c} onOpen={() => {}} /></DndContext>);
   expect(screen.queryByText(/blocked by/i)).not.toBeInTheDocument();
 });
+
+it("shows a blocks badge when blocks_count > 0", () => {
+  const c = { id: 1, kind: "story", title: "S", type: null, status: "New",
+    parent_id: null, position: 0, wsjf_score: null, children_count: 0, children_points: 0,
+    blocked_by_count: 0, blocks_count: 3 } as never;
+  render(<DndContext><Card card={c} onOpen={() => {}} /></DndContext>);
+  expect(screen.getByText(/blocks 3/i)).toBeInTheDocument();
+});
+
+it("shows a related badge when related_count > 0", () => {
+  const c = { id: 1, kind: "story", title: "S", type: null, status: "New",
+    parent_id: null, position: 0, wsjf_score: null, children_count: 0, children_points: 0,
+    blocked_by_count: 0, blocks_count: 0, related_count: 2 } as never;
+  render(<DndContext><Card card={c} onOpen={() => {}} /></DndContext>);
+  expect(screen.getByText(/related 2/i)).toBeInTheDocument();
+});

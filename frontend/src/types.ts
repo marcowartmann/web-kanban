@@ -39,6 +39,7 @@ export interface BoardCard extends Item {
   children_points: number;
   blocked_by_count?: number;
   blocks_count?: number;
+  related_count?: number;
 }
 
 export interface BoardColumn {

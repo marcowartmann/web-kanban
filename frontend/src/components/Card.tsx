@@ -64,6 +64,9 @@ export default function Card({
             </span>
           )}
           {(card.blocks_count ?? 0) > 0 && <span>blocks {card.blocks_count}</span>}
+          {(card.related_count ?? 0) > 0 && (
+            <span className="text-gray-500">related {card.related_count}</span>
+          )}
         </div>
       </button>
 

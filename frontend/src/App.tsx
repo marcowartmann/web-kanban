@@ -169,6 +169,7 @@ export default function App() {
               onOpenParent={openParent}
               onOpenChild={openChild}
               onOpenItem={openItemDocked}
+              onLinksChanged={reload}
             />
           ))}
         </div>

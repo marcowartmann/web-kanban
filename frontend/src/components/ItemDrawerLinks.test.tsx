@@ -85,3 +85,36 @@ it("adds an incoming 'blocked by' link with current item as target", async () =>
 
   expect(create).toHaveBeenCalledWith({ source_id: 9, target_id: 5, relation: "blocks" });
 });
+
+it("calls onLinksChanged after adding a link (so board badges refresh)", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue({ ...base, links: [] } as never);
+  vi.spyOn(client, "createLink").mockResolvedValue({ id: 2 } as never);
+  const onLinksChanged = vi.fn();
+
+  render(
+    <ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} onLinksChanged={onLinksChanged} />,
+  );
+  await userEvent.click(await screen.findByRole("button", { name: /add dependency/i }));
+  await userEvent.click(screen.getByRole("option", { name: "blocks" }));
+  await userEvent.click(screen.getByRole("button", { name: /choose item/i }));
+  await userEvent.click(screen.getByText("Other (#9)"));
+
+  expect(onLinksChanged).toHaveBeenCalled();
+});
+
+it("calls onLinksChanged after removing a link", async () => {
+  const item = {
+    ...base,
+    links: [{ link_id: 1, relation: "blocks", direction: "incoming", label: "blocked by",
+      item: { id: 9, title: "Other", kind: "story", status: null, planning_interval: null } }],
+  };
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  vi.spyOn(client, "deleteLink").mockResolvedValue(undefined as never);
+  const onLinksChanged = vi.fn();
+
+  render(
+    <ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} onLinksChanged={onLinksChanged} />,
+  );
+  await userEvent.click(await screen.findByRole("button", { name: /remove link 1/i }));
+  expect(onLinksChanged).toHaveBeenCalled();
+});

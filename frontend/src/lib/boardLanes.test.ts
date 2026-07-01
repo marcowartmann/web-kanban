@@ -51,6 +51,19 @@ it("buildBoardCards ignores non-blocks relations for counts", () => {
   expect(cards[0].blocked_by_count).toBe(0);
 });
 
+it("buildBoardCards counts relates_to on both endpoints", () => {
+  const items = [
+    { id: 1, kind: "feature", title: "A", parent_id: null } as never,
+    { id: 2, kind: "story", title: "B", parent_id: null } as never,
+  ];
+  const links = [{ id: 5, source_id: 1, target_id: 2, relation: "relates_to" }];
+  const cards = buildBoardCards(items, links);
+  expect(cards.find((c) => c.id === 1)!.related_count).toBe(1);
+  expect(cards.find((c) => c.id === 2)!.related_count).toBe(1);
+  // relates_to must not leak into the blocks counts
+  expect(cards.find((c) => c.id === 1)!.blocks_count).toBe(0);
+});
+
 describe("groupIntoLanes", () => {
   it("places cards by status into lanes (in order) + trailing Unscheduled", () => {
     const cards = buildBoardCards([
