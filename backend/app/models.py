@@ -151,3 +151,12 @@ class Lane(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     board: Mapped["Board"] = relationship(back_populates="lanes")
+
+
+class PlanningInterval(Base):
+    __tablename__ = "planning_intervals"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(64), unique=True)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
