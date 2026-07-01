@@ -93,3 +93,16 @@ it("assigns the iteration slot on drop, and null for the backlog", async () => {
   expect(update).toHaveBeenLastCalledWith(5, { iteration: null });
   expect(reload).toHaveBeenCalledTimes(2);
 });
+
+it("Capacity toggle reveals the per-member capacity grid", async () => {
+  const items = [story({ id: 1, title: "S", iteration: 2, story_points: 3 })];
+  render(
+    <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
+  );
+  // Marco (a Network member) isn't shown until the grid is toggled on.
+  expect(await screen.findByText("S")).toBeInTheDocument();
+  expect(screen.queryByText("Marco")).not.toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: /capacity/i }));
+  expect(screen.getByText("Marco")).toBeInTheDocument();
+});

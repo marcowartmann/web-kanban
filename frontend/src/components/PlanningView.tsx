@@ -14,8 +14,10 @@ import {
   iterationLabel,
   slotPoints,
 } from "../lib/iterations";
+import { memberCapacityRows } from "../lib/capacity";
 import { computePlanningLinks } from "../lib/planningLinks";
 import type { Capacity, Item, LinkRow, Team, TeamMember } from "../types";
+import CapacityGrid from "./CapacityGrid";
 import FilterSelect from "./FilterSelect";
 import PlanningColumn from "./PlanningColumn";
 
@@ -48,6 +50,7 @@ export default function PlanningView({
   const [capacities, setCapacities] = useState<Capacity[]>([]);
   const [teamId, setTeamId] = useState<number | null>(null);
   const [assigneeName, setAssigneeName] = useState<string | null>(null);
+  const [showCapacity, setShowCapacity] = useState(false);
   // On ⚠ hover: the card + its conflict partners stay lit; other cards dim.
   const [highlight, setHighlight] = useState<Set<number> | null>(null);
   const onHighlight = (ids: number[] | null) => setHighlight(ids ? new Set(ids) : null);
@@ -116,6 +119,17 @@ export default function PlanningView({
     return capacityBySlot(capacities, pi, memberIds);
   }, [capacities, pi, teamId, assigneeName, members]);
 
+  // Per-member capacity rows for the grid, scoped to the selected team (all when
+  // "All teams"), independent of the assignee filter.
+  const teamMembers = useMemo(
+    () => (teamId != null ? members.filter((m) => m.team_id === teamId) : members),
+    [members, teamId],
+  );
+  const capacityRows = useMemo(
+    () => (pi ? memberCapacityRows(teamMembers, capacities, pi) : []),
+    [teamMembers, capacities, pi],
+  );
+
   if (!planningIntervals.length) {
     return (
       <div className="p-8 text-gray-500">
@@ -163,38 +177,45 @@ export default function PlanningView({
             onChange={(v) => setAssigneeName(v ?? null)}
           />
         </div>
+
+        <button onClick={() => setShowCapacity((v) => !v)} className={`ml-2 ${pill(showCapacity)}`}>
+          Capacity
+        </button>
       </div>
 
       {groups && (
-        <DndContext sensors={sensors} onDragEnd={(e) => void handlePlanDragEnd(e, onChanged)}>
-          <div className="flex gap-4 overflow-x-auto p-6">
-            <PlanningColumn
-              id="backlog"
-              title="Backlog"
-              stories={groups.backlog}
-              parentTitles={parentTitles}
-              linkInfo={cardInfo}
-              highlight={highlight}
-              onHighlight={onHighlight}
-              onOpen={onOpenCard}
-            />
-            {ITERATION_SLOTS.map((slot) => (
+        <div className="overflow-x-auto p-6">
+          {showCapacity && <CapacityGrid rows={capacityRows} />}
+          <DndContext sensors={sensors} onDragEnd={(e) => void handlePlanDragEnd(e, onChanged)}>
+            <div className="flex gap-4">
               <PlanningColumn
-                key={slot}
-                id={String(slot)}
-                title={iterationLabel(slot)}
-                load={slotPoints(groups.slots[slot])}
-                capacity={caps ? caps[slot] : undefined}
-                stories={groups.slots[slot]}
+                id="backlog"
+                title="Backlog"
+                stories={groups.backlog}
                 parentTitles={parentTitles}
                 linkInfo={cardInfo}
                 highlight={highlight}
                 onHighlight={onHighlight}
                 onOpen={onOpenCard}
               />
-            ))}
-          </div>
-        </DndContext>
+              {ITERATION_SLOTS.map((slot) => (
+                <PlanningColumn
+                  key={slot}
+                  id={String(slot)}
+                  title={iterationLabel(slot)}
+                  load={slotPoints(groups.slots[slot])}
+                  capacity={caps ? caps[slot] : undefined}
+                  stories={groups.slots[slot]}
+                  parentTitles={parentTitles}
+                  linkInfo={cardInfo}
+                  highlight={highlight}
+                  onHighlight={onHighlight}
+                  onOpen={onOpenCard}
+                />
+              ))}
+            </div>
+          </DndContext>
+        </div>
       )}
     </div>
   );
