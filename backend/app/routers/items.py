@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Item, ItemKind
-from app.schemas import ItemCreate, ItemDetail, ItemRead, ItemUpdate
+from app.links import RELATIONS
+from app.models import Item, ItemKind, ItemLink
+from app.schemas import ItemCreate, ItemDetail, ItemRead, ItemUpdate, ItemRef, LinkedItem
 from app.wsjf import recompute
 
 router = APIRouter(prefix="/api/items", tags=["items"])
@@ -17,6 +18,36 @@ def _get_or_404(db: Session, item_id: int) -> Item:
     if item is None:
         raise HTTPException(status_code=404, detail="Item not found")
     return item
+
+
+def _resolve_links(db: Session, item_id: int) -> list[LinkedItem]:
+    edges = db.scalars(
+        select(ItemLink).where(
+            (ItemLink.source_id == item_id) | (ItemLink.target_id == item_id)
+        )
+    )
+    out: list[LinkedItem] = []
+    for edge in edges:
+        rel = RELATIONS.get(edge.relation)
+        if rel is None:  # unknown/legacy relation key — skip defensively
+            continue
+        if edge.source_id == item_id:
+            other = db.get(Item, edge.target_id)
+            direction, label = "outgoing", rel.forward
+        else:
+            other = db.get(Item, edge.source_id)
+            direction, label = "incoming", rel.inverse
+        out.append(
+            LinkedItem(
+                link_id=edge.id,
+                relation=edge.relation,
+                direction=direction,
+                label=label,
+                item=ItemRef.model_validate(other),
+            )
+        )
+    out.sort(key=lambda link: (link.relation, link.direction, link.item.title))
+    return out
 
 
 @router.get("", response_model=list[ItemRead])
@@ -47,8 +78,11 @@ def list_items(
 
 
 @router.get("/{item_id}", response_model=ItemDetail)
-def get_item(item_id: int, db: Session = Depends(get_db)) -> Item:
-    return _get_or_404(db, item_id)
+def get_item(item_id: int, db: Session = Depends(get_db)) -> ItemDetail:
+    item = _get_or_404(db, item_id)
+    detail = ItemDetail.model_validate(item)
+    detail.links = _resolve_links(db, item_id)
+    return detail
 
 
 @router.post("", response_model=ItemDetail, status_code=201)
@@ -81,5 +115,11 @@ def update_item(
 @router.delete("/{item_id}", status_code=204)
 def delete_item(item_id: int, db: Session = Depends(get_db)) -> None:
     item = _get_or_404(db, item_id)
+    ids = [item_id, *[child.id for child in item.children]]
+    db.execute(
+        delete(ItemLink).where(
+            ItemLink.source_id.in_(ids) | ItemLink.target_id.in_(ids)
+        )
+    )
     db.delete(item)  # ORM cascade removes child stories
     db.commit()
