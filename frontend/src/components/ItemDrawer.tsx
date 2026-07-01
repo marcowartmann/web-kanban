@@ -105,8 +105,11 @@ export default function ItemDrawer({
   return (
     <Drawer onClose={onClose}>
       <div className="mb-4 flex items-center justify-between">
-        <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
-          {item.type ?? item.kind}
+        <span className="flex items-center gap-2">
+          <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+            {item.type ?? item.kind}
+          </span>
+          <span className="text-xs text-gray-400">#{item.id}</span>
         </span>
         {item.wsjf_score != null && (
           <span className="text-sm font-semibold text-gray-700">

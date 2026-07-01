@@ -48,6 +48,15 @@ it("story card: no Stories button", () => {
   expect(screen.queryByRole("button", { name: /stories \(/i })).toBeNull();
 });
 
+it("shows the globally-unique number as #<id>", () => {
+  renderCard({
+    card: card({ id: 12 }),
+    onOpen: vi.fn(),
+    onOpenStories: vi.fn(),
+  });
+  expect(screen.getByText("#12")).toBeInTheDocument();
+});
+
 it("shows the assignee when set", () => {
   renderCard({
     card: card({ assignee: "Marco Wartmann" }),

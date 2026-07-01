@@ -24,6 +24,12 @@ it("loads an item and shows editable title + WSJF", async () => {
   expect(screen.getByText(/WSJF/)).toBeInTheDocument();
 });
 
+it("shows the globally-unique number as #<id>", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  render(<ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} />);
+  expect(await screen.findByText("#5")).toBeInTheDocument();
+});
+
 it("saves edits via updateItem then notifies", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue(item as never);
   const update = vi.spyOn(client, "updateItem").mockResolvedValue(item as never);
