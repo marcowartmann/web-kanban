@@ -77,8 +77,47 @@ class ItemRead(ItemBase):
     updated_at: datetime
 
 
+class LinkCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source_id: int
+    target_id: int
+    relation: str
+
+
+class ItemRef(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    kind: ItemKind
+    status: str | None = None
+    planning_interval: str | None = None
+
+
+class LinkedItem(BaseModel):
+    link_id: int
+    relation: str
+    direction: str          # "outgoing" | "incoming"
+    label: str
+    item: ItemRef
+
+
+class RelationOption(BaseModel):
+    relation: str
+    direction: str          # "outgoing" | "incoming" | "both"
+    label: str
+
+
+class LinkRow(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    source_id: int
+    target_id: int
+    relation: str
+
+
 class ItemDetail(ItemRead):
     children: list[ItemRead] = []
+    links: list[LinkedItem] = []
 
 
 class BoardCard(ItemRead):
