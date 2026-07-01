@@ -1,4 +1,4 @@
-import type { BoardCard, BoardColumn, Item, LinkRow } from "../types";
+import type { Board, BoardCard, BoardColumn, Item, ItemKind, LinkRow } from "../types";
 import { linkCounts } from "./links";
 
 export const UNSCHEDULED = "Unscheduled";
@@ -51,4 +51,19 @@ export function groupIntoLanes(
   }));
   columns.push({ status: UNSCHEDULED, cards: unscheduled });
   return columns;
+}
+
+/** Status options per item kind: the lane names of the boards whose `kinds`
+ *  include that kind, in lane order, deduped. */
+export function statusOptionsByKind(boards: Board[]): Partial<Record<ItemKind, string[]>> {
+  const out: Partial<Record<ItemKind, string[]>> = {};
+  for (const board of boards) {
+    for (const kind of board.kinds) {
+      const list = out[kind] ?? (out[kind] = []);
+      for (const lane of board.lanes) {
+        if (!list.includes(lane.name)) list.push(lane.name);
+      }
+    }
+  }
+  return out;
 }

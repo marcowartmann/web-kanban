@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createItem, createLink, createTeamMember, deleteLink, getBoards, getTeams, importCsv, listLinks, reorderLanes, updateItem } from "./client";
+import { createPlanningInterval, deletePlanningInterval, getPlanningIntervals } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -94,5 +95,26 @@ describe("api client", () => {
     mockFetch(200, [{ id: 1, source_id: 2, target_id: 3, relation: "blocks" }]);
     const rows = await listLinks();
     expect(rows).toHaveLength(1);
+  });
+
+  it("getPlanningIntervals fetches the list", async () => {
+    mockFetch(200, [{ id: 1, name: "PI1-Q3", position: 0 }]);
+    expect(await getPlanningIntervals()).toHaveLength(1);
+  });
+
+  it("createPlanningInterval posts the name", async () => {
+    const spy = mockFetch(201, { id: 2, name: "PI2-Q4", position: 1 });
+    await createPlanningInterval("PI2-Q4");
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/planning-intervals");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "PI2-Q4" });
+  });
+
+  it("deletePlanningInterval sends DELETE", async () => {
+    const spy = mockFetch(204, "");
+    await deletePlanningInterval(5);
+    expect(spy.mock.calls[0][0]).toBe("/api/planning-intervals/5");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 });

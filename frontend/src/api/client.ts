@@ -7,6 +7,7 @@ import type {
   ItemUpdate,
   Lane,
   LinkRow,
+  PlanningInterval,
   RelationOption,
   Team,
   TeamMember,
@@ -136,4 +137,16 @@ export function upsertCapacity(body: {
   points: number;
 }): Promise<Capacity> {
   return request<Capacity>("/api/capacities", { ...json(body), method: "PUT" });
+}
+
+export function getPlanningIntervals(): Promise<PlanningInterval[]> {
+  return request<PlanningInterval[]>("/api/planning-intervals");
+}
+
+export function createPlanningInterval(name: string): Promise<PlanningInterval> {
+  return request<PlanningInterval>("/api/planning-intervals", json({ name }));
+}
+
+export function deletePlanningInterval(id: number): Promise<void> {
+  return request<void>(`/api/planning-intervals/${id}`, { method: "DELETE" });
 }

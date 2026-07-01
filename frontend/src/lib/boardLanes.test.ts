@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBoardCards, groupIntoLanes } from "./boardLanes";
+import { buildBoardCards, groupIntoLanes, statusOptionsByKind } from "./boardLanes";
 import type { Item } from "../types";
 
 function item(over: Partial<Item> & Pick<Item, "id" | "kind">): Item {
@@ -80,4 +80,15 @@ describe("groupIntoLanes", () => {
     expect(cols[3].cards.map((c) => c.id).sort()).toEqual([3, 4]);
     expect(cols[0].cards).toEqual([]);
   });
+});
+
+it("statusOptionsByKind maps each kind to its boards' lane names in order", () => {
+  const boards = [
+    { id: 1, name: "F&S", kinds: ["feature", "story"], lanes: [{ name: "Funnel" }, { name: "Ready" }] },
+    { id: 2, name: "Risks", kinds: ["risk"], lanes: [{ name: "Open" }, { name: "Closed" }] },
+  ] as never;
+  const out = statusOptionsByKind(boards);
+  expect(out.feature).toEqual(["Funnel", "Ready"]);
+  expect(out.story).toEqual(["Funnel", "Ready"]);
+  expect(out.risk).toEqual(["Open", "Closed"]);
 });

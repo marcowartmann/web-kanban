@@ -152,3 +152,9 @@ export interface Board {
   position: number;
   lanes: Lane[];
 }
+
+export interface PlanningInterval {
+  id: number;
+  name: string;
+  position: number;
+}
