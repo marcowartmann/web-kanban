@@ -12,7 +12,7 @@ function statusKey(status: string): [number, string] {
 }
 
 function toCard(item: Item): BoardCard {
-  return { ...item, children_count: 0, children_points: 0 };
+  return { ...item, children_count: 0, children_points: 0, blocked_by_count: 0, blocks_count: 0 };
 }
 
 /**

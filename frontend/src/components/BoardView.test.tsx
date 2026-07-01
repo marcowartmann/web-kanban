@@ -32,7 +32,7 @@ const items: Item[] = [
 ];
 
 it("renders the board's lanes + Unscheduled and only the board's kinds", () => {
-  render(<BoardView board={board} items={items} filters={{}} onOpenCard={() => {}} onOpenStories={() => {}} onChanged={() => {}} />);
+  render(<BoardView board={board} items={items} links={[]} filters={{}} onOpenCard={() => {}} onOpenStories={() => {}} onChanged={() => {}} />);
   expect(screen.getByText("Funnel")).toBeInTheDocument();
   expect(screen.getByText("Analyzing")).toBeInTheDocument();
   expect(screen.getByText("Unscheduled")).toBeInTheDocument();

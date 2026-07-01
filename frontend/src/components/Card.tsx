@@ -58,6 +58,12 @@ export default function Card({
           {card.kind === "feature" && card.children_points > 0 && (
             <span>{card.children_points} SP</span>
           )}
+          {(card.blocked_by_count ?? 0) > 0 && (
+            <span className="font-medium text-red-600">
+              ⛔ blocked by {card.blocked_by_count}
+            </span>
+          )}
+          {(card.blocks_count ?? 0) > 0 && <span>blocks {card.blocks_count}</span>}
         </div>
       </button>
 

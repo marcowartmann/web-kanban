@@ -29,6 +29,28 @@ describe("buildBoardCards", () => {
   });
 });
 
+it("buildBoardCards counts blocks/blocked_by from links", () => {
+  const items = [
+    { id: 1, kind: "feature", title: "A", parent_id: null } as never,
+    { id: 2, kind: "story", title: "B", parent_id: null } as never,
+  ];
+  const links = [{ id: 10, source_id: 1, target_id: 2, relation: "blocks" }];
+  const cards = buildBoardCards(items, links);
+  const a = cards.find((c) => c.id === 1)!;
+  const b = cards.find((c) => c.id === 2)!;
+  expect(a.blocks_count).toBe(1);
+  expect(a.blocked_by_count).toBe(0);
+  expect(b.blocked_by_count).toBe(1);
+  expect(b.blocks_count).toBe(0);
+});
+
+it("buildBoardCards ignores non-blocks relations for counts", () => {
+  const items = [{ id: 1, kind: "feature", title: "A", parent_id: null } as never];
+  const cards = buildBoardCards(items, [{ id: 1, source_id: 1, target_id: 1, relation: "relates_to" }]);
+  expect(cards[0].blocks_count).toBe(0);
+  expect(cards[0].blocked_by_count).toBe(0);
+});
+
 describe("groupIntoLanes", () => {
   it("places cards by status into lanes (in order) + trailing Unscheduled", () => {
     const cards = buildBoardCards([

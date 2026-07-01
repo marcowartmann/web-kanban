@@ -1,9 +1,10 @@
-import type { BoardCard, BoardColumn, Item } from "../types";
+import type { BoardCard, BoardColumn, Item, LinkRow } from "../types";
 
 export const UNSCHEDULED = "Unscheduled";
 
-/** Map items to BoardCards, computing per-feature child aggregates client-side. */
-export function buildBoardCards(items: Item[]): BoardCard[] {
+/** Map items to BoardCards, computing per-feature child aggregates and
+ *  blocks/blocked-by counts (from `blocks` links) client-side. */
+export function buildBoardCards(items: Item[], links: LinkRow[] = []): BoardCard[] {
   const childrenByParent = new Map<number, Item[]>();
   for (const it of items) {
     if (it.parent_id != null) {
@@ -12,12 +13,23 @@ export function buildBoardCards(items: Item[]): BoardCard[] {
       childrenByParent.set(it.parent_id, arr);
     }
   }
+
+  const blocksCount = new Map<number, number>();
+  const blockedByCount = new Map<number, number>();
+  for (const link of links) {
+    if (link.relation !== "blocks") continue;
+    blocksCount.set(link.source_id, (blocksCount.get(link.source_id) ?? 0) + 1);
+    blockedByCount.set(link.target_id, (blockedByCount.get(link.target_id) ?? 0) + 1);
+  }
+
   return items.map((it) => {
     const kids = childrenByParent.get(it.id) ?? [];
     return {
       ...it,
       children_count: kids.length,
       children_points: kids.reduce((sum, c) => sum + (c.story_points ?? 0), 0),
+      blocked_by_count: blockedByCount.get(it.id) ?? 0,
+      blocks_count: blocksCount.get(it.id) ?? 0,
     };
   });
 }

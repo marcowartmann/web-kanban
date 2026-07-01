@@ -14,7 +14,7 @@ import { getTeamMembers } from "./api/client";
 type View = "board" | "admin" | "planning";
 
 export default function App() {
-  const { boards, items, loading, error, reload } = useBoard();
+  const { boards, items, links, loading, error, reload } = useBoard();
   const [view, setView] = useState<View>("board");
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
   // Panels are docked right-to-left: the rightmost is the primary item, and a
@@ -132,6 +132,7 @@ export default function App() {
           <BoardView
             board={activeBoard}
             items={items}
+            links={links}
             filters={filters}
             onOpenCard={openItem}
             onOpenStories={setOpenStoriesFeatureId}

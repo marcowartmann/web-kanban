@@ -8,7 +8,7 @@ import {
 import { useMemo, useState } from "react";
 import { updateItem } from "../api/client";
 import { UNSCHEDULED, buildBoardCards, groupIntoLanes } from "../lib/boardLanes";
-import type { Board, BoardCard, Item } from "../types";
+import type { Board, BoardCard, Item, LinkRow } from "../types";
 import type { BoardFilters } from "./Toolbar";
 import Column from "./Column";
 import LaneEditor from "./LaneEditor";
@@ -42,6 +42,7 @@ function visible(cards: BoardCard[], board: Board, f: BoardFilters): BoardCard[]
 export default function BoardView({
   board,
   items,
+  links,
   filters,
   onOpenCard,
   onOpenStories,
@@ -49,6 +50,7 @@ export default function BoardView({
 }: {
   board: Board;
   items: Item[];
+  links: LinkRow[];
   filters: BoardFilters;
   onOpenCard: (id: number) => void;
   onOpenStories: (featureId: number) => void;
@@ -58,9 +60,9 @@ export default function BoardView({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
   const columns = useMemo(() => {
-    const cards = buildBoardCards(items);
+    const cards = buildBoardCards(items, links);
     return groupIntoLanes(visible(cards, board, filters), board.lanes);
-  }, [items, board, filters]);
+  }, [items, links, board, filters]);
 
   const [editing, setEditing] = useState(false);
 

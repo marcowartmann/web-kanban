@@ -1,19 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
-import { getBoards, listItems } from "../api/client";
-import type { Board, Item } from "../types";
+import { getBoards, listItems, listLinks } from "../api/client";
+import type { Board, Item, LinkRow } from "../types";
 
 export function useBoard() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [items, setItems] = useState<Item[]>([]);
+  const [links, setLinks] = useState<LinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [b, its] = await Promise.all([getBoards(), listItems()]);
+      const [b, its, lks] = await Promise.all([getBoards(), listItems(), listLinks()]);
       setBoards(b);
       setItems(its);
+      setLinks(lks);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load board");
@@ -26,5 +28,5 @@ export function useBoard() {
     void reload();
   }, [reload]);
 
-  return { boards, items, loading, error, reload };
+  return { boards, items, links, loading, error, reload };
 }

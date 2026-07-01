@@ -65,3 +65,19 @@ it("shows the assignee when set", () => {
   });
   expect(screen.getByText("Marco Wartmann")).toBeInTheDocument();
 });
+
+it("shows a blocked-by badge when blocked_by_count > 0", () => {
+  const c = { id: 1, kind: "story", title: "S", type: null, status: "New",
+    parent_id: null, position: 0, wsjf_score: null, children_count: 0, children_points: 0,
+    blocked_by_count: 2, blocks_count: 0 } as never;
+  render(<DndContext><Card card={c} onOpen={() => {}} /></DndContext>);
+  expect(screen.getByText(/blocked by 2/i)).toBeInTheDocument();
+});
+
+it("hides the blocked-by badge when count is 0", () => {
+  const c = { id: 1, kind: "story", title: "S", type: null, status: "New",
+    parent_id: null, position: 0, wsjf_score: null, children_count: 0, children_points: 0,
+    blocked_by_count: 0, blocks_count: 0 } as never;
+  render(<DndContext><Card card={c} onOpen={() => {}} /></DndContext>);
+  expect(screen.queryByText(/blocked by/i)).not.toBeInTheDocument();
+});
