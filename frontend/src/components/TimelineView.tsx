@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { updateItem } from "../api/client";
 import { ITERATION_SLOTS, iterationLabel } from "../lib/iterations";
 import { computePlanningLinks } from "../lib/planningLinks";
-import { groupByFeature } from "../lib/timeline";
+import { dependencyComponent, groupByFeature, layoutFlat, type FeatureLane } from "../lib/timeline";
 import type { Item, LinkRow } from "../types";
 import TimelineLane, { type TimelineColumn } from "./TimelineLane";
 
@@ -41,6 +41,15 @@ export default function TimelineView({
   const [showAll, setShowAll] = useState(true);
   const [highlight, setHighlight] = useState<Set<number> | null>(null);
   const onHighlight = (ids: number[] | null) => setHighlight(ids ? new Set(ids) : null);
+  const [mode, setMode] = useState<"feature" | "deps">("feature");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const toggleSelect = (id: number) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   useEffect(() => {
     if ((pi == null || !planningIntervals.includes(pi)) && planningIntervals.length) {
@@ -54,9 +63,18 @@ export default function TimelineView({
     () => (pi ? groupByFeature(items, pi, { showAll }) : []),
     [items, pi, showAll],
   );
+  const depsLane: FeatureLane = useMemo(() => {
+    const base = pi
+      ? selected.size
+        ? items.filter((it) => dependencyComponent(items, links, selected).has(it.id))
+        : items.filter((it) => it.kind === "story" && it.planning_interval === pi)
+      : [];
+    const flat = layoutFlat(base, pi ?? "");
+    return { feature: null, backlog: flat.backlog, slots: flat.slots };
+  }, [items, links, pi, selected]);
 
   const columns: TimelineColumn[] = [
-    ...(showAll ? [{ slot: "backlog" as const, label: "Backlog" }] : []),
+    ...(showAll || mode === "deps" ? [{ slot: "backlog" as const, label: "Backlog" }] : []),
     ...ITERATION_SLOTS.map((s) => ({ slot: s, label: iterationLabel(s) })),
   ];
 
@@ -78,9 +96,19 @@ export default function TimelineView({
             {p}
           </button>
         ))}
-        <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Lanes</span>
-        <button onClick={() => setShowAll(true)} className={pill(showAll)}>Show all</button>
-        <button onClick={() => setShowAll(false)} className={pill(!showAll)}>Only planned</button>
+        <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Mode</span>
+        <button onClick={() => setMode("feature")} className={pill(mode === "feature")}>By feature</button>
+        <button onClick={() => setMode("deps")} className={pill(mode === "deps")}>Dependencies</button>
+        {mode === "deps" && selected.size > 0 && (
+          <button onClick={() => setSelected(new Set())} className={pill(false)}>Clear ({selected.size})</button>
+        )}
+        {mode === "feature" && (
+          <>
+            <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Lanes</span>
+            <button onClick={() => setShowAll(true)} className={pill(showAll)}>Show all</button>
+            <button onClick={() => setShowAll(false)} className={pill(!showAll)}>Only planned</button>
+          </>
+        )}
       </div>
 
       <div className="overflow-x-auto p-4">
@@ -94,16 +122,17 @@ export default function TimelineView({
         </div>
         <DndContext sensors={sensors} onDragEnd={(e) => void handleTimelineDragEnd(e, onChanged)}>
           <div className="flex flex-col">
-            {lanes.map((lane) => (
+            {(mode === "feature" ? lanes : [depsLane]).map((lane) => (
               <TimelineLane
                 key={lane.feature ? lane.feature.id : "orphan"}
                 lane={lane}
                 columns={columns}
                 cardInfo={cardInfo}
                 highlight={highlight}
+                selectedIds={mode === "deps" ? selected : undefined}
                 onHighlight={onHighlight}
-                onOpenCard={onOpenCard}
-                onOpenFeature={onOpenCard}
+                onOpenCard={mode === "deps" ? toggleSelect : onOpenCard}
+                onOpenFeature={mode === "deps" ? toggleSelect : onOpenCard}
               />
             ))}
           </div>

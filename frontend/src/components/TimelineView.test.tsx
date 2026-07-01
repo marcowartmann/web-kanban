@@ -36,3 +36,23 @@ it("handleTimelineDragEnd updates iteration from the drop target slot", async ()
   await handleTimelineDragEnd({ active: { id: 11 }, over: { id: "1::backlog" } } as never, reload);
   expect(update).toHaveBeenLastCalledWith(11, { iteration: null });
 });
+
+it("dependencies mode narrows to the selected item's transitive component", async () => {
+  const items = [feature(1), story(11, 1, 1), story(12, 1, 2), story(13, 1, 3)];
+  const links = [
+    { id: 1, source_id: 11, target_id: 12, relation: "blocks" as const },
+    // 13 is unrelated
+  ];
+  render(<TimelineView items={items} links={links} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />);
+  await userEvent.click(screen.getByRole("button", { name: "Dependencies" }));
+  // empty selection -> all PI stories shown
+  expect(screen.getByText("S13")).toBeInTheDocument();
+  // select S11 -> component is {11,12}; S13 drops out
+  await userEvent.click(screen.getByText("S11"));
+  expect(screen.getByText("S11")).toBeInTheDocument();
+  expect(screen.getByText("S12")).toBeInTheDocument();
+  expect(screen.queryByText("S13")).not.toBeInTheDocument();
+  // clear resets
+  await userEvent.click(screen.getByRole("button", { name: /clear/i }));
+  expect(screen.getByText("S13")).toBeInTheDocument();
+});
