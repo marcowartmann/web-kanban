@@ -31,7 +31,7 @@ function visible(cards: BoardCard[], board: Board, f: BoardFilters): BoardCard[]
   return cards.filter((c) => {
     if (!boardKinds.has(c.kind)) return false;
     if (selected && !selected.has(c.kind)) return false;
-    if (f.iteration && c.iteration !== f.iteration) return false;
+    if (f.planning_interval && c.planning_interval !== f.planning_interval) return false;
     if (f.leading_team && c.leading_team !== f.leading_team) return false;
     if (f.assignee && c.assignee !== f.assignee) return false;
     if (q && !c.title.toLowerCase().includes(q)) return false;

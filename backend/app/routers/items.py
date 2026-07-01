@@ -23,7 +23,7 @@ def _get_or_404(db: Session, item_id: int) -> Item:
 def list_items(
     kind: ItemKind | None = None,
     status: str | None = None,
-    iteration: str | None = None,
+    planning_interval: str | None = None,
     leading_team: str | None = None,
     assignee: str | None = None,
     q: str | None = None,
@@ -34,8 +34,8 @@ def list_items(
         stmt = stmt.where(Item.kind == kind)
     if status is not None:
         stmt = stmt.where(Item.status == status)
-    if iteration is not None:
-        stmt = stmt.where(Item.iteration == iteration)
+    if planning_interval is not None:
+        stmt = stmt.where(Item.planning_interval == planning_interval)
     if leading_team is not None:
         stmt = stmt.where(Item.leading_team == leading_team)
     if assignee is not None:

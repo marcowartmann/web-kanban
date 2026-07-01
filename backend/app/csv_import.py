@@ -101,7 +101,7 @@ def _row_to_data(row: dict[str, str]) -> dict:
         "tshirt_size": g(COL_TSHIRT),
         "wsjf_score": parse_number(g(COL_WSJF)),
         "story_points": parse_number(g(COL_STORY_POINTS)),
-        "iteration": g(COL_ITERATION),
+        "planning_interval": g(COL_ITERATION),
         "leading_team": g(COL_LEADING_TEAM),
         "supporting_team": g(COL_SUPPORTING_TEAM),
         "externer_partner": g(COL_EXTERNER_PARTNER),

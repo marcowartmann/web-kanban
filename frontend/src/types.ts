@@ -15,7 +15,8 @@ export interface Item {
   tshirt_size: string | null;
   wsjf_score: number | null;
   story_points: number | null;
-  iteration: string | null;
+  planning_interval: string | null;
+  iteration: number | null;
   leading_team: string | null;
   supporting_team: string | null;
   externer_partner: string | null;
@@ -65,7 +66,8 @@ export interface ItemUpdate {
   status?: string | null;
   position?: number | null;
   tshirt_size?: string | null;
-  iteration?: string | null;
+  planning_interval?: string | null;
+  iteration?: number | null;
   leading_team?: string | null;
   supporting_team?: string | null;
   externer_partner?: string | null;

@@ -16,7 +16,8 @@ class ItemBase(BaseModel):
     tshirt_size: str | None = None
     wsjf_score: float | None = None
     story_points: float | None = None
-    iteration: str | None = None
+    planning_interval: str | None = None
+    iteration: int | None = None
     leading_team: str | None = None
     supporting_team: str | None = None
     externer_partner: str | None = None
@@ -46,7 +47,8 @@ class ItemUpdate(BaseModel):
     status: str | None = None
     position: int | None = None
     tshirt_size: str | None = None
-    iteration: str | None = None
+    planning_interval: str | None = None
+    iteration: int | None = Field(default=None, ge=1, le=6)
     leading_team: str | None = None
     supporting_team: str | None = None
     externer_partner: str | None = None

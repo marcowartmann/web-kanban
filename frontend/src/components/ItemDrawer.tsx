@@ -129,7 +129,7 @@ export default function ItemDrawer({
       <div className="flex flex-col gap-3">
         <Field label="Title" value={value("title")} onChange={(v) => set("title", v)} />
         <Field label="Status" value={value("status")} onChange={(v) => set("status", v)} />
-        <Field label="Iteration" value={value("iteration")} onChange={(v) => set("iteration", v)} />
+        <Field label="Planning Interval" value={value("planning_interval")} onChange={(v) => set("planning_interval", v)} />
         <Field label="Leading Team" value={value("leading_team")} onChange={(v) => set("leading_team", v)} />
         <label className="block">
           <span className="mb-1 block text-xs font-medium text-gray-500">Assignee</span>

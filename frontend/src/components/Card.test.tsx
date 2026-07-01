@@ -10,7 +10,7 @@ function card(overrides: Partial<BoardCard>): BoardCard {
     id: 1, kind: "feature", type: "Feature", parent_id: null, position: 0,
     title: "F", status: "Analyzing", description: null, kategorie: null,
     art: null, sdi_prio: null, tshirt_size: null, wsjf_score: null,
-    story_points: null, iteration: null, leading_team: null,
+    story_points: null, planning_interval: null, iteration: null, leading_team: null,
     supporting_team: null, externer_partner: null, assignee: null,
     akzeptanzkriterien: null, dependencies: null, bo_stakeholder: null,
     business_value: null, time_criticality: null, risk_reduction: null,

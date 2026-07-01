@@ -3,7 +3,7 @@ import type { ItemKind } from "../types";
 import FilterSelect from "./FilterSelect";
 
 export interface BoardFilters {
-  iteration?: string;
+  planning_interval?: string;
   leading_team?: string;
   assignee?: string;
   kinds?: ItemKind[];
@@ -13,14 +13,14 @@ export interface BoardFilters {
 export default function Toolbar({
   filters,
   onChange,
-  iterations,
+  planningIntervals,
   teams,
   assignees,
   kindOptions,
 }: {
   filters: BoardFilters;
   onChange: (next: BoardFilters) => void;
-  iterations: string[];
+  planningIntervals: string[];
   teams: string[];
   assignees: string[];
   kindOptions: ItemKind[];
@@ -50,7 +50,7 @@ export default function Toolbar({
 
   const hasActive =
     !!filters.q ||
-    !!filters.iteration ||
+    !!filters.planning_interval ||
     !!filters.leading_team ||
     !!filters.assignee ||
     !!filters.kinds?.length;
@@ -78,10 +78,10 @@ export default function Toolbar({
       </div>
 
       <FilterSelect
-        label="Iteration"
-        value={filters.iteration}
-        options={iterations}
-        onChange={(v) => set({ iteration: v })}
+        label="Planning Interval"
+        value={filters.planning_interval}
+        options={planningIntervals}
+        onChange={(v) => set({ planning_interval: v })}
       />
       <FilterSelect
         label="Team"

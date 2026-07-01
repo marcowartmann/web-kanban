@@ -64,3 +64,29 @@ def test_list_filter_by_kind_and_search(client, db_session):
     assert [i["title"] for i in by_kind] == ["Beta Risk"]
     by_q = client.get("/api/items?q=alpha").json()
     assert [i["title"] for i in by_q] == ["Alpha Feature"]
+
+
+def test_list_filter_by_planning_interval(client, db_session):
+    _make_feature(db_session, title="Q3 Feature", planning_interval="PI1-Q3")
+    _make_feature(db_session, title="Q4 Feature", planning_interval="PI2-Q4")
+    db_session.commit()
+    out = client.get("/api/items?planning_interval=PI1-Q3").json()
+    assert [i["title"] for i in out] == ["Q3 Feature"]
+
+
+def test_patch_iteration_slot(client, db_session):
+    story = _make_feature(db_session, kind=ItemKind.STORY, type="Story",
+                          title="S", planning_interval="PI1-Q3")
+    resp = client.patch(f"/api/items/{story.id}", json={"iteration": 6})
+    assert resp.status_code == 200
+    assert resp.json()["iteration"] == 6
+    # Back to the backlog.
+    cleared = client.patch(f"/api/items/{story.id}", json={"iteration": None})
+    assert cleared.status_code == 200
+    assert cleared.json()["iteration"] is None
+
+
+def test_patch_iteration_out_of_range_rejected(client, db_session):
+    story = _make_feature(db_session, kind=ItemKind.STORY, type="Story", title="S")
+    assert client.patch(f"/api/items/{story.id}", json={"iteration": 0}).status_code == 422
+    assert client.patch(f"/api/items/{story.id}", json={"iteration": 7}).status_code == 422

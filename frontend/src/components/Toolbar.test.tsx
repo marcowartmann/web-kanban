@@ -5,7 +5,7 @@ import type { ItemKind } from "../types";
 import Toolbar from "./Toolbar";
 
 const baseProps = {
-  iterations: ["PI1-Q3"],
+  planningIntervals: ["PI1-Q3"],
   teams: ["Network"],
   assignees: ["Marco Wartmann", "Adrian Senn"],
   kindOptions: ["feature", "story", "risk"] as ItemKind[],
@@ -18,12 +18,14 @@ it("emits the search query on type", async () => {
   expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ q: "teton" }));
 });
 
-it("emits an iteration filter when an option is picked", async () => {
+it("emits a planning-interval filter when an option is picked", async () => {
   const onChange = vi.fn();
   render(<Toolbar filters={{}} onChange={onChange} {...baseProps} />);
-  await userEvent.click(screen.getByRole("button", { name: /iteration/i }));
+  await userEvent.click(screen.getByRole("button", { name: /planning interval/i }));
   await userEvent.click(screen.getByRole("option", { name: "PI1-Q3" }));
-  expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ iteration: "PI1-Q3" }));
+  expect(onChange).toHaveBeenLastCalledWith(
+    expect.objectContaining({ planning_interval: "PI1-Q3" }),
+  );
 });
 
 it("emits an assignee filter when an option is picked", async () => {
@@ -56,7 +58,7 @@ it("clears every filter when Clear all is clicked", async () => {
   const onChange = vi.fn();
   render(
     <Toolbar
-      filters={{ q: "x", iteration: "PI1-Q3", kinds: ["feature"] }}
+      filters={{ q: "x", planning_interval: "PI1-Q3", kinds: ["feature"] }}
       onChange={onChange}
       {...baseProps}
     />,

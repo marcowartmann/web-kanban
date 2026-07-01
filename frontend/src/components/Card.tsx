@@ -50,7 +50,7 @@ export default function Card({
             <span className="font-medium text-gray-700">{card.assignee}</span>
           )}
           {card.leading_team && <span>{card.leading_team}</span>}
-          {card.iteration && <span>{card.iteration}</span>}
+          {card.planning_interval && <span>{card.planning_interval}</span>}
           {card.kind === "feature" && <span>{card.children_count} stories</span>}
           {card.kind === "feature" && card.children_points > 0 && (
             <span>{card.children_points} SP</span>

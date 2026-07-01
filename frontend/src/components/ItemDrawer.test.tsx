@@ -10,7 +10,7 @@ const item = {
   id: 5, kind: "feature", type: "Enabler Feature", title: "Teton Isolierung",
   status: "Analyzing", wsjf_score: 60, business_value: 20, time_criticality: 20,
   risk_reduction: 20, cost_of_delay: 60, job_size: 1, parent_id: null,
-  position: 0, description: "isolate", iteration: "PI1-Q3", leading_team: "Network",
+  position: 0, description: "isolate", planning_interval: "PI1-Q3", iteration: null, leading_team: "Network",
   story_points: null, tshirt_size: "XS", kategorie: null, art: "DP",
   sdi_prio: null, supporting_team: null, externer_partner: null, assignee: null,
   akzeptanzkriterien: null, dependencies: null, bo_stakeholder: null,

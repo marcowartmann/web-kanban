@@ -7,12 +7,15 @@ import NewItemBar from "./components/NewItemBar";
 import StoryBoardModal from "./components/StoryBoardModal";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import AdminView from "./components/admin/AdminView";
+import PlanningView from "./components/PlanningView";
 import { useBoard } from "./hooks/useBoard";
 import { getTeamMembers } from "./api/client";
 
+type View = "board" | "admin" | "planning";
+
 export default function App() {
   const { boards, items, loading, error, reload } = useBoard();
-  const [view, setView] = useState<"board" | "admin">("board");
+  const [view, setView] = useState<View>("board");
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
   // Panels are docked right-to-left: the rightmost is the primary item, and a
   // related item docks beside it as [story, feature] (feature always on the right).
@@ -48,8 +51,8 @@ export default function App() {
 
   const activeBoard = boards.find((b) => b.id === activeBoardId) ?? null;
 
-  const iterations = useMemo(
-    () => [...new Set(items.map((i) => i.iteration).filter(Boolean) as string[])].sort(),
+  const planningIntervals = useMemo(
+    () => [...new Set(items.map((i) => i.planning_interval).filter(Boolean) as string[])].sort(),
     [items],
   );
   const teams = useMemo(
@@ -72,7 +75,7 @@ export default function App() {
     void reload();
   };
 
-  const navButton = (target: "board" | "admin", label: string) => (
+  const navButton = (target: View, label: string) => (
     <button
       onClick={() => setView(target)}
       className={`rounded px-3 py-1 text-sm font-medium ${
@@ -90,6 +93,7 @@ export default function App() {
           <h1 className="text-lg font-semibold text-gray-900">SAFe Kanban</h1>
           <nav className="flex gap-1">
             {navButton("board", "Board")}
+            {navButton("planning", "Planning")}
             {navButton("admin", "Admin")}
           </nav>
         </div>
@@ -103,6 +107,13 @@ export default function App() {
 
       {view === "admin" ? (
         <AdminView onChanged={handleChanged} />
+      ) : view === "planning" ? (
+        <PlanningView
+          items={items}
+          planningIntervals={planningIntervals}
+          onOpenCard={openItem}
+          onChanged={handleChanged}
+        />
       ) : loading && !activeBoard ? (
         <div className="p-8 text-gray-500">Loading board…</div>
       ) : error ? (
@@ -113,7 +124,7 @@ export default function App() {
           <Toolbar
             filters={filters}
             onChange={setFilters}
-            iterations={iterations}
+            planningIntervals={planningIntervals}
             teams={teams}
             assignees={assignees}
             kindOptions={activeBoard.kinds}
