@@ -14,6 +14,8 @@ export interface CardLinkInfo {
   blocked_by_count: number;
   related_count: number;
   conflicts: CardConflict[];
+  /** Item ids on the other end of this card's conflicts (for hover highlighting). */
+  conflictPartners: number[];
 }
 
 /**
@@ -54,8 +56,17 @@ export function computePlanningLinks(
       blocked_by_count: counts.blockedBy.get(id) ?? 0,
       related_count: counts.related.get(id) ?? 0,
       conflicts: [],
+      conflictPartners: [],
     });
   }
+
+  // Track each conflicting card's counterpart ids (for hover highlighting).
+  const partners = new Map<number, Set<number>>();
+  const addPartner = (cardId: number, otherId: number) => {
+    let set = partners.get(cardId);
+    if (!set) partners.set(cardId, (set = new Set()));
+    set.add(otherId);
+  };
 
   const label = (it: Item | undefined, id: number) => `"${it?.title ?? "?"}" (#${id})`;
 
@@ -78,6 +89,7 @@ export function computePlanningLinks(
         severity: "warning",
         message: `Blocked by ${label(blocker, link.source_id)}, not scheduled in this PI`,
       });
+      addPartner(link.target_id, link.source_id);
     } else if (blockerPos > blockedPos) {
       onBlocked.conflicts.push({
         severity: "error",
@@ -87,6 +99,8 @@ export function computePlanningLinks(
         severity: "error",
         message: `Blocks ${label(blocked, link.target_id)} in ${iterationLabel(blockedPos)} (before this)`,
       });
+      addPartner(link.target_id, link.source_id);
+      addPartner(link.source_id, link.target_id);
     } else if (blockerPos === blockedPos) {
       onBlocked.conflicts.push({
         severity: "warning",
@@ -96,9 +110,13 @@ export function computePlanningLinks(
         severity: "warning",
         message: `Same iteration as blocked ${label(blocked, link.target_id)}`,
       });
+      addPartner(link.target_id, link.source_id);
+      addPartner(link.source_id, link.target_id);
     }
     // blockerPos < blockedPos: correctly ordered, no conflict.
   }
+
+  for (const [id, set] of partners) info.get(id)!.conflictPartners = [...set];
 
   return info;
 }

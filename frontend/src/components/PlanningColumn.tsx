@@ -11,6 +11,8 @@ export default function PlanningColumn({
   stories,
   parentTitles,
   linkInfo,
+  highlight,
+  onHighlight,
   onOpen,
 }: {
   id: string;
@@ -20,6 +22,8 @@ export default function PlanningColumn({
   stories: Item[];
   parentTitles: Map<number, string>;
   linkInfo?: Map<number, CardLinkInfo>;
+  highlight?: Set<number> | null;
+  onHighlight?: (ids: number[] | null) => void;
   onOpen: (id: number) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -54,6 +58,8 @@ export default function PlanningColumn({
             story={s}
             parentTitle={s.parent_id != null ? parentTitles.get(s.parent_id) : undefined}
             info={linkInfo?.get(s.id)}
+            dimmed={highlight != null && !highlight.has(s.id)}
+            onHighlight={onHighlight}
             onOpen={onOpen}
           />
         ))}

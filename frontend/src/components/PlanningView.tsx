@@ -48,6 +48,9 @@ export default function PlanningView({
   const [capacities, setCapacities] = useState<Capacity[]>([]);
   const [teamId, setTeamId] = useState<number | null>(null);
   const [assigneeName, setAssigneeName] = useState<string | null>(null);
+  // On ⚠ hover: the card + its conflict partners stay lit; other cards dim.
+  const [highlight, setHighlight] = useState<Set<number> | null>(null);
+  const onHighlight = (ids: number[] | null) => setHighlight(ids ? new Set(ids) : null);
 
   useEffect(() => {
     void getTeams().then(setTeams);
@@ -171,6 +174,8 @@ export default function PlanningView({
               stories={groups.backlog}
               parentTitles={parentTitles}
               linkInfo={cardInfo}
+              highlight={highlight}
+              onHighlight={onHighlight}
               onOpen={onOpenCard}
             />
             {ITERATION_SLOTS.map((slot) => (
@@ -183,6 +188,8 @@ export default function PlanningView({
                 stories={groups.slots[slot]}
                 parentTitles={parentTitles}
                 linkInfo={cardInfo}
+                highlight={highlight}
+                onHighlight={onHighlight}
                 onOpen={onOpenCard}
               />
             ))}

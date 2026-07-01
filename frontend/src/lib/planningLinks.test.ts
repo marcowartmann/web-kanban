@@ -70,6 +70,15 @@ it("counts relates_to on both endpoints without a conflict", () => {
   expect(info.get(2)!.conflicts).toHaveLength(0);
 });
 
+it("records conflict partner ids on both ends (for hover highlighting)", () => {
+  const info = computePlanningLinks([story(1, 5), story(2, 2)], [blocks(10, 1, 2)], "PI1-Q3");
+  expect(info.get(1)!.conflictPartners).toContain(2);
+  expect(info.get(2)!.conflictPartners).toContain(1);
+  // an unscheduled blocker is still recorded as the blocked item's partner
+  const info2 = computePlanningLinks([story(3, null), story(4, 2)], [blocks(11, 3, 4)], "PI1-Q3");
+  expect(info2.get(4)!.conflictPartners).toContain(3);
+});
+
 it("has no conflict when the blocked item is not in the viewed PI", () => {
   const items = [story(1, 5, "PI1-Q3"), story(2, 2, "PI2-Q4")];
   const info = computePlanningLinks(items, [blocks(10, 1, 2)], "PI1-Q3");
