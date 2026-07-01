@@ -1,12 +1,14 @@
 import { useDraggable } from "@dnd-kit/core";
 import type { CardLinkInfo } from "../lib/planningLinks";
 import type { Item } from "../types";
+import CardLinkBadges from "./CardLinkBadges";
 
 export default function StoryPlanCard({
   story,
   parentTitle,
   info,
   dimmed = false,
+  selected = false,
   onHighlight,
   onOpen,
 }: {
@@ -14,6 +16,7 @@ export default function StoryPlanCard({
   parentTitle?: string;
   info?: CardLinkInfo;
   dimmed?: boolean;
+  selected?: boolean;
   onHighlight?: (ids: number[] | null) => void;
   onOpen: (id: number) => void;
 }) {
@@ -25,8 +28,9 @@ export default function StoryPlanCard({
 
   const conflicts = info?.conflicts ?? [];
   const hasError = conflicts.some((c) => c.severity === "error");
-  const ring =
-    conflicts.length === 0
+  const ring = selected
+    ? "border-blue-400 ring-2 ring-blue-400"
+    : conflicts.length === 0
       ? "border-gray-200"
       : hasError
         ? "border-red-300 ring-2 ring-red-400"
@@ -82,13 +86,7 @@ export default function StoryPlanCard({
             <span className="font-medium text-gray-700">{story.assignee}</span>
           )}
           {story.story_points != null && <span>{story.story_points} SP</span>}
-          {(info?.blocked_by_count ?? 0) > 0 && (
-            <span className="font-medium text-red-600">⛔ blocked by {info!.blocked_by_count}</span>
-          )}
-          {(info?.blocks_count ?? 0) > 0 && <span>blocks {info!.blocks_count}</span>}
-          {(info?.related_count ?? 0) > 0 && (
-            <span className="text-gray-500">related {info!.related_count}</span>
-          )}
+          <CardLinkBadges info={info} />
         </div>
       </button>
     </div>

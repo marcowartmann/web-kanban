@@ -108,3 +108,12 @@ it("dims the card when dimmed", () => {
   );
   expect(container.querySelector(".opacity-30")).toBeTruthy();
 });
+
+it("shows a blue ring when selected", () => {
+  const { container } = render(
+    <DndContext>
+      <StoryPlanCard story={story} selected onOpen={() => {}} />
+    </DndContext>,
+  );
+  expect(container.querySelector(".ring-blue-400")).toBeTruthy();
+});
