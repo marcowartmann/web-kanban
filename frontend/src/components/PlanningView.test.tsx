@@ -63,6 +63,27 @@ it("scopes the stories to the selected team", async () => {
   expect(screen.queryByText("Plat Story")).not.toBeInTheDocument();
 });
 
+it("filters to an assignee and scopes capacity to them", async () => {
+  const items = [
+    story({ id: 1, title: "Marco Story", iteration: 2, story_points: 3, assignee: "Marco" }),
+    story({ id: 2, title: "Manuela Story", iteration: 2, story_points: 2, assignee: "Manuela" }),
+  ];
+  render(
+    <PlanningView items={items} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
+  );
+  // Everyone: load 3+2 vs the one member's Cap 5.
+  expect(await screen.findByText("Manuela Story")).toBeInTheDocument();
+  expect(screen.getByText("5 / 5 SP")).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: /assignee/i }));
+  await userEvent.click(screen.getByRole("option", { name: "Marco" }));
+
+  expect(screen.getByText("Marco Story")).toBeInTheDocument();
+  expect(screen.queryByText("Manuela Story")).not.toBeInTheDocument();
+  // Now just Marco's load 3 vs his Cap 5.
+  expect(screen.getByText("3 / 5 SP")).toBeInTheDocument();
+});
+
 it("assigns the iteration slot on drop, and null for the backlog", async () => {
   const update = vi.spyOn(client, "updateItem").mockResolvedValue({} as never);
   const reload = vi.fn().mockResolvedValue(undefined);

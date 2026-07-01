@@ -15,6 +15,7 @@ import {
   slotPoints,
 } from "../lib/iterations";
 import type { Capacity, Item, Team, TeamMember } from "../types";
+import FilterSelect from "./FilterSelect";
 import PlanningColumn from "./PlanningColumn";
 
 export async function handlePlanDragEnd(
@@ -43,6 +44,7 @@ export default function PlanningView({
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [capacities, setCapacities] = useState<Capacity[]>([]);
   const [teamId, setTeamId] = useState<number | null>(null);
+  const [assigneeName, setAssigneeName] = useState<string | null>(null);
 
   useEffect(() => {
     void getTeams().then(setTeams);
@@ -69,20 +71,37 @@ export default function PlanningView({
 
   const team = teamId != null ? teams.find((t) => t.id === teamId) ?? null : null;
 
+  // People to choose from = assignees on the current PI's stories (team-scoped).
+  const assigneeOptions = useMemo(() => {
+    const scoped = team ? items.filter((i) => i.leading_team === team.name) : items;
+    const names = scoped
+      .filter((i) => i.kind === "story" && i.planning_interval === pi && i.assignee)
+      .map((i) => i.assignee as string);
+    return [...new Set(names)].sort();
+  }, [items, team, pi]);
+
+  // Drop a stale assignee selection when the team/PI change hides them.
+  useEffect(() => {
+    if (assigneeName && !assigneeOptions.includes(assigneeName)) setAssigneeName(null);
+  }, [assigneeOptions, assigneeName]);
+
   const groups = useMemo(() => {
     if (!pi) return null;
-    const scoped = team ? items.filter((i) => i.leading_team === team.name) : items;
+    let scoped = team ? items.filter((i) => i.leading_team === team.name) : items;
+    if (assigneeName) scoped = scoped.filter((i) => i.assignee === assigneeName);
     return groupStoriesByIteration(scoped, pi);
-  }, [items, pi, team]);
+  }, [items, pi, team, assigneeName]);
 
   const caps = useMemo(() => {
     if (!pi) return null;
-    const memberIds =
-      teamId != null
-        ? new Set(members.filter((m) => m.team_id === teamId).map((m) => m.id))
-        : null;
+    let memberIds: Set<number> | null = null;
+    if (assigneeName) {
+      memberIds = new Set(members.filter((m) => m.name === assigneeName).map((m) => m.id));
+    } else if (teamId != null) {
+      memberIds = new Set(members.filter((m) => m.team_id === teamId).map((m) => m.id));
+    }
     return capacityBySlot(capacities, pi, memberIds);
-  }, [capacities, pi, teamId, members]);
+  }, [capacities, pi, teamId, assigneeName, members]);
 
   if (!planningIntervals.length) {
     return (
@@ -122,6 +141,15 @@ export default function PlanningView({
             {t.name}
           </button>
         ))}
+
+        <div className="ml-4">
+          <FilterSelect
+            label="Assignee"
+            value={assigneeName ?? undefined}
+            options={assigneeOptions}
+            onChange={(v) => setAssigneeName(v ?? null)}
+          />
+        </div>
       </div>
 
       {groups && (
