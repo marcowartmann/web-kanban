@@ -60,6 +60,23 @@ class Item(Base):
     )
 
 
+class ItemLink(Base):
+    __tablename__ = "item_links"
+    __table_args__ = (
+        UniqueConstraint("source_id", "target_id", "relation", name="uq_item_link"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_id: Mapped[int] = mapped_column(
+        ForeignKey("items.id", ondelete="CASCADE"), index=True
+    )
+    target_id: Mapped[int] = mapped_column(
+        ForeignKey("items.id", ondelete="CASCADE"), index=True
+    )
+    relation: Mapped[str] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
 class Team(Base):
     __tablename__ = "teams"
 
