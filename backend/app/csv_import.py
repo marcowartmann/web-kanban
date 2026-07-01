@@ -2,7 +2,7 @@ import csv
 import io
 from dataclasses import dataclass, field
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.models import ItemKind
 
@@ -202,6 +202,26 @@ def _seed_teams_and_members(db, parsed) -> None:
         db.add(TeamMember(name=name))
 
 
+def _seed_planning_intervals(db, parsed) -> None:
+    from app.models import PlanningInterval
+
+    all_data = []
+    for feature in parsed.features:
+        all_data.append(feature.data)
+        all_data.extend(story.data for story in feature.stories)
+    all_data.extend(risk.data for risk in parsed.risks)
+
+    names: set[str] = set()
+    for data in all_data:
+        raw = data.get("planning_interval")
+        if raw and str(raw).strip():
+            names.add(str(raw).strip())
+    existing = {p.name for p in db.scalars(select(PlanningInterval))}
+    start = db.scalar(select(func.max(PlanningInterval.position))) or 0
+    for offset, name in enumerate(sorted(names - existing), start=1):
+        db.add(PlanningInterval(name=name, position=start + offset))
+
+
 def replace_all(db, parsed):
     from app.models import Item
     from app.schemas import ImportResult
@@ -216,6 +236,7 @@ def replace_all(db, parsed):
     for r_index, risk in enumerate(parsed.risks):
         _insert_item(db, risk, None, r_index)
     _seed_teams_and_members(db, parsed)
+    _seed_planning_intervals(db, parsed)
     db.commit()
     return ImportResult(
         features=len(parsed.features),
