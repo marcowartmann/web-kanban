@@ -79,8 +79,12 @@ export default function ItemDrawer({
   };
 
   const removeLink = async (linkId: number) => {
-    await deleteLink(linkId);
-    await reloadItem();
+    try {
+      await deleteLink(linkId);
+      await reloadItem();
+    } catch (e) {
+      setError(String(e));
+    }
   };
 
   const addStory = async () => {
