@@ -9,6 +9,7 @@ it("adds a team", async () => {
   vi.spyOn(client, "getTeams").mockResolvedValue([]);
   vi.spyOn(client, "getTeamMembers").mockResolvedValue([]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
+  vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([]);
   const create = vi.spyOn(client, "createTeam").mockResolvedValue({ id: 1, name: "Network" });
   render(<AdminView onChanged={() => {}} />);
   fireEvent.change(screen.getByPlaceholderText(/new team name/i), { target: { value: "Network" } });
@@ -20,6 +21,7 @@ it("adds a member with a team", async () => {
   vi.spyOn(client, "getTeams").mockResolvedValue([{ id: 2, name: "Network" }]);
   vi.spyOn(client, "getTeamMembers").mockResolvedValue([]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
+  vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([]);
   const create = vi.spyOn(client, "createTeamMember").mockResolvedValue({
     id: 1, name: "Marco", team_id: 2, team_name: "Network",
   });

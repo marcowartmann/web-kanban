@@ -1,4 +1,5 @@
 import CapacitySection from "./CapacitySection";
+import PlanningIntervalsSection from "./PlanningIntervalsSection";
 import TeamMembersSection from "./TeamMembersSection";
 import TeamsSection from "./TeamsSection";
 
@@ -14,6 +15,7 @@ export default function AdminView({
       <div className="grid gap-4 md:grid-cols-2">
         <TeamsSection onChanged={onChanged} />
         <TeamMembersSection onChanged={onChanged} />
+        <PlanningIntervalsSection onChanged={onChanged} />
       </div>
       <CapacitySection planningIntervals={planningIntervals} />
     </div>
