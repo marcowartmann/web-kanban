@@ -12,6 +12,7 @@ import {
 import type { Item, ItemKind, ItemUpdate, RelationOption } from "../types";
 import Field from "./Field";
 import SearchableSelect from "./SearchableSelect";
+import WsjfToggle from "./WsjfToggle";
 
 const NUMERIC_FIELDS = new Set([
   "story_points",
@@ -307,13 +308,32 @@ export default function ItemDrawer({
         </Section>
 
         <Section label="Estimation">
-          <Field label="Story Points" type="number" value={value("story_points")} onChange={(v) => set("story_points", v)} />
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Business Value" type="number" value={value("business_value")} onChange={(v) => set("business_value", v)} />
-            <Field label="Time Criticality" type="number" value={value("time_criticality")} onChange={(v) => set("time_criticality", v)} />
-            <Field label="Risk Reduction" type="number" value={value("risk_reduction")} onChange={(v) => set("risk_reduction", v)} />
-            <Field label="Job Size" type="number" value={value("job_size")} onChange={(v) => set("job_size", v)} />
-          </div>
+          {item.kind === "feature" ? (
+            <div className="flex flex-col gap-3">
+              <WsjfToggle
+                label="Business Value"
+                value={value("business_value")}
+                onChange={(v) => setDraft((d) => ({ ...d, business_value: v }))}
+              />
+              <WsjfToggle
+                label="Time Criticality"
+                value={value("time_criticality")}
+                onChange={(v) => setDraft((d) => ({ ...d, time_criticality: v }))}
+              />
+              <WsjfToggle
+                label="Risk Reduction"
+                value={value("risk_reduction")}
+                onChange={(v) => setDraft((d) => ({ ...d, risk_reduction: v }))}
+              />
+              <WsjfToggle
+                label="Job Size"
+                value={value("job_size")}
+                onChange={(v) => setDraft((d) => ({ ...d, job_size: v }))}
+              />
+            </div>
+          ) : (
+            <Field label="Story Points" type="number" value={value("story_points")} onChange={(v) => set("story_points", v)} />
+          )}
         </Section>
 
         {item.kind === "feature" && (
