@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { createItem, deleteItem, getItem, updateItem } from "../api/client";
-import type { Item, ItemUpdate } from "../types";
+import { createItem, createLink, deleteItem, deleteLink, getItem, getLinkRelations, listItems, updateItem } from "../api/client";
+import type { Item, ItemUpdate, RelationOption } from "../types";
 import Field from "./Field";
 import SearchableSelect from "./SearchableSelect";
 
@@ -17,6 +17,7 @@ export default function ItemDrawer({
   onChanged,
   onOpenParent,
   onOpenChild,
+  onOpenItem,
 }: {
   itemId: number;
   assigneeOptions?: string[];
@@ -25,11 +26,21 @@ export default function ItemDrawer({
   onChanged: () => void;
   onOpenParent?: (parentId: number) => void;
   onOpenChild?: (storyId: number) => void;
+  onOpenItem?: (id: number) => void;
 }) {
   const [item, setItem] = useState<Item | null>(null);
   const [parent, setParent] = useState<Item | null>(null);
   const [draft, setDraft] = useState<ItemUpdate>({});
   const [error, setError] = useState<string | null>(null);
+  const [relations, setRelations] = useState<RelationOption[]>([]);
+  const [candidates, setCandidates] = useState<Item[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [pickRelation, setPickRelation] = useState<RelationOption | null>(null);
+
+  useEffect(() => {
+    void getLinkRelations().then(setRelations).catch(() => undefined);
+    void listItems().then(setCandidates).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     void getItem(itemId).then(setItem).catch((e) => setError(String(e)));
@@ -51,6 +62,26 @@ export default function ItemDrawer({
   }, [item]);
 
   const reloadItem = async () => setItem(await getItem(itemId));
+
+  const addLink = async (relation: RelationOption, otherId: number) => {
+    const body =
+      relation.direction === "incoming"
+        ? { source_id: otherId, target_id: itemId, relation: relation.relation }
+        : { source_id: itemId, target_id: otherId, relation: relation.relation };
+    try {
+      await createLink(body);
+      setAdding(false);
+      setPickRelation(null);
+      await reloadItem();
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  const removeLink = async (linkId: number) => {
+    await deleteLink(linkId);
+    await reloadItem();
+  };
 
   const addStory = async () => {
     const title = window.prompt("New story title");
@@ -192,6 +223,72 @@ export default function ItemDrawer({
         </div>
       )}
 
+      <div className="mt-6">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-700">Dependencies</h3>
+          <button
+            onClick={() => setAdding((v) => !v)}
+            className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+          >
+            {adding ? "Cancel" : "+ Add dependency"}
+          </button>
+        </div>
+
+        <ul className="flex flex-col gap-1">
+          {(item.links ?? []).map((link) => (
+            <li
+              key={link.link_id}
+              className="flex items-center justify-between rounded bg-gray-50 px-2 py-1 text-sm"
+            >
+              <button
+                onClick={() => onOpenItem?.(link.item.id)}
+                className="min-w-0 flex-1 truncate text-left"
+              >
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  {link.label}
+                </span>{" "}
+                <span className="text-blue-700 hover:underline">{link.item.title}</span>
+                <span className="ml-1 text-xs text-gray-400">({link.item.kind})</span>
+              </button>
+              <button
+                aria-label={`remove link ${link.link_id}`}
+                onClick={() => removeLink(link.link_id)}
+                className="ml-2 shrink-0 text-gray-400 hover:text-red-600"
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {adding && (
+          <div className="mt-2 flex flex-col gap-2 rounded border border-gray-200 p-2">
+            <ul role="listbox" className="flex flex-col rounded border border-gray-200 bg-white">
+              {relations.map((rel) => (
+                <li key={`${rel.relation}-${rel.direction}`}>
+                  <button
+                    role="option"
+                    aria-selected={pickRelation?.label === rel.label}
+                    onClick={() => setPickRelation(rel)}
+                    className={`w-full rounded px-2 py-1 text-left text-sm hover:bg-gray-50 ${
+                      pickRelation?.label === rel.label ? "bg-blue-50 font-medium text-blue-700" : ""
+                    }`}
+                  >
+                    {rel.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <ItemPicker
+              disabled={!pickRelation}
+              items={candidates.filter((c) => c.id !== itemId)}
+              onPick={(otherId) => pickRelation && void addLink(pickRelation, otherId)}
+            />
+          </div>
+        )}
+      </div>
+
       <div className="mt-6 flex gap-2">
         <button onClick={save} className="rounded bg-blue-600 px-4 py-1.5 text-sm font-medium text-white">
           Save
@@ -223,5 +320,61 @@ function Drawer({ children, onClose }: { children: React.ReactNode; onClose: () 
       </div>
       <div className="flex-1 overflow-y-auto p-6">{children}</div>
     </aside>
+  );
+}
+
+function ItemPicker({
+  items,
+  disabled,
+  onPick,
+}: {
+  items: Item[];
+  disabled: boolean;
+  onPick: (id: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const label = (it: Item) => `${it.title} (#${it.id})`;
+  const filtered = items.filter((it) => label(it).toLowerCase().includes(query.toLowerCase()));
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-label="choose item"
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className="w-full rounded border border-gray-200 px-2 py-1 text-left text-sm disabled:opacity-50"
+      >
+        Choose item…
+      </button>
+      {open && !disabled && (
+        <div className="absolute z-20 mt-1 w-full rounded border border-gray-200 bg-white p-1 shadow">
+          <input
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search…"
+            className="mb-1 w-full rounded border border-gray-200 px-2 py-1 text-sm"
+          />
+          <ul className="max-h-48 overflow-auto">
+            {filtered.map((it) => (
+              <li key={it.id}>
+                <button
+                  onClick={() => {
+                    onPick(it.id);
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                  className="w-full rounded px-2 py-1 text-left text-sm hover:bg-gray-50"
+                >
+                  {label(it)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

@@ -35,6 +35,9 @@ export default function App() {
       const story = p[0];
       return story != null ? [story, featureId] : [featureId];
     });
+  // A linked item docks to the left of the current stack (dependency navigation).
+  const openItemDocked = (id: number) =>
+    setPanels((p) => (p.includes(id) ? p : [id, ...p]));
   const closePanel = (id: number) => setPanels((p) => p.filter((x) => x !== id));
   const closePanels = () => setPanels([]);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -165,6 +168,7 @@ export default function App() {
               onChanged={handleChanged}
               onOpenParent={openParent}
               onOpenChild={openChild}
+              onOpenItem={openItemDocked}
             />
           ))}
         </div>
