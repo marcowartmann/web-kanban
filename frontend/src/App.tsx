@@ -10,12 +10,13 @@ import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
 import TimelineView from "./components/TimelineView";
 import { useBoard } from "./hooks/useBoard";
-import { getTeamMembers } from "./api/client";
+import { getTeamMembers, getTeams } from "./api/client";
+import { statusOptionsByKind } from "./lib/boardLanes";
 
 type View = "board" | "admin" | "planning" | "timeline";
 
 export default function App() {
-  const { boards, items, links, loading, error, reload } = useBoard();
+  const { boards, items, links, planningIntervals, loading, error, reload } = useBoard();
   const [view, setView] = useState<View>("board");
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
   // Panels are docked right-to-left: the rightmost is the primary item, and a
@@ -44,6 +45,7 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<BoardFilters>({});
   const [assigneeOptions, setAssigneeOptions] = useState<string[]>([]);
+  const [leadingTeamOptions, setLeadingTeamOptions] = useState<string[]>([]);
 
   useEffect(() => {
     if (activeBoardId == null && boards.length) setActiveBoardId(boards[0].id);
@@ -53,12 +55,14 @@ export default function App() {
     void getTeamMembers().then((ms) => setAssigneeOptions(ms.map((m) => m.name)));
   }, [refreshKey]);
 
+  useEffect(() => {
+    void getTeams().then((ts) => setLeadingTeamOptions(ts.map((t) => t.name)));
+  }, [refreshKey]);
+
+  const statusOptions = useMemo(() => statusOptionsByKind(boards), [boards]);
+
   const activeBoard = boards.find((b) => b.id === activeBoardId) ?? null;
 
-  const planningIntervals = useMemo(
-    () => [...new Set(items.map((i) => i.planning_interval).filter(Boolean) as string[])].sort(),
-    [items],
-  );
   const teams = useMemo(
     () => [...new Set(items.map((i) => i.leading_team).filter(Boolean) as string[])].sort(),
     [items],
@@ -174,6 +178,9 @@ export default function App() {
               key={id}
               itemId={id}
               assigneeOptions={assigneeOptions}
+              statusOptionsByKind={statusOptions}
+              planningIntervalOptions={planningIntervals}
+              leadingTeamOptions={leadingTeamOptions}
               openIds={panels}
               onClose={() => closePanel(id)}
               onChanged={handleChanged}
