@@ -82,6 +82,28 @@ class TeamMember(Base):
 
     team: Mapped["Team | None"] = relationship(back_populates="members")
 
+    capacities: Mapped[list["Capacity"]] = relationship(
+        cascade="all, delete-orphan"
+    )
+
+
+class Capacity(Base):
+    __tablename__ = "capacities"
+    __table_args__ = (
+        UniqueConstraint(
+            "member_id", "planning_interval", "iteration",
+            name="uq_capacity_member_pi_iter",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    member_id: Mapped[int] = mapped_column(
+        ForeignKey("team_members.id", ondelete="CASCADE")
+    )
+    planning_interval: Mapped[str] = mapped_column(String(64))
+    iteration: Mapped[int] = mapped_column(Integer)  # 1..5, 6 = IP
+    points: Mapped[float] = mapped_column(Numeric)
+
 
 class Board(Base):
     __tablename__ = "boards"

@@ -98,6 +98,14 @@ export interface TeamMember {
   team_name: string | null;
 }
 
+export interface Capacity {
+  id: number;
+  member_id: number;
+  planning_interval: string;
+  iteration: number;
+  points: number;
+}
+
 export interface Lane {
   id: number;
   name: string;

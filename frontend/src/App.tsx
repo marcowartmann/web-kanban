@@ -106,7 +106,7 @@ export default function App() {
       </header>
 
       {view === "admin" ? (
-        <AdminView onChanged={handleChanged} />
+        <AdminView onChanged={handleChanged} planningIntervals={planningIntervals} />
       ) : view === "planning" ? (
         <PlanningView
           items={items}

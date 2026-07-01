@@ -1,6 +1,14 @@
 import { expect, it } from "vitest";
-import type { Item } from "../types";
-import { groupStoriesByIteration, iterationLabel, slotPoints } from "./iterations";
+import type { Capacity, Item } from "../types";
+import {
+  capacityBySlot,
+  groupStoriesByIteration,
+  iterationLabel,
+  slotPoints,
+} from "./iterations";
+
+const cap = (over: Partial<Capacity>): Capacity =>
+  ({ id: 1, member_id: 1, planning_interval: "PI1-Q3", iteration: 1, points: 0, ...over }) as Capacity;
 
 const story = (over: Partial<Item>): Item =>
   ({
@@ -36,4 +44,20 @@ it("buckets stories of a PI into backlog and slots, ignoring others", () => {
 it("sums story points and trims float noise", () => {
   expect(slotPoints([story({ story_points: 2.4 }), story({ story_points: 0.5 })])).toBe(2.9);
   expect(slotPoints([story({ story_points: null })])).toBe(0);
+});
+
+it("sums capacity per slot for a PI, honoring the member filter", () => {
+  const caps = [
+    cap({ member_id: 1, iteration: 1, points: 8 }),
+    cap({ member_id: 2, iteration: 1, points: 5 }),
+    cap({ member_id: 1, iteration: 6, points: 2 }),
+    cap({ member_id: 1, iteration: 1, points: 3, planning_interval: "PI2-Q4" }), // other PI
+  ];
+  const all = capacityBySlot(caps, "PI1-Q3", null);
+  expect(all[1]).toBe(13);
+  expect(all[6]).toBe(2);
+  expect(all[2]).toBe(0);
+  // Restrict to member 1 only.
+  const one = capacityBySlot(caps, "PI1-Q3", new Set([1]));
+  expect(one[1]).toBe(8);
 });

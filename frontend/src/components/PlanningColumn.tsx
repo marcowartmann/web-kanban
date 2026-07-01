@@ -5,19 +5,22 @@ import StoryPlanCard from "./StoryPlanCard";
 export default function PlanningColumn({
   id,
   title,
-  points,
+  load,
+  capacity,
   stories,
   parentTitles,
   onOpen,
 }: {
   id: string;
   title: string;
-  points?: number;
+  load?: number;
+  capacity?: number;
   stories: Item[];
   parentTitles: Map<number, string>;
   onOpen: (id: number) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id });
+  const over = load != null && capacity != null && load > capacity;
   return (
     <div
       ref={setNodeRef}
@@ -28,9 +31,14 @@ export default function PlanningColumn({
       <h2 className="mb-3 flex items-center justify-between gap-2 text-sm font-semibold text-gray-700">
         <span>{title}</span>
         <span className="flex items-center gap-2 text-xs font-normal text-gray-500">
-          {points != null && (
-            <span className="rounded-full bg-white px-2 py-0.5 font-medium text-gray-600">
-              {points} SP
+          {load != null && capacity != null && (
+            <span
+              title="Load / Capacity"
+              className={`rounded-full px-2 py-0.5 font-medium ${
+                over ? "bg-red-100 text-red-700" : "bg-white text-gray-600"
+              }`}
+            >
+              {load} / {capacity} SP
             </span>
           )}
           <span className="rounded-full bg-gray-200 px-2 py-0.5">{stories.length}</span>

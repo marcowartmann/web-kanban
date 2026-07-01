@@ -1,5 +1,6 @@
 import type {
   Board,
+  Capacity,
   ImportResult,
   Item,
   ItemCreate,
@@ -100,4 +101,17 @@ export function reorderLanes(boardId: number, laneIds: number[]): Promise<Lane[]
     ...json({ lane_ids: laneIds }),
     method: "PUT",
   });
+}
+
+export function getCapacities(): Promise<Capacity[]> {
+  return request<Capacity[]>("/api/capacities");
+}
+
+export function upsertCapacity(body: {
+  member_id: number;
+  planning_interval: string;
+  iteration: number;
+  points: number;
+}): Promise<Capacity> {
+  return request<Capacity>("/api/capacities", { ...json(body), method: "PUT" });
 }

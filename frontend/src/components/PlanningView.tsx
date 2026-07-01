@@ -6,14 +6,15 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useEffect, useMemo, useState } from "react";
-import { updateItem } from "../api/client";
+import { getCapacities, getTeamMembers, getTeams, updateItem } from "../api/client";
 import {
   ITERATION_SLOTS,
+  capacityBySlot,
   groupStoriesByIteration,
   iterationLabel,
   slotPoints,
 } from "../lib/iterations";
-import type { Item } from "../types";
+import type { Capacity, Item, Team, TeamMember } from "../types";
 import PlanningColumn from "./PlanningColumn";
 
 export async function handlePlanDragEnd(
@@ -38,6 +39,16 @@ export default function PlanningView({
   onChanged: () => void | Promise<void>;
 }) {
   const [pi, setPi] = useState<string | null>(planningIntervals[0] ?? null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [capacities, setCapacities] = useState<Capacity[]>([]);
+  const [teamId, setTeamId] = useState<number | null>(null);
+
+  useEffect(() => {
+    void getTeams().then(setTeams);
+    void getTeamMembers().then(setMembers);
+    void getCapacities().then(setCapacities);
+  }, []);
 
   // Keep the selected PI valid as data loads/changes.
   useEffect(() => {
@@ -56,10 +67,22 @@ export default function PlanningView({
     return m;
   }, [items]);
 
-  const groups = useMemo(
-    () => (pi ? groupStoriesByIteration(items, pi) : null),
-    [items, pi],
-  );
+  const team = teamId != null ? teams.find((t) => t.id === teamId) ?? null : null;
+
+  const groups = useMemo(() => {
+    if (!pi) return null;
+    const scoped = team ? items.filter((i) => i.leading_team === team.name) : items;
+    return groupStoriesByIteration(scoped, pi);
+  }, [items, pi, team]);
+
+  const caps = useMemo(() => {
+    if (!pi) return null;
+    const memberIds =
+      teamId != null
+        ? new Set(members.filter((m) => m.team_id === teamId).map((m) => m.id))
+        : null;
+    return capacityBySlot(capacities, pi, memberIds);
+  }, [capacities, pi, teamId, members]);
 
   if (!planningIntervals.length) {
     return (
@@ -69,6 +92,13 @@ export default function PlanningView({
     );
   }
 
+  const pill = (active: boolean) =>
+    `rounded-full border px-3 py-1 text-sm font-medium transition ${
+      active
+        ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+    }`;
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2 border-b bg-white px-6 py-3">
@@ -76,16 +106,20 @@ export default function PlanningView({
           Planning Interval
         </span>
         {planningIntervals.map((p) => (
-          <button
-            key={p}
-            onClick={() => setPi(p)}
-            className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
-              p === pi
-                ? "border-blue-600 bg-blue-600 text-white shadow-sm"
-                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-            }`}
-          >
+          <button key={p} onClick={() => setPi(p)} className={pill(p === pi)}>
             {p}
+          </button>
+        ))}
+
+        <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          Team
+        </span>
+        <button onClick={() => setTeamId(null)} className={pill(teamId === null)}>
+          All teams
+        </button>
+        {teams.map((t) => (
+          <button key={t.id} onClick={() => setTeamId(t.id)} className={pill(teamId === t.id)}>
+            {t.name}
           </button>
         ))}
       </div>
@@ -105,7 +139,8 @@ export default function PlanningView({
                 key={slot}
                 id={String(slot)}
                 title={iterationLabel(slot)}
-                points={slotPoints(groups.slots[slot])}
+                load={slotPoints(groups.slots[slot])}
+                capacity={caps ? caps[slot] : undefined}
                 stories={groups.slots[slot]}
                 parentTitles={parentTitles}
                 onOpen={onOpenCard}
