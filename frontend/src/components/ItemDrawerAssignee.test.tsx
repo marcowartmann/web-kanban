@@ -28,7 +28,7 @@ it("assigns a team member from the strict dropdown and saves it", async () => {
     />,
   );
   await screen.findByDisplayValue("F");
-  fireEvent.focus(screen.getByRole("combobox"));
+  fireEvent.focus(screen.getByRole("combobox", { name: "Assignee" }));
   fireEvent.mouseDown(screen.getByText("Marco Wartmann"));
   fireEvent.click(screen.getByRole("button", { name: /save/i }));
   expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ assignee: "Marco Wartmann" }));

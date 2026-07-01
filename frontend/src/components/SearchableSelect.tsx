@@ -5,11 +5,13 @@ export default function SearchableSelect({
   options,
   onChange,
   placeholder = "Search…",
+  ariaLabel,
 }: {
   value: string | null;
   options: string[];
   onChange: (value: string | null) => void;
   placeholder?: string;
+  ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(value ?? "");
@@ -49,6 +51,7 @@ export default function SearchableSelect({
       <div className="flex items-center gap-1">
         <input
           role="combobox"
+          aria-label={ariaLabel}
           aria-expanded={open}
           value={query}
           placeholder={placeholder}
@@ -61,7 +64,7 @@ export default function SearchableSelect({
         />
         {value && (
           <button
-            aria-label="Clear assignee"
+            aria-label={ariaLabel ? `Clear ${ariaLabel}` : "Clear"}
             onClick={clear}
             className="px-1 text-gray-400 hover:text-red-600"
           >

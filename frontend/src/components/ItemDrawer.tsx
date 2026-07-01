@@ -9,7 +9,7 @@ import {
   listItems,
   updateItem,
 } from "../api/client";
-import type { Item, ItemUpdate, RelationOption } from "../types";
+import type { Item, ItemKind, ItemUpdate, RelationOption } from "../types";
 import Field from "./Field";
 import SearchableSelect from "./SearchableSelect";
 
@@ -32,9 +32,15 @@ const KIND_ACCENT: Record<string, string> = {
   risk: "bg-red-500",
 };
 
+const withCurrent = (current: string | null, options: string[]): string[] =>
+  current && !options.includes(current) ? [current, ...options] : options;
+
 export default function ItemDrawer({
   itemId,
   assigneeOptions = [],
+  statusOptionsByKind = {},
+  planningIntervalOptions = [],
+  leadingTeamOptions = [],
   openIds = [],
   onClose,
   onChanged,
@@ -45,6 +51,9 @@ export default function ItemDrawer({
 }: {
   itemId: number;
   assigneeOptions?: string[];
+  statusOptionsByKind?: Partial<Record<ItemKind, string[]>>;
+  planningIntervalOptions?: string[];
+  leadingTeamOptions?: string[];
   openIds?: number[];
   onClose: () => void;
   onChanged: () => void;
@@ -244,14 +253,51 @@ export default function ItemDrawer({
         )}
 
         <Section label="Details">
-          <Field label="Status" value={value("status")} onChange={(v) => set("status", v)} />
-          <Field label="Planning Interval" value={value("planning_interval")} onChange={(v) => set("planning_interval", v)} />
-          <Field label="Leading Team" value={value("leading_team")} onChange={(v) => set("leading_team", v)} />
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
+              Status
+            </span>
+            <SearchableSelect
+              ariaLabel="Status"
+              value={(value("status") as string | null) || null}
+              options={withCurrent(
+                (value("status") as string | null) || null,
+                statusOptionsByKind[item.kind] ?? [],
+              )}
+              onChange={(v) => setDraft((d) => ({ ...d, status: v ?? "" }))}
+              placeholder="Select status…"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
+              Planning Interval
+            </span>
+            <SearchableSelect
+              ariaLabel="Planning Interval"
+              value={(value("planning_interval") as string | null) || null}
+              options={withCurrent((value("planning_interval") as string | null) || null, planningIntervalOptions)}
+              onChange={(v) => setDraft((d) => ({ ...d, planning_interval: v ?? "" }))}
+              placeholder="Select planning interval…"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
+              Leading Team
+            </span>
+            <SearchableSelect
+              ariaLabel="Leading Team"
+              value={(value("leading_team") as string | null) || null}
+              options={withCurrent((value("leading_team") as string | null) || null, leadingTeamOptions)}
+              onChange={(v) => setDraft((d) => ({ ...d, leading_team: v ?? "" }))}
+              placeholder="Select team…"
+            />
+          </label>
           <label className="block">
             <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
               Assignee
             </span>
             <SearchableSelect
+              ariaLabel="Assignee"
               value={(value("assignee") as string | null) || null}
               options={assigneeOptions}
               onChange={(v) => setDraft((d) => ({ ...d, assignee: v ?? "" }))}
