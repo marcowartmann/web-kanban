@@ -147,6 +147,17 @@ class TeamRead(BaseModel):
     name: str
 
 
+class PlanningIntervalRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    position: int
+
+
+class PlanningIntervalCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=64)
+
+
 class TeamMemberCreate(BaseModel):
     name: str
     team_id: int | None = None
