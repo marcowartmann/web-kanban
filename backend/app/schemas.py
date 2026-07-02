@@ -294,3 +294,24 @@ class AuditEventRead(BaseModel):
 class AuditPage(BaseModel):
     items: list[AuditEventRead]
     total: int
+
+
+class CommentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    item_id: int
+    parent_id: int | None
+    author_id: int
+    author_name: str | None
+    body: str
+    created_at: datetime
+    updated_at: datetime | None
+
+
+class CommentCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=4000)
+    parent_id: int | None = None
+
+
+class CommentUpdate(BaseModel):
+    body: str = Field(min_length=1, max_length=4000)
