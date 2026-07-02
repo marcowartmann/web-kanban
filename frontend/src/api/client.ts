@@ -189,13 +189,21 @@ export function createUser(payload: {
   display_name: string;
   password: string;
   role: "admin" | "member";
+  team_id?: number | null;
 }): Promise<AuthUser> {
   return request<AuthUser>("/api/users", json(payload));
 }
 
 export function updateUser(
   id: number,
-  payload: Partial<{ display_name: string; role: "admin" | "member"; is_active: boolean; password: string }>,
+  payload: Partial<{
+    display_name: string;
+    email: string;
+    role: "admin" | "member";
+    is_active: boolean;
+    password: string;
+    team_id: number | null;
+  }>,
 ): Promise<AuthUser> {
   return request<AuthUser>(`/api/users/${id}`, { ...json(payload), method: "PATCH" });
 }

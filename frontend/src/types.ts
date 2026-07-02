@@ -165,4 +165,6 @@ export interface AuthUser {
   display_name: string;
   role: "admin" | "member";
   is_active: boolean;
+  team_id?: number | null;
+  team_name?: string | null;
 }
