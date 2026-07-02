@@ -106,7 +106,10 @@ Cookie attributes: `HttpOnly; SameSite=Lax; Path=/; Max-Age=<ttl>`;
 
 Schemas: `UserRead {id, email, display_name, role, is_active}`,
 `LoginRequest`, `UserCreate`, `UserUpdate`, `PasswordChange`
-(`new_password`/`password` fields: `Field(min_length=8, max_length=128)`).
+(`new_password`/`password` fields: `Field(min_length=8, max_length=72)` —
+72 is bcrypt's hard input limit; bcrypt ≥5 raises on longer inputs).
+`verify_password` returns `False` (never raises) on malformed/oversized
+input, so a >72-byte login attempt yields the normal 401.
 
 ## Route protection matrix
 

@@ -17,7 +17,7 @@
 - Raw session token: `secrets.token_urlsafe(32)`; only `hashlib.sha256(token.encode()).hexdigest()` is stored.
 - Cookie: name `kanban_session`, `HttpOnly`, `SameSite=Lax`, `Path=/`, `Max-Age` = TTL; `Secure` only when `settings.cookie_secure`. Same token accepted as `Authorization: Bearer <token>`.
 - Session TTL 14 days, sliding: extend to `now + TTL` when less than half remains. Naive-UTC datetimes via a `utcnow()` helper (`datetime.now(timezone.utc).replace(tzinfo=None)`).
-- Roles are exactly `"admin" | "member"` (Pydantic `Literal`). Passwords `Field(min_length=8, max_length=128)`.
+- Roles are exactly `"admin" | "member"` (Pydantic `Literal`). Passwords `Field(min_length=8, max_length=72)`.
 - Open endpoints (no auth): `GET /api/health`, `POST /api/auth/login`, `POST /api/auth/logout` (idempotent). Everything else requires auth; admin-only: `/api/users/*`, `POST /api/import`, lanes mutations, teams/team_members/planning_intervals/capacities mutations.
 - Login failures (unknown email, wrong password, inactive) all return the identical 401 `{"detail": "Invalid credentials"}`. Email matching case-insensitive.
 - No `DELETE /api/users/...` route exists. Admins cannot demote or deactivate themselves (422).
@@ -564,7 +564,7 @@ class LoginRequest(BaseModel):
 
 class PasswordChange(BaseModel):
     current_password: str
-    new_password: str = Field(min_length=8, max_length=128)
+    new_password: str = Field(min_length=8, max_length=72)
 ```
 
 - [ ] **Step 5: Create `backend/app/routers/auth.py`**
@@ -789,7 +789,7 @@ Append to `backend/app/schemas.py`:
 class UserCreate(BaseModel):
     email: str = Field(min_length=3, max_length=255)
     display_name: str = Field(min_length=1, max_length=120)
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=8, max_length=72)
     role: Literal["admin", "member"] = "member"
 
 
@@ -797,7 +797,7 @@ class UserUpdate(BaseModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=120)
     role: Literal["admin", "member"] | None = None
     is_active: bool | None = None
-    password: str | None = Field(default=None, min_length=8, max_length=128)
+    password: str | None = Field(default=None, min_length=8, max_length=72)
 ```
 
 - [ ] **Step 4: Create `backend/app/routers/users.py`**
