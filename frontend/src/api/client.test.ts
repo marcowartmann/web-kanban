@@ -19,7 +19,7 @@ describe("api client", () => {
     const spy = mockFetch(200, { id: 1, status: "New" });
     await updateItem(1, { status: "New" });
     const [url, init] = spy.mock.calls[0];
-    expect(url).toBe("/api/items/1");
+    expect(url).toBe("/api/v1/items/1");
     expect(init?.method).toBe("PATCH");
     expect(JSON.parse(init?.body as string)).toEqual({ status: "New" });
   });
@@ -46,7 +46,7 @@ describe("api client", () => {
   it("getTeams fetches /api/teams", async () => {
     const spy = mockFetch(200, [{ id: 1, name: "Network" }]);
     const teams = await getTeams();
-    expect(spy).toHaveBeenCalledWith("/api/teams", undefined);
+    expect(spy).toHaveBeenCalledWith("/api/v1/teams", undefined);
     expect(teams[0].name).toBe("Network");
   });
 
@@ -54,7 +54,7 @@ describe("api client", () => {
     const spy = mockFetch(201, { id: 1, name: "Marco", team_id: 2, team_name: "Network" });
     await createTeamMember({ name: "Marco", team_id: 2 });
     const [url, init] = spy.mock.calls[0];
-    expect(url).toBe("/api/team-members");
+    expect(url).toBe("/api/v1/team-members");
     expect(init?.method).toBe("POST");
     expect(JSON.parse(init?.body as string)).toEqual({ name: "Marco", team_id: 2 });
   });
@@ -62,7 +62,7 @@ describe("api client", () => {
   it("getBoards fetches /api/boards", async () => {
     const spy = mockFetch(200, [{ id: 1, name: "Main", kinds: ["feature"], position: 0, lanes: [] }]);
     const boards = await getBoards();
-    expect(spy).toHaveBeenCalledWith("/api/boards", undefined);
+    expect(spy).toHaveBeenCalledWith("/api/v1/boards", undefined);
     expect(boards[0].name).toBe("Main");
   });
 
@@ -70,7 +70,7 @@ describe("api client", () => {
     const spy = mockFetch(200, []);
     await reorderLanes(7, [3, 1, 2]);
     const [url, init] = spy.mock.calls[0];
-    expect(url).toBe("/api/boards/7/lanes/order");
+    expect(url).toBe("/api/v1/boards/7/lanes/order");
     expect(init?.method).toBe("PUT");
     expect(JSON.parse(init?.body as string)).toEqual({ lane_ids: [3, 1, 2] });
   });
@@ -79,7 +79,7 @@ describe("api client", () => {
     const spy = mockFetch(201, { id: 1, source_id: 2, target_id: 3, relation: "blocks" });
     await createLink({ source_id: 2, target_id: 3, relation: "blocks" });
     const [url, init] = spy.mock.calls[0];
-    expect(url).toBe("/api/links");
+    expect(url).toBe("/api/v1/links");
     expect(init?.method).toBe("POST");
     expect(JSON.parse(init?.body as string)).toEqual({ source_id: 2, target_id: 3, relation: "blocks" });
   });
@@ -87,7 +87,7 @@ describe("api client", () => {
   it("deleteLink sends DELETE", async () => {
     const spy = mockFetch(204, "");
     await deleteLink(7);
-    expect(spy.mock.calls[0][0]).toBe("/api/links/7");
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/links/7");
     expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 
@@ -106,7 +106,7 @@ describe("api client", () => {
     const spy = mockFetch(201, { id: 2, name: "PI2-Q4", position: 1 });
     await createPlanningInterval("PI2-Q4");
     const [url, init] = spy.mock.calls[0];
-    expect(url).toBe("/api/planning-intervals");
+    expect(url).toBe("/api/v1/planning-intervals");
     expect(init?.method).toBe("POST");
     expect(JSON.parse(init?.body as string)).toEqual({ name: "PI2-Q4" });
   });
@@ -114,7 +114,7 @@ describe("api client", () => {
   it("deletePlanningInterval sends DELETE", async () => {
     const spy = mockFetch(204, "");
     await deletePlanningInterval(5);
-    expect(spy.mock.calls[0][0]).toBe("/api/planning-intervals/5");
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/planning-intervals/5");
     expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 });

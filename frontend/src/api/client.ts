@@ -16,6 +16,9 @@ import type {
   TeamMember,
 } from "../types";
 
+/** Versioned API base. Breaking changes bump this (see the /api/v1 spec). */
+export const API = "/api/v1";
+
 let onUnauthorized: (() => void) | null = null;
 
 /** Called on any 401 except login/getMe probes — lets the app flip back to the login screen. */
@@ -62,31 +65,31 @@ const json = (body: unknown): RequestInit => ({
 
 export function listItems(params: Record<string, string> = {}): Promise<Item[]> {
   const qs = new URLSearchParams(params).toString();
-  return request<Item[]>(`/api/items${qs ? `?${qs}` : ""}`);
+  return request<Item[]>(`${API}/items${qs ? `?${qs}` : ""}`);
 }
 
 export function getItem(id: number): Promise<Item> {
-  return request<Item>(`/api/items/${id}`);
+  return request<Item>(`${API}/items/${id}`);
 }
 
 export function createItem(body: ItemCreate): Promise<Item> {
-  return request<Item>("/api/items", json(body));
+  return request<Item>(`${API}/items`, json(body));
 }
 
 export function updateItem(id: number, patch: ItemUpdate): Promise<Item> {
-  return request<Item>(`/api/items/${id}`, { ...json(patch), method: "PATCH" });
+  return request<Item>(`${API}/items/${id}`, { ...json(patch), method: "PATCH" });
 }
 
 export function deleteItem(id: number): Promise<void> {
-  return request<void>(`/api/items/${id}`, { method: "DELETE" });
+  return request<void>(`${API}/items/${id}`, { method: "DELETE" });
 }
 
 export function getLinkRelations(): Promise<RelationOption[]> {
-  return request<RelationOption[]>("/api/link-relations");
+  return request<RelationOption[]>(`${API}/link-relations`);
 }
 
 export function listLinks(): Promise<LinkRow[]> {
-  return request<LinkRow[]>("/api/links");
+  return request<LinkRow[]>(`${API}/links`);
 }
 
 export function createLink(body: {
@@ -94,79 +97,79 @@ export function createLink(body: {
   target_id: number;
   relation: string;
 }): Promise<LinkRow> {
-  return request<LinkRow>("/api/links", json(body));
+  return request<LinkRow>(`${API}/links`, json(body));
 }
 
 export function deleteLink(linkId: number): Promise<void> {
-  return request<void>(`/api/links/${linkId}`, { method: "DELETE" });
+  return request<void>(`${API}/links/${linkId}`, { method: "DELETE" });
 }
 
 export function importCsv(file: File): Promise<ImportResult> {
   const form = new FormData();
   form.append("file", file);
-  return request<ImportResult>("/api/import", { method: "POST", body: form });
+  return request<ImportResult>(`${API}/import`, { method: "POST", body: form });
 }
 
 export function getTeams(): Promise<Team[]> {
-  return request<Team[]>("/api/teams");
+  return request<Team[]>(`${API}/teams`);
 }
 
 export function createTeam(name: string): Promise<Team> {
-  return request<Team>("/api/teams", json({ name }));
+  return request<Team>(`${API}/teams`, json({ name }));
 }
 
 export function renameTeam(id: number, name: string): Promise<Team> {
-  return request<Team>(`/api/teams/${id}`, { ...json({ name }), method: "PATCH" });
+  return request<Team>(`${API}/teams/${id}`, { ...json({ name }), method: "PATCH" });
 }
 
 export function deleteTeam(id: number, force = false): Promise<void> {
-  return request<void>(`/api/teams/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
+  return request<void>(`${API}/teams/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
 export function getTeamMembers(): Promise<TeamMember[]> {
-  return request<TeamMember[]>("/api/team-members");
+  return request<TeamMember[]>(`${API}/team-members`);
 }
 
 export function createTeamMember(body: {
   name: string;
   team_id?: number | null;
 }): Promise<TeamMember> {
-  return request<TeamMember>("/api/team-members", json(body));
+  return request<TeamMember>(`${API}/team-members`, json(body));
 }
 
 export function renameTeamMember(id: number, name: string): Promise<TeamMember> {
-  return request<TeamMember>(`/api/team-members/${id}`, { ...json({ name }), method: "PATCH" });
+  return request<TeamMember>(`${API}/team-members/${id}`, { ...json({ name }), method: "PATCH" });
 }
 
 export function deleteTeamMember(id: number, force = false): Promise<void> {
-  return request<void>(`/api/team-members/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
+  return request<void>(`${API}/team-members/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
 export function getBoards(): Promise<Board[]> {
-  return request<Board[]>("/api/boards");
+  return request<Board[]>(`${API}/boards`);
 }
 
 export function addLane(boardId: number, name: string): Promise<Lane> {
-  return request<Lane>(`/api/boards/${boardId}/lanes`, json({ name }));
+  return request<Lane>(`${API}/boards/${boardId}/lanes`, json({ name }));
 }
 
 export function renameLane(laneId: number, name: string): Promise<Lane> {
-  return request<Lane>(`/api/lanes/${laneId}`, { ...json({ name }), method: "PATCH" });
+  return request<Lane>(`${API}/lanes/${laneId}`, { ...json({ name }), method: "PATCH" });
 }
 
 export function deleteLane(laneId: number): Promise<void> {
-  return request<void>(`/api/lanes/${laneId}`, { method: "DELETE" });
+  return request<void>(`${API}/lanes/${laneId}`, { method: "DELETE" });
 }
 
 export function reorderLanes(boardId: number, laneIds: number[]): Promise<Lane[]> {
-  return request<Lane[]>(`/api/boards/${boardId}/lanes/order`, {
+  return request<Lane[]>(`${API}/boards/${boardId}/lanes/order`, {
     ...json({ lane_ids: laneIds }),
     method: "PUT",
   });
 }
 
 export function getCapacities(): Promise<Capacity[]> {
-  return request<Capacity[]>("/api/capacities");
+  return request<Capacity[]>(`${API}/capacities`);
 }
 
 export function upsertCapacity(body: {
@@ -175,47 +178,47 @@ export function upsertCapacity(body: {
   iteration: number;
   points: number;
 }): Promise<Capacity> {
-  return request<Capacity>("/api/capacities", { ...json(body), method: "PUT" });
+  return request<Capacity>(`${API}/capacities`, { ...json(body), method: "PUT" });
 }
 
 export function getPlanningIntervals(): Promise<PlanningInterval[]> {
-  return request<PlanningInterval[]>("/api/planning-intervals");
+  return request<PlanningInterval[]>(`${API}/planning-intervals`);
 }
 
 export function createPlanningInterval(name: string): Promise<PlanningInterval> {
-  return request<PlanningInterval>("/api/planning-intervals", json({ name }));
+  return request<PlanningInterval>(`${API}/planning-intervals`, json({ name }));
 }
 
 export function renamePlanningInterval(id: number, name: string): Promise<PlanningInterval> {
-  return request<PlanningInterval>(`/api/planning-intervals/${id}`, { ...json({ name }), method: "PATCH" });
+  return request<PlanningInterval>(`${API}/planning-intervals/${id}`, { ...json({ name }), method: "PATCH" });
 }
 
 export function deletePlanningInterval(id: number, force = false): Promise<void> {
-  return request<void>(`/api/planning-intervals/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
+  return request<void>(`${API}/planning-intervals/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
 export function login(email: string, password: string): Promise<AuthUser> {
-  return request<AuthUser>("/api/auth/login", json({ email, password }), false);
+  return request<AuthUser>(`${API}/auth/login`, json({ email, password }), false);
 }
 
 export function logout(): Promise<void> {
-  return request<void>("/api/auth/logout", { method: "POST" });
+  return request<void>(`${API}/auth/logout`, { method: "POST" });
 }
 
 export function getMe(): Promise<AuthUser> {
-  return request<AuthUser>("/api/auth/me", undefined, false);
+  return request<AuthUser>(`${API}/auth/me`, undefined, false);
 }
 
 export function changeMyPassword(current_password: string, new_password: string): Promise<void> {
   return request<void>(
-    "/api/auth/me/password",
+    `${API}/auth/me/password`,
     { ...json({ current_password, new_password }), method: "PATCH" },
     false, // a wrong current password is not a session death — the modal shows the error
   );
 }
 
 export function listUsers(): Promise<AuthUser[]> {
-  return request<AuthUser[]>("/api/users");
+  return request<AuthUser[]>(`${API}/users`);
 }
 
 export function createUser(payload: {
@@ -225,7 +228,7 @@ export function createUser(payload: {
   role: "admin" | "member";
   team_id?: number | null;
 }): Promise<AuthUser> {
-  return request<AuthUser>("/api/users", json(payload));
+  return request<AuthUser>(`${API}/users`, json(payload));
 }
 
 export function updateUser(
@@ -239,11 +242,11 @@ export function updateUser(
     team_id: number | null;
   }>,
 ): Promise<AuthUser> {
-  return request<AuthUser>(`/api/users/${id}`, { ...json(payload), method: "PATCH" });
+  return request<AuthUser>(`${API}/users/${id}`, { ...json(payload), method: "PATCH" });
 }
 
 export function getItemEvents(itemId: number): Promise<AuditEvent[]> {
-  return request<AuditEvent[]>(`/api/items/${itemId}/events`);
+  return request<AuditEvent[]>(`${API}/items/${itemId}/events`);
 }
 
 export function getAuditEvents(
@@ -255,24 +258,24 @@ export function getAuditEvents(
   if (params.q) qs.set("q", params.q);
   if (params.entity_type) qs.set("entity_type", params.entity_type);
   const suffix = qs.toString();
-  return request<{ items: AuditEvent[]; total: number }>(`/api/audit${suffix ? `?${suffix}` : ""}`);
+  return request<{ items: AuditEvent[]; total: number }>(`${API}/audit${suffix ? `?${suffix}` : ""}`);
 }
 
 export function getComments(itemId: number): Promise<Comment[]> {
-  return request<Comment[]>(`/api/items/${itemId}/comments`);
+  return request<Comment[]>(`${API}/items/${itemId}/comments`);
 }
 
 export function createComment(
   itemId: number,
   payload: { body: string; parent_id?: number | null },
 ): Promise<Comment> {
-  return request<Comment>(`/api/items/${itemId}/comments`, json(payload));
+  return request<Comment>(`${API}/items/${itemId}/comments`, json(payload));
 }
 
 export function updateComment(id: number, body: string): Promise<Comment> {
-  return request<Comment>(`/api/comments/${id}`, { ...json({ body }), method: "PATCH" });
+  return request<Comment>(`${API}/comments/${id}`, { ...json({ body }), method: "PATCH" });
 }
 
 export function deleteComment(id: number): Promise<void> {
-  return request<void>(`/api/comments/${id}`, { method: "DELETE" });
+  return request<void>(`${API}/comments/${id}`, { method: "DELETE" });
 }

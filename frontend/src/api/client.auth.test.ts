@@ -34,7 +34,7 @@ describe("auth client", () => {
     const spy = mockFetch(200, { id: 1, email: "a@b.ch", display_name: "A", role: "admin", is_active: true });
     const user = await login("a@b.ch", "pw123456");
     expect(user.role).toBe("admin");
-    expect(spy.mock.calls[0][0]).toBe("/api/auth/login");
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/auth/login");
     expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({ email: "a@b.ch", password: "pw123456" });
   });
 
@@ -65,7 +65,7 @@ describe("auth client", () => {
   it("logout, me, password, users hit the right URLs", async () => {
     const spy = mockFetch(204, "");
     await logout();
-    expect(spy.mock.calls[0][0]).toBe("/api/auth/logout");
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/auth/logout");
     expect(spy.mock.calls[0][1]?.method).toBe("POST");
 
     mockFetch(200, { id: 1, email: "a@b.ch", display_name: "A", role: "member", is_active: true });
@@ -73,16 +73,16 @@ describe("auth client", () => {
 
     const pw = mockFetch(204, "");
     await changeMyPassword("old12345", "new12345");
-    expect(pw.mock.calls[0][0]).toBe("/api/auth/me/password");
+    expect(pw.mock.calls[0][0]).toBe("/api/v1/auth/me/password");
     expect(pw.mock.calls[0][1]?.method).toBe("PATCH");
 
     const cu = mockFetch(201, { id: 2, email: "x@x.ch", display_name: "X", role: "member", is_active: true });
     await createUser({ email: "x@x.ch", display_name: "X", password: "pw123456", role: "member" });
-    expect(cu.mock.calls[0][0]).toBe("/api/users");
+    expect(cu.mock.calls[0][0]).toBe("/api/v1/users");
 
     const uu = mockFetch(200, { id: 2, email: "x@x.ch", display_name: "X", role: "admin", is_active: true });
     await updateUser(2, { role: "admin" });
-    expect(uu.mock.calls[0][0]).toBe("/api/users/2");
+    expect(uu.mock.calls[0][0]).toBe("/api/v1/users/2");
     expect(uu.mock.calls[0][1]?.method).toBe("PATCH");
   });
 });

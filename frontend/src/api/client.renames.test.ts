@@ -17,9 +17,9 @@ it("rename fns PATCH the right URLs", async () => {
   await renameTeam(1, "Net");
   await renameTeamMember(2, "Anna");
   await renamePlanningInterval(3, "PI2");
-  expect(spy).toHaveBeenNthCalledWith(1, "/api/teams/1", expect.objectContaining({ method: "PATCH" }));
-  expect(spy).toHaveBeenNthCalledWith(2, "/api/team-members/2", expect.objectContaining({ method: "PATCH" }));
-  expect(spy).toHaveBeenNthCalledWith(3, "/api/planning-intervals/3", expect.objectContaining({ method: "PATCH" }));
+  expect(spy).toHaveBeenNthCalledWith(1, "/api/v1/teams/1", expect.objectContaining({ method: "PATCH" }));
+  expect(spy).toHaveBeenNthCalledWith(2, "/api/v1/team-members/2", expect.objectContaining({ method: "PATCH" }));
+  expect(spy).toHaveBeenNthCalledWith(3, "/api/v1/planning-intervals/3", expect.objectContaining({ method: "PATCH" }));
 });
 
 it("delete fns append force=true only when forced", async () => {
@@ -28,8 +28,8 @@ it("delete fns append force=true only when forced", async () => {
     .mockResolvedValue({ ok: true, status: 204 } as Response);
   await deleteTeam(7);
   await deleteTeam(7, true);
-  expect(spy).toHaveBeenNthCalledWith(1, "/api/teams/7", expect.anything());
-  expect(spy).toHaveBeenNthCalledWith(2, "/api/teams/7?force=true", expect.anything());
+  expect(spy).toHaveBeenNthCalledWith(1, "/api/v1/teams/7", expect.anything());
+  expect(spy).toHaveBeenNthCalledWith(2, "/api/v1/teams/7?force=true", expect.anything());
 });
 
 it("409 responses throw ConflictError with the parsed detail", async () => {
