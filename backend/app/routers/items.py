@@ -199,4 +199,11 @@ def delete_item(
         )
     )
     db.delete(item)  # ORM cascade removes child stories
-    db.commit()
+    try:
+        db.commit()
+    except StaleDataError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Item was modified by someone else — reload and retry",
+        )

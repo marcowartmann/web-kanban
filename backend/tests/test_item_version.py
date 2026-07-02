@@ -60,3 +60,23 @@ def test_true_race_is_caught_by_version_predicate(client, db_session):
     )
     assert resp.status_code == 409
     assert resp.json()["detail"] == "Item was modified by someone else — reload and retry"
+
+
+def test_delete_race_is_caught_by_version_predicate(client, db_session):
+    from sqlalchemy import update
+
+    from app.models import Item
+
+    item = _create(client)
+    # Hold a strong reference so the identity map keeps the stale instance
+    # and the handler's db.get serves it (entries are weakly referenced).
+    stale = db_session.get(Item, item["id"])
+    assert stale.version == 1
+    db_session.execute(
+        update(Item).where(Item.id == item["id"]).values(version=99)
+        .execution_options(synchronize_session=False)
+    )
+    resp = client.delete(f"/api/v1/items/{item['id']}")
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == "Item was modified by someone else — reload and retry"
+    assert client.get(f"/api/v1/items/{item['id']}").status_code == 200
