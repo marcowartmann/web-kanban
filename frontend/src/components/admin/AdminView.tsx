@@ -1,4 +1,5 @@
 import { useAuth } from "../../auth/AuthContext";
+import AuditLogSection from "./AuditLogSection";
 import CapacitySection from "./CapacitySection";
 import PlanningIntervalsSection from "./PlanningIntervalsSection";
 import TeamMembersSection from "./TeamMembersSection";
@@ -28,6 +29,9 @@ export default function AdminView({
       </div>
       <div className="mt-4">
         <UsersSection currentUserId={user.id} />
+      </div>
+      <div className="mt-4">
+        <AuditLogSection />
       </div>
       <div className="mt-4">
         <CapacitySection planningIntervals={planningIntervals} />
