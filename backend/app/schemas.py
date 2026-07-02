@@ -24,7 +24,6 @@ class ItemBase(BaseModel):
     externer_partner: str | None = None
     assignee: str | None = None
     akzeptanzkriterien: str | None = None
-    dependencies: str | None = None
     bo_stakeholder: str | None = None
     business_value: int | None = None
     time_criticality: int | None = None
@@ -57,7 +56,6 @@ class ItemUpdate(BaseModel):
     kategorie: str | None = None
     sdi_prio: str | None = None
     akzeptanzkriterien: str | None = None
-    dependencies: str | None = None
     bo_stakeholder: str | None = None
     definition_of_done: str | None = None
     story_points: float | None = None

@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Enum, ForeignKey, Index, Integer, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, Integer, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -17,10 +17,10 @@ class Item(Base):
     __tablename__ = "items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    kind: Mapped[ItemKind] = mapped_column(Enum(ItemKind, native_enum=False))
+    kind: Mapped[ItemKind] = mapped_column(Enum(ItemKind, native_enum=False), index=True)
     type: Mapped[str | None] = mapped_column(String(64))
     parent_id: Mapped[int | None] = mapped_column(
-        ForeignKey("items.id", ondelete="CASCADE")
+        ForeignKey("items.id", ondelete="CASCADE"), index=True
     )
     position: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -29,18 +29,17 @@ class Item(Base):
     kategorie: Mapped[str | None] = mapped_column(String(256))
     art: Mapped[str | None] = mapped_column(String(64))
     sdi_prio: Mapped[str | None] = mapped_column(String(64))
-    status: Mapped[str | None] = mapped_column(String(64))
+    status: Mapped[str | None] = mapped_column(String(64), index=True)
     tshirt_size: Mapped[str | None] = mapped_column(String(16))
     wsjf_score: Mapped[float | None] = mapped_column(Numeric)
     story_points: Mapped[float | None] = mapped_column(Numeric)
-    planning_interval: Mapped[str | None] = mapped_column(String(64))
+    planning_interval: Mapped[str | None] = mapped_column(String(64), index=True)
     iteration: Mapped[int | None] = mapped_column(Integer)
-    leading_team: Mapped[str | None] = mapped_column(String(128))
+    leading_team: Mapped[str | None] = mapped_column(String(128), index=True)
     supporting_team: Mapped[str | None] = mapped_column(String(128))
     externer_partner: Mapped[str | None] = mapped_column(String(128))
-    assignee: Mapped[str | None] = mapped_column(String(128))
+    assignee: Mapped[str | None] = mapped_column(String(128), index=True)
     akzeptanzkriterien: Mapped[str | None] = mapped_column(Text)
-    dependencies: Mapped[str | None] = mapped_column(Text)
     bo_stakeholder: Mapped[str | None] = mapped_column(String(256))
     business_value: Mapped[int | None] = mapped_column(Integer)
     time_criticality: Mapped[int | None] = mapped_column(Integer)
@@ -114,6 +113,7 @@ class Capacity(Base):
             "member_id", "planning_interval", "iteration",
             name="uq_capacity_member_pi_iter",
         ),
+        CheckConstraint("iteration >= 1 AND iteration <= 6", name="ck_capacities_iteration"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

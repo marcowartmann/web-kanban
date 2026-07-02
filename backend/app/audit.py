@@ -21,7 +21,6 @@ ITEM_TRACKED_FIELDS = frozenset(
         "kategorie",
         "sdi_prio",
         "akzeptanzkriterien",
-        "dependencies",
         "bo_stakeholder",
         "definition_of_done",
         "story_points",

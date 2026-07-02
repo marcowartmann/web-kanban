@@ -23,7 +23,6 @@ COL_SUPPORTING_TEAM = "Supporting Team"
 COL_EXTERNER_PARTNER = "Externer Partner"
 COL_ASSIGNEE = "Assignee"
 COL_AKZEPTANZ = "Akzeptanzkriterien"
-COL_DEPENDENCIES = "Dependencies"
 COL_BO = "BO/Stakeholder"
 COL_BUSINESS_VALUE = "Business Value / Direkter Nutzen (1,2,3,5,8,13,20)"
 COL_TIME_CRIT = "Time Criticality / Zukünftiger Nutzen (1,2,3,5,8,13,20)"
@@ -107,7 +106,6 @@ def _row_to_data(row: dict[str, str]) -> dict:
         "externer_partner": g(COL_EXTERNER_PARTNER),
         "assignee": g(COL_ASSIGNEE),
         "akzeptanzkriterien": g(COL_AKZEPTANZ),
-        "dependencies": g(COL_DEPENDENCIES),
         "bo_stakeholder": g(COL_BO),
         "business_value": parse_int(g(COL_BUSINESS_VALUE)),
         "time_criticality": parse_int(g(COL_TIME_CRIT)),
