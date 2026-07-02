@@ -49,7 +49,11 @@
 - Consumes: existing `StaleDataError` import in items.py (line 4), `_create` helper in test_item_version.py.
 - Produces: DELETE `/api/v1/items/{id}` returns 409 (not 500) when a concurrent edit bumps the version mid-flight.
 
-- [ ] **Step 1: Write the failing test** — append to `backend/tests/test_item_version.py`:
+- [ ] **Step 1: Write the failing test** — append to `backend/tests/test_item_version.py`.
+  The held `stale` reference is load-bearing: session identity-map entries are weakly
+  referenced, so without it the instance created via the API is garbage-collected and the
+  handler's `db.get` re-reads the bumped row (version=99), making the predicate match and
+  the test pass vacuously (204).
 
 ```python
 def test_delete_race_is_caught_by_version_predicate(client, db_session):
@@ -58,6 +62,10 @@ def test_delete_race_is_caught_by_version_predicate(client, db_session):
     from app.models import Item
 
     item = _create(client)
+    # Hold a strong reference so the identity map keeps the stale instance
+    # and the handler's db.get serves it (entries are weakly referenced).
+    stale = db_session.get(Item, item["id"])
+    assert stale.version == 1
     db_session.execute(
         update(Item).where(Item.id == item["id"]).values(version=99)
         .execution_options(synchronize_session=False)
