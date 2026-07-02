@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.audit import log_event
 from app.auth import require_admin
 from app.db import get_db
-from app.models import Board, Lane
+from app.models import Board, Lane, User
 from app.schemas import BoardRead, LaneCreate, LaneOrder, LaneRead, LaneUpdate
 
 router = APIRouter(prefix="/api", tags=["boards"])
@@ -59,7 +60,12 @@ def _name_taken(db: Session, board_id: int, name: str) -> bool:
     status_code=201,
     dependencies=[Depends(require_admin)],
 )
-def add_lane(board_id: int, payload: LaneCreate, db: Session = Depends(get_db)) -> Lane:
+def add_lane(
+    board_id: int,
+    payload: LaneCreate,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> Lane:
     if db.get(Board, board_id) is None:
         raise HTTPException(status_code=404, detail="Board not found")
     if payload.name == _RESERVED_LANE:
@@ -75,13 +81,21 @@ def add_lane(board_id: int, payload: LaneCreate, db: Session = Depends(get_db)) 
         position=0 if max_pos is None else max_pos + 1,
     )
     db.add(lane)
+    db.flush()
+    log_event(db, actor=current, event_type="lane.created", entity_type="lane",
+              entity_id=lane.id, entity_label=lane.name)
     db.commit()
     db.refresh(lane)
     return lane
 
 
 @router.patch("/lanes/{lane_id}", response_model=LaneRead, dependencies=[Depends(require_admin)])
-def rename_lane(lane_id: int, payload: LaneUpdate, db: Session = Depends(get_db)) -> Lane:
+def rename_lane(
+    lane_id: int,
+    payload: LaneUpdate,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> Lane:
     lane = db.get(Lane, lane_id)
     if lane is None:
         raise HTTPException(status_code=404, detail="Lane not found")
@@ -89,17 +103,28 @@ def rename_lane(lane_id: int, payload: LaneUpdate, db: Session = Depends(get_db)
         raise HTTPException(status_code=409, detail="'Unscheduled' is reserved")
     if payload.name != lane.name and _name_taken(db, lane.board_id, payload.name):
         raise HTTPException(status_code=409, detail="Lane already exists on this board")
+    old_name = lane.name
     lane.name = payload.name
+    if old_name != lane.name:
+        log_event(db, actor=current, event_type="lane.renamed", entity_type="lane",
+                  entity_id=lane.id, entity_label=lane.name,
+                  field="name", old_value=old_name, new_value=lane.name)
     db.commit()
     db.refresh(lane)
     return lane
 
 
 @router.delete("/lanes/{lane_id}", status_code=204, dependencies=[Depends(require_admin)])
-def delete_lane(lane_id: int, db: Session = Depends(get_db)) -> None:
+def delete_lane(
+    lane_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> None:
     lane = db.get(Lane, lane_id)
     if lane is None:
         raise HTTPException(status_code=404, detail="Lane not found")
+    log_event(db, actor=current, event_type="lane.deleted", entity_type="lane",
+              entity_id=lane.id, entity_label=lane.name)
     db.delete(lane)
     db.commit()
 
@@ -110,9 +135,13 @@ def delete_lane(lane_id: int, db: Session = Depends(get_db)) -> None:
     dependencies=[Depends(require_admin)],
 )
 def reorder_lanes(
-    board_id: int, payload: LaneOrder, db: Session = Depends(get_db)
+    board_id: int,
+    payload: LaneOrder,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
 ) -> list[Lane]:
-    if db.get(Board, board_id) is None:
+    board = db.get(Board, board_id)
+    if board is None:
         raise HTTPException(status_code=404, detail="Board not found")
     lanes = {
         lane.id: lane
@@ -124,6 +153,8 @@ def reorder_lanes(
         )
     for position, lane_id in enumerate(payload.lane_ids):
         lanes[lane_id].position = position
+    log_event(db, actor=current, event_type="lanes.reordered", entity_type="board",
+              entity_id=board.id, entity_label=board.name)
     db.commit()
     return list(
         db.scalars(
