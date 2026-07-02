@@ -98,3 +98,18 @@ def require_admin(user: User = Depends(require_user)) -> User:
     if user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin privileges required")
     return user
+
+
+def ensure_initial_admin(db: Session) -> None:
+    """Seed the first admin from settings. Idempotent; no-op once any user exists."""
+    if db.scalar(select(User.id).limit(1)) is not None:
+        return
+    db.add(
+        User(
+            email=settings.initial_admin_email.strip().lower(),
+            display_name=settings.initial_admin_name,
+            password_hash=hash_password(settings.initial_admin_password),
+            role="admin",
+        )
+    )
+    db.commit()

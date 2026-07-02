@@ -1,10 +1,26 @@
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.auth import require_user
+from app.auth import ensure_initial_admin, require_user
 from app.config import settings
+from app.db import SessionLocal
 
-app = FastAPI(title="SAFe Kanban API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if settings.bootstrap_admin:
+        with SessionLocal() as db:
+            ensure_initial_admin(db)
+            logging.getLogger("uvicorn").info(
+                "auth bootstrap: initial admin is %s", settings.initial_admin_email
+            )
+    yield
+
+
+app = FastAPI(title="SAFe Kanban API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
