@@ -46,9 +46,14 @@
 Create `backend/tests/test_auth_models.py`:
 
 ```python
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.models import User, UserSession
+
+
+def _utcnow() -> datetime:
+    # naive UTC, matching the DateTime columns (datetime.utcnow() is deprecated)
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def test_user_and_session_roundtrip(db_session):
@@ -63,7 +68,7 @@ def test_user_and_session_roundtrip(db_session):
     sess = UserSession(
         token_hash="h" * 64,
         user_id=user.id,
-        expires_at=datetime.utcnow() + timedelta(days=14),
+        expires_at=_utcnow() + timedelta(days=14),
     )
     db_session.add(sess)
     db_session.commit()
