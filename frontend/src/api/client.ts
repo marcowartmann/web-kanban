@@ -1,4 +1,5 @@
 import type {
+  AuthUser,
   Board,
   Capacity,
   ImportResult,
@@ -13,9 +14,17 @@ import type {
   TeamMember,
 } from "../types";
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
+let onUnauthorized: (() => void) | null = null;
+
+/** Called on any 401 except login/getMe probes — lets the app flip back to the login screen. */
+export function setUnauthorizedHandler(cb: (() => void) | null): void {
+  onUnauthorized = cb;
+}
+
+async function request<T>(url: string, init?: RequestInit, notify401 = true): Promise<T> {
   const resp = await fetch(url, init);
   if (!resp.ok) {
+    if (resp.status === 401 && notify401) onUnauthorized?.();
     const detail = await resp.text();
     throw new Error(`${resp.status} ${resp.statusText}: ${detail}`);
   }
@@ -149,4 +158,43 @@ export function createPlanningInterval(name: string): Promise<PlanningInterval> 
 
 export function deletePlanningInterval(id: number): Promise<void> {
   return request<void>(`/api/planning-intervals/${id}`, { method: "DELETE" });
+}
+
+export function login(email: string, password: string): Promise<AuthUser> {
+  return request<AuthUser>("/api/auth/login", json({ email, password }), false);
+}
+
+export function logout(): Promise<void> {
+  return request<void>("/api/auth/logout", { method: "POST" });
+}
+
+export function getMe(): Promise<AuthUser> {
+  return request<AuthUser>("/api/auth/me", undefined, false);
+}
+
+export function changeMyPassword(current_password: string, new_password: string): Promise<void> {
+  return request<void>("/api/auth/me/password", {
+    ...json({ current_password, new_password }),
+    method: "PATCH",
+  });
+}
+
+export function listUsers(): Promise<AuthUser[]> {
+  return request<AuthUser[]>("/api/users");
+}
+
+export function createUser(payload: {
+  email: string;
+  display_name: string;
+  password: string;
+  role: "admin" | "member";
+}): Promise<AuthUser> {
+  return request<AuthUser>("/api/users", json(payload));
+}
+
+export function updateUser(
+  id: number,
+  payload: Partial<{ display_name: string; role: "admin" | "member"; is_active: boolean; password: string }>,
+): Promise<AuthUser> {
+  return request<AuthUser>(`/api/users/${id}`, { ...json(payload), method: "PATCH" });
 }
