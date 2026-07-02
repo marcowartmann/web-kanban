@@ -30,7 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import auth, imports, items, boards, teams, team_members, capacities, links, planning_intervals, users
+from app.routers import auth, imports, items, boards, teams, team_members, capacities, links, planning_intervals, users, audit
 
 app.include_router(auth.router)
 for protected in (
@@ -43,6 +43,7 @@ for protected in (
     links.router,
     planning_intervals.router,
     users.router,
+    audit.router,
 ):
     app.include_router(protected, dependencies=[Depends(require_user)])
 

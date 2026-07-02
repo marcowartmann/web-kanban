@@ -289,3 +289,8 @@ class AuditEventRead(BaseModel):
     field: str | None
     old_value: str | None
     new_value: str | None
+
+
+class AuditPage(BaseModel):
+    items: list[AuditEventRead]
+    total: int
