@@ -20,6 +20,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kanban}:${POSTGRES_PASSWORD:-kanban}@db:5432/${POSTGRES_DB:-kanban}
       BOOTSTRAP_ADMIN: "true"
+      # Set to "true" behind TLS so the session cookie is HTTPS-only.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       # Dev defaults — override all three in any real deployment.
       INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-admin@example.com}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-admin}

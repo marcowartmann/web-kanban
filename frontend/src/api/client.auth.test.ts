@@ -54,6 +54,14 @@ describe("auth client", () => {
     expect(handler).toHaveBeenCalledOnce();
   });
 
+  it("a 401 from changeMyPassword does NOT trigger the unauthorized handler", async () => {
+    mockFetch(401, "Current password is incorrect");
+    const handler = vi.fn();
+    setUnauthorizedHandler(handler);
+    await expect(changeMyPassword("wrong", "newpass123")).rejects.toThrow();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it("logout, me, password, users hit the right URLs", async () => {
     const spy = mockFetch(204, "");
     await logout();

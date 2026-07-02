@@ -59,6 +59,8 @@ def update_user(
         setattr(user, key, value)
     if password is not None:
         user.password_hash = hash_password(password)
+    # Password reset and deactivation both invalidate every session of the user.
+    if password is not None or changes.get("is_active") is False:
         db.execute(delete(UserSession).where(UserSession.user_id == user.id))
     db.commit()
     db.refresh(user)

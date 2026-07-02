@@ -36,9 +36,7 @@ def test_admin_crud_and_duplicate(anon_client, db_session):
     )
     assert dupe.status_code == 409
     listed = anon_client.get("/api/users").json()
-    assert [u["email"] for u in listed] == sorted(
-        [u["email"] for u in listed], key=str.lower
-    ) or len(listed) == 2
+    assert [u["display_name"] for u in listed] == sorted(u["display_name"] for u in listed)
 
     target_id = created.json()["id"]
     patched = anon_client.patch(f"/api/users/{target_id}", json={"role": "admin", "is_active": False})
@@ -53,6 +51,16 @@ def test_admin_password_reset_revokes_sessions(anon_client, db_session):
     create_session(db_session, member)
     _as(admin)
     resp = anon_client.patch(f"/api/users/{member.id}", json={"password": "resetpass1"})
+    assert resp.status_code == 200
+    assert db_session.query(UserSession).filter_by(user_id=member.id).count() == 0
+
+
+def test_deactivation_revokes_sessions(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    member = _seed(db_session, "m@x.ch")
+    create_session(db_session, member)
+    _as(admin)
+    resp = anon_client.patch(f"/api/users/{member.id}", json={"is_active": False})
     assert resp.status_code == 200
     assert db_session.query(UserSession).filter_by(user_id=member.id).count() == 0
 

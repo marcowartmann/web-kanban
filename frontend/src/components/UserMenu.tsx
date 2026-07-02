@@ -15,8 +15,11 @@ export default function UserMenu({
   const [error, setError] = useState<string | null>(null);
 
   const doLogout = async () => {
-    await logout();
-    onLoggedOut();
+    try {
+      await logout();
+    } finally {
+      onLoggedOut();
+    }
   };
 
   const savePassword = async () => {

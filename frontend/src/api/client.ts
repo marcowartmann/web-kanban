@@ -173,10 +173,11 @@ export function getMe(): Promise<AuthUser> {
 }
 
 export function changeMyPassword(current_password: string, new_password: string): Promise<void> {
-  return request<void>("/api/auth/me/password", {
-    ...json({ current_password, new_password }),
-    method: "PATCH",
-  });
+  return request<void>(
+    "/api/auth/me/password",
+    { ...json({ current_password, new_password }), method: "PATCH" },
+    false, // a wrong current password is not a session death — the modal shows the error
+  );
 }
 
 export function listUsers(): Promise<AuthUser[]> {
