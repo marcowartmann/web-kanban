@@ -64,3 +64,11 @@ def test_member_can_read_item_events(member_client, db_session):
     item_id = member_client.post("/api/items", json={"kind": "feature", "title": "M"}).json()["id"]
     events = member_client.get(f"/api/items/{item_id}/events").json()
     assert events[0]["event_type"] == "item.created"
+
+
+def test_max_length_title_still_creates_and_audits(client, db_session):
+    title = "t" * 512  # items.title max; entity_label is only 500
+    resp = client.post("/api/items", json={"kind": "feature", "title": title})
+    assert resp.status_code == 201
+    row = db_session.query(AuditEvent).filter_by(event_type="item.created").one()
+    assert row.entity_label == title[:500]

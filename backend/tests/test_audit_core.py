@@ -57,3 +57,17 @@ def test_diff_item_changes_skips_unchanged():
     assert "position" not in ITEM_TRACKED_FIELDS
     assert "wsjf_score" not in ITEM_TRACKED_FIELDS
     assert "status" in ITEM_TRACKED_FIELDS
+
+
+def test_log_event_truncates_oversized_snapshots(db_session):
+    log_event(
+        db_session,
+        actor=None,
+        event_type="item.created",
+        entity_type="item",
+        entity_id=1,
+        entity_label="x" * 600,
+    )
+    db_session.commit()
+    row = db_session.query(AuditEvent).one()
+    assert len(row.entity_label) == 500

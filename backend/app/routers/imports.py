@@ -28,6 +28,8 @@ async def import_csv(
     except Exception as exc:  # roll back leaves existing data intact
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Import failed: {exc}")
+    # Accepted gap: replace_all committed above, so a crash before the next
+    # commit loses only this summary row — never the imported data.
     log_event(
         db,
         actor=current,

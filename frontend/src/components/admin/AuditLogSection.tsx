@@ -20,15 +20,22 @@ export default function AuditLogSection() {
   const [q, setQ] = useState("");
   const [entityType, setEntityType] = useState("");
 
-  const fetchPage = (offset: number, append: boolean) =>
+  const fetchPage = (offset: number, append: boolean, isStale?: () => boolean) =>
     void getAuditEvents({ limit: PAGE, offset, q, entity_type: entityType }).then((page) => {
+      if (isStale?.()) return; // a newer filter state superseded this request
       setTotal(page.total);
       setEvents((prev) => (append ? [...prev, ...page.items] : page.items));
     });
 
-  // Filters reset to the first page.
+  // Filters reset to the first page. fetchPage reads q/entityType from this
+  // render's closure, so listing it in deps would only add noise — the two
+  // real inputs are already the dependencies.
   useEffect(() => {
-    fetchPage(0, false);
+    let stale = false;
+    fetchPage(0, false, () => stale);
+    return () => {
+      stale = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, entityType]);
 

@@ -65,11 +65,11 @@ def log_event(
     db.add(
         AuditEvent(
             actor_id=actor.id if actor else None,
-            actor_name=actor.display_name if actor else None,
+            actor_name=(actor.display_name[:120] if actor else None),
             event_type=event_type,
             entity_type=entity_type,
             entity_id=entity_id,
-            entity_label=entity_label,
+            entity_label=(entity_label[:500] if entity_label else entity_label),
             field=field,
             old_value=_s(old_value),
             new_value=_s(new_value),
