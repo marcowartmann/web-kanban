@@ -150,8 +150,14 @@ export interface Comment {
 `deleteComment(id): Promise<void>`.
 
 **`components/ItemComments.tsx`** — rendered by `ItemDrawer` as a new
-section **between Links and Activity**, label `Comments · ${count}` (count =
-total incl. replies):
+section **between Links and Activity**, label `Comments` (the count lives
+inside the component, not the drawer-owned section label). Because the
+pre-existing drawer tests render `ItemDrawer` without an `AuthProvider`,
+the component must not call `useAuth` (which throws outside the provider);
+`AuthContext` gains an exported `useOptionalAuth(): AuthValue | null` that
+returns `null` outside the provider — with a `null` user the component
+renders read-only (no Reply/Edit/Delete actions) and still degrades fetch
+errors, keeping those tests green.
 
 - Composer on top: textarea (placeholder `Write a comment…`) + `Post`
   button (disabled while empty/whitespace or in flight). Posting clears the
