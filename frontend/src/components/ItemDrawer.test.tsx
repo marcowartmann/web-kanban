@@ -14,7 +14,7 @@ const item = {
   story_points: null, tshirt_size: "XS", kategorie: null, art: "DP",
   sdi_prio: null, supporting_team: null, externer_partner: null, assignee: null,
   akzeptanzkriterien: null, bo_stakeholder: null,
-  definition_of_done: null, children: [],
+  definition_of_done: null, children: [], version: 1,
 };
 
 it("loads an item and shows editable title + WSJF", async () => {
@@ -115,4 +115,17 @@ it("deletes via deleteItem after confirm", async () => {
   await userEvent.click(screen.getByRole("button", { name: /delete/i }));
   expect(del).toHaveBeenCalledWith(5);
   expect(onChanged).toHaveBeenCalled();
+});
+
+it("shows the conflict notice and reloads on 409", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  vi.spyOn(client, "updateItem").mockRejectedValue(
+    new client.ConflictError("Item was modified by someone else — reload and retry"),
+  );
+  render(<ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} />);
+  await screen.findByDisplayValue("Teton Isolierung");
+  await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
+  expect(
+    await screen.findByText("This item was changed by someone else — showing the latest version."),
+  ).toBeInTheDocument();
 });

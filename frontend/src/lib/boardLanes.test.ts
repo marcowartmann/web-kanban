@@ -4,7 +4,7 @@ import type { Item } from "../types";
 
 function item(over: Partial<Item> & Pick<Item, "id" | "kind">): Item {
   const defaults: Item = {
-    id: 0, kind: "feature", type: null, parent_id: null, position: 0, title: "t",
+    id: 0, kind: "feature", type: null, parent_id: null, position: 0, version: 1, title: "t",
     status: null, description: null, kategorie: null, art: null, sdi_prio: null,
     tshirt_size: null, wsjf_score: null, story_points: null, planning_interval: null, iteration: null,
     leading_team: null, supporting_team: null, externer_partner: null,

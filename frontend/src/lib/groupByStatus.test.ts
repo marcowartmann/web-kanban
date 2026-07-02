@@ -4,7 +4,7 @@ import type { Item } from "../types";
 
 function story(id: number, title: string, status: string | null): Item {
   return {
-    id, kind: "story", type: "Enabler Story", parent_id: 1, position: id, title,
+    id, kind: "story", type: "Enabler Story", parent_id: 1, position: id, version: 1, title,
     status, description: null, kategorie: null, art: null, sdi_prio: null,
     tshirt_size: null, wsjf_score: null, story_points: null, planning_interval: null, iteration: null,
     leading_team: null, supporting_team: null, externer_partner: null,

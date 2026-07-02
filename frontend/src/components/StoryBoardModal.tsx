@@ -6,17 +6,26 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useCallback, useEffect, useState } from "react";
-import { createItem, getItem, updateItem } from "../api/client";
+import { ConflictError, createItem, getItem, updateItem } from "../api/client";
 import { groupByStatus } from "../lib/groupByStatus";
 import type { Item } from "../types";
 import Column from "./Column";
 
 export async function handleStoryDragEnd(
   event: DragEndEvent,
+  items: Item[],
   reload: () => Promise<void>,
 ): Promise<void> {
   if (!event.over) return;
-  await updateItem(Number(event.active.id), { status: String(event.over.id) });
+  const storyId = Number(event.active.id);
+  const current = items.find((i) => i.id === storyId);
+  if (!current) return;
+  try {
+    await updateItem(storyId, { status: String(event.over.id), version: current.version });
+  } catch (e) {
+    if (!(e instanceof ConflictError)) throw e;
+    // Someone else changed the story — the reload below snaps it back.
+  }
   await reload();
 }
 
@@ -67,7 +76,7 @@ export default function StoryBoardModal({
 
   const onDragEnd = async (event: DragEndEvent) => {
     try {
-      await handleStoryDragEnd(event, reload);
+      await handleStoryDragEnd(event, feature?.children ?? [], reload);
       onChanged();
     } catch (e) {
       setError(String(e));

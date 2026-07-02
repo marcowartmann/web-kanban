@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  ConflictError,
   createItem,
   createLink,
   deleteItem,
@@ -69,6 +70,7 @@ export default function ItemDrawer({
   const [parent, setParent] = useState<Item | null>(null);
   const [draft, setDraft] = useState<ItemUpdate>({});
   const [error, setError] = useState<string | null>(null);
+  const [conflict, setConflict] = useState<string | null>(null);
   const [relations, setRelations] = useState<RelationOption[]>([]);
   const [candidates, setCandidates] = useState<Item[]>([]);
   const [adding, setAdding] = useState(false);
@@ -80,6 +82,7 @@ export default function ItemDrawer({
   }, []);
 
   useEffect(() => {
+    setConflict(null);
     void getItem(itemId).then(setItem).catch((e) => setError(String(e)));
   }, [itemId]);
 
@@ -166,10 +169,17 @@ export default function ItemDrawer({
 
   const save = async () => {
     try {
-      await updateItem(item.id, draft);
+      await updateItem(item.id, { ...draft, version: item.version });
+      setConflict(null);
       onChanged();
     } catch (e) {
-      setError(String(e));
+      if (e instanceof ConflictError) {
+        setConflict("This item was changed by someone else — showing the latest version.");
+        setDraft({});
+        await reloadItem();
+      } else {
+        setError(String(e));
+      }
     }
   };
 
@@ -207,6 +217,7 @@ export default function ItemDrawer({
         </div>
       }
     >
+      {conflict && <p className="px-6 pt-3 text-xs font-medium text-amber-700">{conflict}</p>}
       {/* Sticky header with a kind-colored accent, id/WSJF, close, and the title. */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white">
         <div className={`h-1 w-full ${KIND_ACCENT[item.kind] ?? "bg-gray-300"}`} />

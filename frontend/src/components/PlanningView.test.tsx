@@ -87,10 +87,11 @@ it("filters to an assignee and scopes capacity to them", async () => {
 it("assigns the iteration slot on drop, and null for the backlog", async () => {
   const update = vi.spyOn(client, "updateItem").mockResolvedValue({} as never);
   const reload = vi.fn().mockResolvedValue(undefined);
-  await handlePlanDragEnd({ active: { id: 5 }, over: { id: "3" } } as never, reload);
-  expect(update).toHaveBeenCalledWith(5, { iteration: 3 });
-  await handlePlanDragEnd({ active: { id: 5 }, over: { id: "backlog" } } as never, reload);
-  expect(update).toHaveBeenLastCalledWith(5, { iteration: null });
+  const items = [story({ id: 5, version: 1 })];
+  await handlePlanDragEnd({ active: { id: 5 }, over: { id: "3" } } as never, items, reload);
+  expect(update).toHaveBeenCalledWith(5, { iteration: 3, version: 1 });
+  await handlePlanDragEnd({ active: { id: 5 }, over: { id: "backlog" } } as never, items, reload);
+  expect(update).toHaveBeenLastCalledWith(5, { iteration: null, version: 1 });
   expect(reload).toHaveBeenCalledTimes(2);
 });
 

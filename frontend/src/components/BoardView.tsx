@@ -6,7 +6,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useMemo, useState } from "react";
-import { updateItem } from "../api/client";
+import { ConflictError, updateItem } from "../api/client";
 import { UNSCHEDULED, buildBoardCards, groupIntoLanes } from "../lib/boardLanes";
 import type { Board, BoardCard, Item, LinkRow } from "../types";
 import type { BoardFilters } from "./Toolbar";
@@ -15,12 +15,23 @@ import LaneEditor from "./LaneEditor";
 
 export async function handleCardDragEnd(
   event: DragEndEvent,
+  items: Item[],
   reload: () => Promise<void> | void,
 ): Promise<void> {
   if (!event.over) return;
   const cardId = Number(event.active.id);
+  const current = items.find((i) => i.id === cardId);
+  if (!current) return;
   const target = String(event.over.id);
-  await updateItem(cardId, { status: target === UNSCHEDULED ? "" : target });
+  try {
+    await updateItem(cardId, {
+      status: target === UNSCHEDULED ? "" : target,
+      version: current.version,
+    });
+  } catch (e) {
+    if (!(e instanceof ConflictError)) throw e;
+    // Someone else changed the card — the reload below snaps it back.
+  }
   await reload();
 }
 
@@ -83,7 +94,7 @@ export default function BoardView({
       {canEditLanes && editing && <LaneEditor board={board} onChanged={onChanged} />}
       <DndContext
         sensors={sensors}
-        onDragEnd={(event) => void handleCardDragEnd(event, onChanged)}
+        onDragEnd={(event) => void handleCardDragEnd(event, items, onChanged)}
       >
         <div className="flex gap-4 overflow-x-auto p-6">
           {columns.map((column) => (

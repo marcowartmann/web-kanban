@@ -7,7 +7,7 @@ import type { BoardCard } from "../types";
 
 function card(overrides: Partial<BoardCard>): BoardCard {
   return {
-    id: 1, kind: "feature", type: "Feature", parent_id: null, position: 0,
+    id: 1, kind: "feature", type: "Feature", parent_id: null, position: 0, version: 1,
     title: "F", status: "Analyzing", description: null, kategorie: null,
     art: null, sdi_prio: null, tshirt_size: null, wsjf_score: null,
     story_points: null, planning_interval: null, iteration: null, leading_team: null,

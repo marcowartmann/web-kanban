@@ -6,7 +6,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useEffect, useMemo, useState } from "react";
-import { updateItem } from "../api/client";
+import { ConflictError, updateItem } from "../api/client";
 import { ITERATION_SLOTS, iterationLabel } from "../lib/iterations";
 import { computePlanningLinks } from "../lib/planningLinks";
 import { dependencyComponent, groupByFeature, layoutFlat, type FeatureLane } from "../lib/timeline";
@@ -15,12 +15,21 @@ import TimelineLane, { type TimelineColumn } from "./TimelineLane";
 
 export async function handleTimelineDragEnd(
   event: DragEndEvent,
+  items: Item[],
   reload: () => void | Promise<void>,
 ): Promise<void> {
   if (!event.over) return;
+  const storyId = Number(event.active.id);
+  const current = items.find((i) => i.id === storyId);
+  if (!current) return;
   const slot = String(event.over.id).split("::")[1];
   const iteration = slot === "backlog" ? null : Number(slot);
-  await updateItem(Number(event.active.id), { iteration });
+  try {
+    await updateItem(storyId, { iteration, version: current.version });
+  } catch (e) {
+    if (!(e instanceof ConflictError)) throw e;
+    // Someone else changed the story — the reload below snaps it back.
+  }
   await reload();
 }
 
@@ -170,7 +179,7 @@ export default function TimelineView({
             </div>
           ))}
         </div>
-        <DndContext sensors={sensors} onDragEnd={(e) => void handleTimelineDragEnd(e, onChanged)}>
+        <DndContext sensors={sensors} onDragEnd={(e) => void handleTimelineDragEnd(e, items, onChanged)}>
           <div className="flex flex-col">
             {mode === "feature" && filteredLanes.length === 0 && query.trim() ? (
               <div className="px-2 py-8 text-sm text-gray-400">

@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api/client";
 import StoryBoardModal, { handleStoryDragEnd } from "./StoryBoardModal";
+import type { Item } from "../types";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -69,10 +70,12 @@ it("adds a story with the feature as parent", async () => {
 it("drag handler patches the dropped story's status then reloads", async () => {
   const update = vi.spyOn(client, "updateItem").mockResolvedValue({} as never);
   const reload = vi.fn().mockResolvedValue(undefined);
+  const items = [{ id: 6, version: 1 } as unknown as Item];
   await handleStoryDragEnd(
     { active: { id: 6 }, over: { id: "New" } } as never,
+    items,
     reload,
   );
-  expect(update).toHaveBeenCalledWith(6, { status: "New" });
+  expect(update).toHaveBeenCalledWith(6, { status: "New", version: 1 });
   expect(reload).toHaveBeenCalled();
 });

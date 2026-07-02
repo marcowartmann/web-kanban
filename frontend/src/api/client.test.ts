@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createItem, createLink, createTeamMember, deleteLink, getBoards, getTeams, importCsv, listLinks, reorderLanes, updateItem } from "./client";
+import { createItem, createLink, createTeamMember, deleteLink, getBoards, getTeams, importCsv, listItems, listLinks, reorderLanes, updateItem } from "./client";
 import { createPlanningInterval, deletePlanningInterval, getPlanningIntervals } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
@@ -17,11 +17,11 @@ function mockFetch(status: number, body: unknown) {
 describe("api client", () => {
   it("updateItem sends PATCH with JSON body", async () => {
     const spy = mockFetch(200, { id: 1, status: "New" });
-    await updateItem(1, { status: "New" });
+    await updateItem(1, { status: "New", version: 1 });
     const [url, init] = spy.mock.calls[0];
     expect(url).toBe("/api/v1/items/1");
     expect(init?.method).toBe("PATCH");
-    expect(JSON.parse(init?.body as string)).toEqual({ status: "New" });
+    expect(JSON.parse(init?.body as string)).toEqual({ status: "New", version: 1 });
   });
 
   it("createItem posts to /api/items", async () => {
@@ -40,7 +40,7 @@ describe("api client", () => {
 
   it("throws on non-ok responses", async () => {
     mockFetch(404, "Item not found");
-    await expect(updateItem(1, {})).rejects.toThrow("404");
+    await expect(updateItem(1, { version: 1 })).rejects.toThrow("404");
   });
 
   it("getTeams fetches /api/teams", async () => {
@@ -116,5 +116,27 @@ describe("api client", () => {
     await deletePlanningInterval(5);
     expect(spy.mock.calls[0][0]).toBe("/api/v1/planning-intervals/5");
     expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("listItems auto-paginates until total", async () => {
+    const page = (items: unknown[], total: number) =>
+      ({ ok: true, status: 200, json: () => Promise.resolve({ items, total }) }) as Response;
+    const spy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(page([{ id: 1 }, { id: 2 }], 3))
+      .mockResolvedValueOnce(page([{ id: 3 }], 3));
+    const out = await listItems();
+    expect(out.map((i) => i.id)).toEqual([1, 2, 3]);
+    expect(spy).toHaveBeenNthCalledWith(1, "/api/v1/items?limit=500&offset=0", undefined);
+    expect(spy).toHaveBeenNthCalledWith(2, "/api/v1/items?limit=500&offset=2", undefined);
+  });
+
+  it("updateItem sends the version in the body", async () => {
+    const spy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve({}) } as Response);
+    await updateItem(7, { status: "New", version: 3 });
+    const body = JSON.parse((spy.mock.calls[0][1] as RequestInit).body as string);
+    expect(body).toEqual({ status: "New", version: 3 });
   });
 });

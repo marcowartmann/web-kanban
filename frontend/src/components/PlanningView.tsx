@@ -6,7 +6,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useEffect, useMemo, useState } from "react";
-import { getCapacities, getTeamMembers, getTeams, updateItem } from "../api/client";
+import { ConflictError, getCapacities, getTeamMembers, getTeams, updateItem } from "../api/client";
 import {
   ITERATION_SLOTS,
   capacityBySlot,
@@ -23,11 +23,20 @@ import PlanningColumn from "./PlanningColumn";
 
 export async function handlePlanDragEnd(
   event: DragEndEvent,
+  items: Item[],
   reload: () => void | Promise<void>,
 ): Promise<void> {
   if (!event.over) return;
+  const storyId = Number(event.active.id);
+  const current = items.find((i) => i.id === storyId);
+  if (!current) return;
   const slot = event.over.id === "backlog" ? null : Number(event.over.id);
-  await updateItem(Number(event.active.id), { iteration: slot });
+  try {
+    await updateItem(storyId, { iteration: slot, version: current.version });
+  } catch (e) {
+    if (!(e instanceof ConflictError)) throw e;
+    // Someone else changed the story — the reload below snaps it back.
+  }
   await reload();
 }
 
@@ -193,7 +202,7 @@ export default function PlanningView({
       {groups && (
         <div className="overflow-x-auto p-6">
           {showCapacity && <CapacityGrid rows={capacityRows} />}
-          <DndContext sensors={sensors} onDragEnd={(e) => void handlePlanDragEnd(e, onChanged)}>
+          <DndContext sensors={sensors} onDragEnd={(e) => void handlePlanDragEnd(e, items, onChanged)}>
             <div className="flex gap-4">
               <PlanningColumn
                 id="backlog"

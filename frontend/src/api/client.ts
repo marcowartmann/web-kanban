@@ -63,9 +63,16 @@ const json = (body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
-export function listItems(params: Record<string, string> = {}): Promise<Item[]> {
-  const qs = new URLSearchParams(params).toString();
-  return request<Item[]>(`${API}/items${qs ? `?${qs}` : ""}`);
+export async function listItems(params: Record<string, string> = {}): Promise<Item[]> {
+  const out: Item[] = [];
+  let offset = 0;
+  for (;;) {
+    const qs = new URLSearchParams({ ...params, limit: "500", offset: String(offset) }).toString();
+    const page = await request<{ items: Item[]; total: number }>(`${API}/items?${qs}`);
+    out.push(...page.items);
+    if (out.length >= page.total || page.items.length === 0) return out;
+    offset = out.length;
+  }
 }
 
 export function getItem(id: number): Promise<Item> {
@@ -76,7 +83,7 @@ export function createItem(body: ItemCreate): Promise<Item> {
   return request<Item>(`${API}/items`, json(body));
 }
 
-export function updateItem(id: number, patch: ItemUpdate): Promise<Item> {
+export function updateItem(id: number, patch: ItemUpdate & { version: number }): Promise<Item> {
   return request<Item>(`${API}/items/${id}`, { ...json(patch), method: "PATCH" });
 }
 

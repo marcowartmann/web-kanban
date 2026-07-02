@@ -31,10 +31,11 @@ it("the Only planned toggle hides the backlog story", async () => {
 it("handleTimelineDragEnd updates iteration from the drop target slot", async () => {
   const update = vi.spyOn(client, "updateItem").mockResolvedValue({} as never);
   const reload = vi.fn().mockResolvedValue(undefined);
-  await handleTimelineDragEnd({ active: { id: 11 }, over: { id: "1::3" } } as never, reload);
-  expect(update).toHaveBeenCalledWith(11, { iteration: 3 });
-  await handleTimelineDragEnd({ active: { id: 11 }, over: { id: "1::backlog" } } as never, reload);
-  expect(update).toHaveBeenLastCalledWith(11, { iteration: null });
+  const items = [{ id: 11, version: 1 } as unknown as Item];
+  await handleTimelineDragEnd({ active: { id: 11 }, over: { id: "1::3" } } as never, items, reload);
+  expect(update).toHaveBeenCalledWith(11, { iteration: 3, version: 1 });
+  await handleTimelineDragEnd({ active: { id: 11 }, over: { id: "1::backlog" } } as never, items, reload);
+  expect(update).toHaveBeenLastCalledWith(11, { iteration: null, version: 1 });
 });
 
 it("filters feature lanes by title or id via the search field", async () => {
