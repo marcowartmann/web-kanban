@@ -30,3 +30,11 @@ it("shows the empty state and survives fetch errors", async () => {
   render(<ItemActivity itemId={5} />);
   expect(await screen.findByText("No activity yet.")).toBeInTheDocument();
 });
+
+it("renders link.removed events", async () => {
+  vi.spyOn(client, "getItemEvents").mockResolvedValue([
+    ev({ id: 4, event_type: "link.removed", field: "link", old_value: "blocks → #9 Other", new_value: null }),
+  ] as never);
+  render(<ItemActivity itemId={5} />);
+  expect(await screen.findByText(/removed link blocks → #9 Other/)).toBeInTheDocument();
+});

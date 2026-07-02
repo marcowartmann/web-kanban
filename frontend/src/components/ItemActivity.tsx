@@ -21,10 +21,19 @@ export default function ItemActivity({ itemId }: { itemId: number }) {
   const [events, setEvents] = useState<AuditEvent[]>([]);
 
   useEffect(() => {
+    let stale = false;
+    setEvents([]); // don't show the previous item's history while loading
     // Errors degrade to the empty state — activity must never break the drawer.
     getItemEvents(itemId)
-      .then(setEvents)
-      .catch(() => setEvents([]));
+      .then((rows) => {
+        if (!stale) setEvents(rows);
+      })
+      .catch(() => {
+        if (!stale) setEvents([]);
+      });
+    return () => {
+      stale = true;
+    };
   }, [itemId]);
 
   if (events.length === 0) {
