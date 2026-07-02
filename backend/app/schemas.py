@@ -275,3 +275,17 @@ class UserUpdate(BaseModel):
     @classmethod
     def _check_password(cls, value: str | None) -> str | None:
         return value if value is None else _password_fits_bcrypt(value)
+
+
+class AuditEventRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    created_at: datetime
+    actor_name: str | None
+    event_type: str
+    entity_type: str
+    entity_id: int | None
+    entity_label: str | None
+    field: str | None
+    old_value: str | None
+    new_value: str | None

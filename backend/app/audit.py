@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from sqlalchemy.orm import Session
 
 from app.models import AuditEvent, User
@@ -32,7 +34,18 @@ ITEM_TRACKED_FIELDS = frozenset(
 
 
 def _s(value: object) -> str | None:
-    return None if value is None else str(value)
+    if value is None:
+        return None
+    # Numeric columns (SQLAlchemy Numeric) round-trip as Decimal, and pydantic
+    # coerces JSON ints into floats for float-typed fields (e.g. story_points=5
+    # -> 5.0). Whole numbers should read as "5" in the trail, not "5.0" or
+    # "5.0000000000" — bool is an int subclass, so it's excluded explicitly.
+    if isinstance(value, (int, float, Decimal)) and not isinstance(value, bool):
+        as_float = float(value)
+        if as_float.is_integer():
+            return str(int(as_float))
+        return str(as_float)
+    return str(value)
 
 
 def log_event(

@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.audit import ITEM_TRACKED_FIELDS, diff_item_changes, log_event
+from app.auth import require_user
 from app.db import get_db
 from app.links import RELATIONS
-from app.models import Item, ItemKind, ItemLink
-from app.schemas import ItemCreate, ItemDetail, ItemRead, ItemUpdate, ItemRef, LinkedItem
+from app.models import AuditEvent, Item, ItemKind, ItemLink, User
+from app.schemas import AuditEventRead, ItemCreate, ItemDetail, ItemRead, ItemUpdate, ItemRef, LinkedItem
 from app.wsjf import recompute
 
 router = APIRouter(prefix="/api/items", tags=["items"])
@@ -85,13 +87,39 @@ def get_item(item_id: int, db: Session = Depends(get_db)) -> ItemDetail:
     return detail
 
 
+@router.get("/{item_id}/events", response_model=list[AuditEventRead])
+def item_events(item_id: int, db: Session = Depends(get_db)) -> list[AuditEvent]:
+    _get_or_404(db, item_id)
+    return list(
+        db.scalars(
+            select(AuditEvent)
+            .where(AuditEvent.entity_type == "item", AuditEvent.entity_id == item_id)
+            .order_by(AuditEvent.created_at.desc(), AuditEvent.id.desc())
+            .limit(100)
+        )
+    )
+
+
 @router.post("", response_model=ItemDetail, status_code=201)
-def create_item(payload: ItemCreate, db: Session = Depends(get_db)) -> Item:
+def create_item(
+    payload: ItemCreate,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_user),
+) -> Item:
     if payload.parent_id is not None and db.get(Item, payload.parent_id) is None:
         raise HTTPException(status_code=422, detail="parent_id does not exist")
     item = Item(**payload.model_dump())
     recompute(item)
     db.add(item)
+    db.flush()
+    log_event(
+        db,
+        actor=current,
+        event_type="item.created",
+        entity_type="item",
+        entity_id=item.id,
+        entity_label=item.title,
+    )
     db.commit()
     db.refresh(item)
     return item
@@ -99,23 +127,53 @@ def create_item(payload: ItemCreate, db: Session = Depends(get_db)) -> Item:
 
 @router.patch("/{item_id}", response_model=ItemDetail)
 def update_item(
-    item_id: int, payload: ItemUpdate, db: Session = Depends(get_db)
+    item_id: int,
+    payload: ItemUpdate,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_user),
 ) -> Item:
     item = _get_or_404(db, item_id)
     changes = payload.model_dump(exclude_unset=True)
+    before = {f: getattr(item, f) for f in changes if f in ITEM_TRACKED_FIELDS}
     for key, value in changes.items():
         setattr(item, key, value)
     if _WSJF_FIELDS & changes.keys():
         recompute(item)
+    for field, old, new in diff_item_changes(before, changes):
+        log_event(
+            db,
+            actor=current,
+            event_type="item.updated",
+            entity_type="item",
+            entity_id=item.id,
+            entity_label=item.title,
+            field=field,
+            old_value=old,
+            new_value=new,
+        )
     db.commit()
     db.refresh(item)
     return item
 
 
 @router.delete("/{item_id}", status_code=204)
-def delete_item(item_id: int, db: Session = Depends(get_db)) -> None:
+def delete_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_user),
+) -> None:
     item = _get_or_404(db, item_id)
-    ids = [item_id, *[child.id for child in item.children]]
+    doomed = [(item.id, item.title), *[(c.id, c.title) for c in item.children]]
+    ids = [i for i, _ in doomed]
+    for did, title in doomed:
+        log_event(
+            db,
+            actor=current,
+            event_type="item.deleted",
+            entity_type="item",
+            entity_id=did,
+            entity_label=title,
+        )
     db.execute(
         delete(ItemLink).where(
             ItemLink.source_id.in_(ids) | ItemLink.target_id.in_(ids)
