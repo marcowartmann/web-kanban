@@ -168,3 +168,16 @@ export interface AuthUser {
   team_id?: number | null;
   team_name?: string | null;
 }
+
+export interface AuditEvent {
+  id: number;
+  created_at: string;
+  actor_name: string | null;
+  event_type: string;
+  entity_type: string;
+  entity_id: number | null;
+  entity_label: string | null;
+  field: string | null;
+  old_value: string | null;
+  new_value: string | null;
+}

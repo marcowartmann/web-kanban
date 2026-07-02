@@ -1,4 +1,5 @@
 import type {
+  AuditEvent,
   AuthUser,
   Board,
   Capacity,
@@ -206,4 +207,20 @@ export function updateUser(
   }>,
 ): Promise<AuthUser> {
   return request<AuthUser>(`/api/users/${id}`, { ...json(payload), method: "PATCH" });
+}
+
+export function getItemEvents(itemId: number): Promise<AuditEvent[]> {
+  return request<AuditEvent[]>(`/api/items/${itemId}/events`);
+}
+
+export function getAuditEvents(
+  params: { limit?: number; offset?: number; q?: string; entity_type?: string } = {},
+): Promise<{ items: AuditEvent[]; total: number }> {
+  const qs = new URLSearchParams();
+  if (params.limit != null) qs.set("limit", String(params.limit));
+  if (params.offset != null) qs.set("offset", String(params.offset));
+  if (params.q) qs.set("q", params.q);
+  if (params.entity_type) qs.set("entity_type", params.entity_type);
+  const suffix = qs.toString();
+  return request<{ items: AuditEvent[]; total: number }>(`/api/audit${suffix ? `?${suffix}` : ""}`);
 }

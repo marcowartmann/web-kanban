@@ -11,6 +11,7 @@ import {
 } from "../api/client";
 import type { Item, ItemKind, ItemUpdate, RelationOption } from "../types";
 import Field from "./Field";
+import ItemActivity from "./ItemActivity";
 import SearchableSelect from "./SearchableSelect";
 import WsjfToggle from "./WsjfToggle";
 
@@ -442,6 +443,10 @@ export default function ItemDrawer({
               />
             </div>
           )}
+        </Section>
+
+        <Section label="Activity">
+          <ItemActivity itemId={item.id} />
         </Section>
       </div>
     </Drawer>
