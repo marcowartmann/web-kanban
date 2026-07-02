@@ -123,8 +123,10 @@ boards). No authorization change — those routers are already behind
   resolved), `user.password_changed` in `/me/password`.
   Failed-login logging must not change the endpoint's response semantics
   (identical 401 preserved); the event is committed even though the request
-  fails (explicit `db.commit()` in that branch — the only self-committing
-  write site, since there is no successful mutation to piggyback on).
+  fails (explicit `db.commit()` in that branch). Failed logins and the
+  import summary are the ONLY self-committing write sites — the failed
+  login because there is no successful mutation to piggyback on, the import
+  because `replace_all` commits internally before the event can be added.
 
 ## Read APIs
 
