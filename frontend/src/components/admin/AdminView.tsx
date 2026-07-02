@@ -1,7 +1,9 @@
+import { useAuth } from "../../auth/AuthContext";
 import CapacitySection from "./CapacitySection";
 import PlanningIntervalsSection from "./PlanningIntervalsSection";
 import TeamMembersSection from "./TeamMembersSection";
 import TeamsSection from "./TeamsSection";
+import UsersSection from "./UsersSection";
 
 export default function AdminView({
   onChanged,
@@ -10,6 +12,7 @@ export default function AdminView({
   onChanged: () => void;
   planningIntervals?: string[];
 }) {
+  const { user } = useAuth();
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       <header className="mb-6">
@@ -22,6 +25,7 @@ export default function AdminView({
         <TeamsSection onChanged={onChanged} />
         <TeamMembersSection onChanged={onChanged} />
         <PlanningIntervalsSection onChanged={onChanged} />
+        <UsersSection currentUserId={user.id} />
       </div>
       <div className="mt-4">
         <CapacitySection planningIntervals={planningIntervals} />
