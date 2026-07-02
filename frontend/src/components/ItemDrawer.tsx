@@ -217,8 +217,7 @@ export default function ItemDrawer({
         </div>
       }
     >
-      {conflict && <p className="px-6 pt-3 text-xs font-medium text-amber-700">{conflict}</p>}
-      {/* Sticky header with a kind-colored accent, id/WSJF, close, and the title. */}
+      {/* Sticky header with a kind-colored accent, id/WSJF, close, the title, and (if present) the conflict notice. */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white">
         <div className={`h-1 w-full ${KIND_ACCENT[item.kind] ?? "bg-gray-300"}`} />
         <div className="flex items-center justify-between gap-2 px-5 pt-3">
@@ -249,6 +248,7 @@ export default function ItemDrawer({
             className="w-full rounded-lg border border-transparent bg-transparent px-1 py-1 text-lg font-semibold text-gray-900 transition hover:bg-gray-50 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
           />
         </div>
+        {conflict && <p className="px-4 pb-2 pt-2 text-xs font-medium text-amber-700">{conflict}</p>}
       </div>
 
       <div className="space-y-6 p-5">

@@ -24,7 +24,7 @@ describe("api client", () => {
     expect(JSON.parse(init?.body as string)).toEqual({ status: "New", version: 1 });
   });
 
-  it("createItem posts to /api/items", async () => {
+  it("createItem posts to /api/v1/items", async () => {
     const spy = mockFetch(201, { id: 9, title: "X" });
     await createItem({ kind: "feature", title: "X" });
     expect(spy.mock.calls[0][1]?.method).toBe("POST");
@@ -43,7 +43,7 @@ describe("api client", () => {
     await expect(updateItem(1, { version: 1 })).rejects.toThrow("404");
   });
 
-  it("getTeams fetches /api/teams", async () => {
+  it("getTeams fetches /api/v1/teams", async () => {
     const spy = mockFetch(200, [{ id: 1, name: "Network" }]);
     const teams = await getTeams();
     expect(spy).toHaveBeenCalledWith("/api/v1/teams", undefined);
@@ -59,7 +59,7 @@ describe("api client", () => {
     expect(JSON.parse(init?.body as string)).toEqual({ name: "Marco", team_id: 2 });
   });
 
-  it("getBoards fetches /api/boards", async () => {
+  it("getBoards fetches /api/v1/boards", async () => {
     const spy = mockFetch(200, [{ id: 1, name: "Main", kinds: ["feature"], position: 0, lanes: [] }]);
     const boards = await getBoards();
     expect(spy).toHaveBeenCalledWith("/api/v1/boards", undefined);

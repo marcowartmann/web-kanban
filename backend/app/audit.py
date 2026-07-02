@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 
 from app.models import AuditEvent, User
 
-# Every user-editable ItemUpdate field EXCEPT `position` (drag-reorder noise)
-# and `wsjf_score` (derived — its inputs are tracked).
+# Every user-editable ItemUpdate field EXCEPT `position` (drag-reorder noise),
+# `wsjf_score` (derived — its inputs are tracked), and `version` (concurrency
+# metadata).
 ITEM_TRACKED_FIELDS = frozenset(
     {
         "title",

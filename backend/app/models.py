@@ -54,6 +54,8 @@ class Item(Base):
         server_default=func.now(), onupdate=func.now()
     )
 
+    __mapper_args__ = {"version_id_col": version}
+
     children: Mapped[list["Item"]] = relationship(
         cascade="all, delete-orphan",
         order_by="Item.position",

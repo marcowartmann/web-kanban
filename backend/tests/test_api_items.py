@@ -102,11 +102,15 @@ def test_items_are_paginated_with_total(client, db_session):
 
 
 def test_items_limit_is_clamped(client, db_session):
-    _make_feature(db_session)
+    for i in range(3):
+        _make_feature(db_session, title=f"C{i}", position=i)
     db_session.commit()
-    assert client.get("/api/v1/items?limit=99999").status_code == 200
-    assert client.get("/api/v1/items?limit=0").status_code == 200
-    assert client.get("/api/v1/items?offset=-5").status_code == 200
+    floor = client.get("/api/v1/items?limit=0").json()
+    assert len(floor["items"]) == 1 and floor["total"] == 3     # limit clamped up to 1
+    ceiling = client.get("/api/v1/items?limit=99999").json()
+    assert len(ceiling["items"]) == 3                            # clamped down, all rows
+    neg = client.get("/api/v1/items?offset=-5").json()
+    assert [i["title"] for i in neg["items"]][0] == "C0"        # offset clamped to 0
 
 
 def test_items_total_respects_filters(client, db_session):

@@ -43,3 +43,20 @@ def test_version_is_never_audit_tracked(client, db_session):
     fields = [e.field for e in db_session.query(AuditEvent).all() if e.event_type == "item.updated"]
     assert "version" not in fields
     assert "status" in fields
+
+
+def test_true_race_is_caught_by_version_predicate(client, db_session):
+    from sqlalchemy import update
+
+    from app.models import Item
+
+    item = _create(client)
+    db_session.execute(
+        update(Item).where(Item.id == item["id"]).values(version=99)
+        .execution_options(synchronize_session=False)
+    )
+    resp = client.patch(
+        f"/api/v1/items/{item['id']}", json={"title": "racer", "version": 1}
+    )
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == "Item was modified by someone else — reload and retry"

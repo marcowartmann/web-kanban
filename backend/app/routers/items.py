@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.exc import StaleDataError
 
 from app.audit import ITEM_TRACKED_FIELDS, diff_item_changes, log_event
 from app.auth import require_user
@@ -150,7 +151,6 @@ def update_item(
         setattr(item, key, value)
     if _WSJF_FIELDS & changes.keys():
         recompute(item)
-    item.version += 1
     for field, old, new in diff_item_changes(before, changes):
         log_event(
             db,
@@ -163,7 +163,14 @@ def update_item(
             old_value=old,
             new_value=new,
         )
-    db.commit()
+    try:
+        db.commit()
+    except StaleDataError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Item was modified by someone else — reload and retry",
+        )
     db.refresh(item)
     return item
 
