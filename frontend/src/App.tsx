@@ -9,6 +9,8 @@ import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
 import TimelineView from "./components/TimelineView";
+import UserMenu from "./components/UserMenu";
+import { useAuth } from "./auth/AuthContext";
 import { useBoard } from "./hooks/useBoard";
 import { getTeamMembers, getTeams } from "./api/client";
 import { statusOptionsByKind } from "./lib/boardLanes";
@@ -16,6 +18,8 @@ import { statusOptionsByKind } from "./lib/boardLanes";
 type View = "board" | "admin" | "planning" | "timeline";
 
 export default function App() {
+  const { user, setUser } = useAuth();
+  const isAdmin = user.role === "admin";
   const { boards, items, links, planningIntervals, loading, error, reload } = useBoard();
   const [view, setView] = useState<View>("board");
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
@@ -103,15 +107,18 @@ export default function App() {
             {navButton("board", "Board")}
             {navButton("planning", "Planning")}
             {navButton("timeline", "Timeline")}
-            {navButton("admin", "Admin")}
+            {isAdmin && navButton("admin", "Admin")}
           </nav>
         </div>
-        {view === "board" && (
-          <div className="flex items-center gap-3">
-            <ImportButton onImported={handleChanged} />
-            <NewItemBar onCreated={handleChanged} />
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {view === "board" && (
+            <>
+              {isAdmin && <ImportButton onImported={handleChanged} />}
+              <NewItemBar onCreated={handleChanged} />
+            </>
+          )}
+          <UserMenu user={user} onLoggedOut={() => setUser(null)} />
+        </div>
       </header>
 
       {view === "admin" ? (
@@ -155,6 +162,7 @@ export default function App() {
             onOpenCard={openItem}
             onOpenStories={setOpenStoriesFeatureId}
             onChanged={handleChanged}
+            canEditLanes={isAdmin}
           />
         </>
       ) : null}

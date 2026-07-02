@@ -47,6 +47,7 @@ export default function BoardView({
   onOpenCard,
   onOpenStories,
   onChanged,
+  canEditLanes = true,
 }: {
   board: Board;
   items: Item[];
@@ -55,6 +56,7 @@ export default function BoardView({
   onOpenCard: (id: number) => void;
   onOpenStories: (featureId: number) => void;
   onChanged: () => void | Promise<void>;
+  canEditLanes?: boolean;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -68,15 +70,17 @@ export default function BoardView({
 
   return (
     <div>
-      <div className="flex justify-end px-6 pt-3">
-        <button
-          onClick={() => setEditing((v) => !v)}
-          className="rounded border border-gray-300 px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
-        >
-          {editing ? "Done" : "Edit lanes"}
-        </button>
-      </div>
-      {editing && <LaneEditor board={board} onChanged={onChanged} />}
+      {canEditLanes && (
+        <div className="flex justify-end px-6 pt-3">
+          <button
+            onClick={() => setEditing((v) => !v)}
+            className="rounded border border-gray-300 px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
+          >
+            {editing ? "Done" : "Edit lanes"}
+          </button>
+        </div>
+      )}
+      {canEditLanes && editing && <LaneEditor board={board} onChanged={onChanged} />}
       <DndContext
         sensors={sensors}
         onDragEnd={(event) => void handleCardDragEnd(event, onChanged)}
