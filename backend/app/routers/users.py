@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import hash_password, require_admin
 from app.db import get_db
-from app.models import User, UserSession
+from app.models import Team, User, UserSession
 from app.schemas import UserCreate, UserRead, UserUpdate
 
 router = APIRouter(
@@ -29,11 +29,14 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)) -> User:
     email = payload.email.strip().lower()
     if db.scalar(select(User).where(func.lower(User.email) == email)):
         raise HTTPException(status_code=409, detail="Email already in use")
+    if payload.team_id is not None and db.get(Team, payload.team_id) is None:
+        raise HTTPException(status_code=422, detail="team_id does not exist")
     user = User(
         email=email,
         display_name=payload.display_name,
         password_hash=hash_password(payload.password),
         role=payload.role,
+        team_id=payload.team_id,
     )
     db.add(user)
     db.commit()
@@ -54,6 +57,19 @@ def update_user(
         changes.get("role") == "member" or changes.get("is_active") is False
     ):
         raise HTTPException(status_code=422, detail="Admins cannot demote or deactivate themselves")
+    email = changes.pop("email", None)
+    if email is not None:
+        email = email.strip().lower()
+        if db.scalar(
+            select(User).where(func.lower(User.email) == email, User.id != user.id)
+        ):
+            raise HTTPException(status_code=409, detail="Email already in use")
+        user.email = email
+    if "team_id" in changes:  # distinguishes "not sent" from explicit null
+        team_id = changes.pop("team_id")
+        if team_id is not None and db.get(Team, team_id) is None:
+            raise HTTPException(status_code=422, detail="team_id does not exist")
+        user.team_id = team_id
     password = changes.pop("password", None)
     for key, value in changes.items():
         setattr(user, key, value)

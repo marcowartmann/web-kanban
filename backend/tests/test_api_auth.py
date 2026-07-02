@@ -100,3 +100,19 @@ def test_oversized_password_is_just_invalid(anon_client, db_session):
     )
     assert resp.status_code == 401
     assert resp.json() == {"detail": "Invalid credentials"}
+
+
+def test_me_includes_team(anon_client, db_session):
+    from app.models import Team
+
+    team = Team(name="Network")
+    db_session.add(team)
+    db_session.commit()
+    user = _seed_user(db_session)
+    user.team_id = team.id
+    db_session.commit()
+
+    anon_client.post("/api/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
+    body = anon_client.get("/api/auth/me").json()
+    assert body["team_id"] == team.id
+    assert body["team_name"] == "Network"

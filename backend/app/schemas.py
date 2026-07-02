@@ -231,6 +231,8 @@ class UserRead(BaseModel):
     display_name: str
     role: str
     is_active: bool
+    team_id: int | None = None
+    team_name: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -256,12 +258,15 @@ class UserCreate(BaseModel):
     display_name: str = Field(min_length=1, max_length=120)
     password: str = Field(min_length=8, max_length=72)
     role: Literal["admin", "member"] = "member"
+    team_id: int | None = None
 
     _check_password = field_validator("password")(_password_fits_bcrypt)
 
 
 class UserUpdate(BaseModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=120)
+    email: str | None = Field(default=None, min_length=3, max_length=255)
+    team_id: int | None = None
     role: Literal["admin", "member"] | None = None
     is_active: bool | None = None
     password: str | None = Field(default=None, min_length=8, max_length=72)

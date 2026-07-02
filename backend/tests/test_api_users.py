@@ -101,3 +101,77 @@ def test_multibyte_password_over_72_bytes_is_422(anon_client, db_session):
         json={"email": "u@x.ch", "display_name": "U", "password": "ü" * 40, "role": "member"},
     )
     assert resp.status_code == 422
+
+
+def test_patch_email_change_dupe_and_self_exclusion(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    other = _seed(db_session, "other@x.ch")
+    _as(admin)
+    resp = anon_client.patch(f"/api/users/{other.id}", json={"email": "New@Mail.CH"})
+    assert resp.status_code == 200
+    assert resp.json()["email"] == "new@mail.ch"
+
+    dupe = anon_client.patch(f"/api/users/{other.id}", json={"email": "Admin@X.ch"})
+    assert dupe.status_code == 409
+
+    same = anon_client.patch(f"/api/users/{other.id}", json={"email": "NEW@mail.ch"})
+    assert same.status_code == 200  # own address in different case — self-exclusion
+
+
+def test_patch_team_set_clear_invalid(anon_client, db_session):
+    from app.models import Team
+
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    member = _seed(db_session, "m@x.ch")
+    team = Team(name="Network")
+    db_session.add(team)
+    db_session.commit()
+    _as(admin)
+
+    set_resp = anon_client.patch(f"/api/users/{member.id}", json={"team_id": team.id})
+    assert set_resp.status_code == 200
+    assert set_resp.json()["team_id"] == team.id
+    assert set_resp.json()["team_name"] == "Network"
+
+    clear = anon_client.patch(f"/api/users/{member.id}", json={"team_id": None})
+    assert clear.status_code == 200
+    assert clear.json()["team_id"] is None
+    assert clear.json()["team_name"] is None
+
+    bad = anon_client.patch(f"/api/users/{member.id}", json={"team_id": 999})
+    assert bad.status_code == 422
+
+
+def test_create_with_team(anon_client, db_session):
+    from app.models import Team
+
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    team = Team(name="Cloud")
+    db_session.add(team)
+    db_session.commit()
+    _as(admin)
+
+    created = anon_client.post(
+        "/api/users",
+        json={
+            "email": "u@x.ch",
+            "display_name": "U",
+            "password": "longenough1",
+            "role": "member",
+            "team_id": team.id,
+        },
+    )
+    assert created.status_code == 201
+    assert created.json()["team_name"] == "Cloud"
+
+    bad = anon_client.post(
+        "/api/users",
+        json={
+            "email": "v@x.ch",
+            "display_name": "V",
+            "password": "longenough1",
+            "role": "member",
+            "team_id": 999,
+        },
+    )
+    assert bad.status_code == 422
