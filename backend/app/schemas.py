@@ -238,6 +238,35 @@ class LoginRequest(BaseModel):
     password: str
 
 
+def _password_fits_bcrypt(value: str) -> str:
+    if len(value.encode()) > 72:
+        raise ValueError("password must be at most 72 bytes (multi-byte characters count extra)")
+    return value
+
+
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8, max_length=72)
+
+    _check_new_password = field_validator("new_password")(_password_fits_bcrypt)
+
+
+class UserCreate(BaseModel):
+    email: str = Field(min_length=3, max_length=255)
+    display_name: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=8, max_length=72)
+    role: Literal["admin", "member"] = "member"
+
+    _check_password = field_validator("password")(_password_fits_bcrypt)
+
+
+class UserUpdate(BaseModel):
+    display_name: str | None = Field(default=None, min_length=1, max_length=120)
+    role: Literal["admin", "member"] | None = None
+    is_active: bool | None = None
+    password: str | None = Field(default=None, min_length=8, max_length=72)
+
+    @field_validator("password")
+    @classmethod
+    def _check_password(cls, value: str | None) -> str | None:
+        return value if value is None else _password_fits_bcrypt(value)
