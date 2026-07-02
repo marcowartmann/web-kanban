@@ -37,6 +37,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime, server_default=sa.func.now()),
         sa.Column("expires_at", sa.DateTime, nullable=False),
     )
+    op.create_index("ix_user_sessions_user_id", "user_sessions", ["user_id"])
 
 
 def downgrade() -> None:
