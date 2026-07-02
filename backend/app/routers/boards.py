@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.audit import log_event
 from app.auth import require_admin
 from app.db import get_db
-from app.models import Board, Lane, User
+from app.models import Board, Item, ItemKind, Lane, User
 from app.schemas import BoardRead, LaneCreate, LaneOrder, LaneRead, LaneUpdate
 
 router = APIRouter(prefix="/api", tags=["boards"])
@@ -106,6 +106,13 @@ def rename_lane(
     old_name = lane.name
     lane.name = payload.name
     if old_name != lane.name:
+        kinds = [ItemKind(k) for k in lane.board.kinds.split(",") if k]
+        db.execute(
+            update(Item)
+            .where(Item.status == old_name, Item.kind.in_(kinds))
+            .values(status=lane.name)
+            .execution_options(synchronize_session=False)
+        )
         log_event(db, actor=current, event_type="lane.renamed", entity_type="lane",
                   entity_id=lane.id, entity_label=lane.name,
                   field="name", old_value=old_name, new_value=lane.name)

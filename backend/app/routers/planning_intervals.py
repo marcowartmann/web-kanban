@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.audit import log_event
 from app.auth import require_admin
 from app.db import get_db
-from app.models import PlanningInterval, User
-from app.schemas import PlanningIntervalCreate, PlanningIntervalRead
+from app.models import Capacity, Item, PlanningInterval, User
+from app.schemas import PlanningIntervalCreate, PlanningIntervalRead, PlanningIntervalUpdate
 
 router = APIRouter(prefix="/api/planning-intervals", tags=["planning-intervals"])
 
@@ -37,15 +37,67 @@ def create_planning_interval(
     return pi
 
 
+@router.patch("/{pi_id}", response_model=PlanningIntervalRead, dependencies=[Depends(require_admin)])
+def rename_planning_interval(
+    pi_id: int,
+    payload: PlanningIntervalUpdate,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> PlanningInterval:
+    pi = db.get(PlanningInterval, pi_id)
+    if pi is None:
+        raise HTTPException(status_code=404, detail="Planning interval not found")
+    if payload.name == pi.name:
+        return pi
+    if db.scalar(select(PlanningInterval).where(PlanningInterval.name == payload.name, PlanningInterval.id != pi_id)):
+        raise HTTPException(status_code=409, detail="Planning interval already exists")
+    old = pi.name
+    pi.name = payload.name
+    db.execute(
+        update(Item)
+        .where(Item.planning_interval == old)
+        .values(planning_interval=payload.name)
+        .execution_options(synchronize_session=False)
+    )
+    db.execute(
+        update(Capacity)
+        .where(Capacity.planning_interval == old)
+        .values(planning_interval=payload.name)
+        .execution_options(synchronize_session=False)
+    )
+    log_event(db, actor=current, event_type="planning_interval.renamed", entity_type="planning_interval",
+              entity_id=pi.id, entity_label=pi.name,
+              field="name", old_value=old, new_value=pi.name)
+    db.commit()
+    db.refresh(pi)
+    return pi
+
+
 @router.delete("/{pi_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_planning_interval(
     pi_id: int,
+    force: bool = False,
     db: Session = Depends(get_db),
     current: User = Depends(require_admin),
 ) -> None:
     pi = db.get(PlanningInterval, pi_id)
     if pi is None:
         raise HTTPException(status_code=404, detail="Planning interval not found")
+    if not force:
+        items_used = db.scalar(
+            select(func.count()).select_from(Item).where(Item.planning_interval == pi.name)
+        )
+        caps_used = db.scalar(
+            select(func.count()).select_from(Capacity).where(Capacity.planning_interval == pi.name)
+        )
+        if items_used or caps_used:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"Planning interval '{pi.name}' is used by {items_used} items "
+                    f"and {caps_used} capacity entries"
+                ),
+            )
     log_event(db, actor=current, event_type="planning_interval.deleted", entity_type="planning_interval",
               entity_id=pi.id, entity_label=pi.name)
     db.delete(pi)

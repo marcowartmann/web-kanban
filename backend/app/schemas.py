@@ -161,9 +161,17 @@ class PlanningIntervalCreate(BaseModel):
     name: str = Field(min_length=1, max_length=64)
 
 
+class PlanningIntervalUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=64)
+
+
 class TeamMemberCreate(BaseModel):
     name: str
     team_id: int | None = None
+
+
+class TeamMemberUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
 
 
 class TeamMemberRead(BaseModel):
