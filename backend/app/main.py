@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth import require_user
 from app.config import settings
 
 app = FastAPI(title="SAFe Kanban API")
@@ -16,15 +17,18 @@ app.add_middleware(
 from app.routers import auth, imports, items, boards, teams, team_members, capacities, links, planning_intervals, users
 
 app.include_router(auth.router)
-app.include_router(imports.router)
-app.include_router(items.router)
-app.include_router(boards.router)
-app.include_router(teams.router)
-app.include_router(team_members.router)
-app.include_router(capacities.router)
-app.include_router(links.router)
-app.include_router(planning_intervals.router)
-app.include_router(users.router)
+for protected in (
+    imports.router,
+    items.router,
+    boards.router,
+    teams.router,
+    team_members.router,
+    capacities.router,
+    links.router,
+    planning_intervals.router,
+    users.router,
+):
+    app.include_router(protected, dependencies=[Depends(require_user)])
 
 
 @app.get("/api/health")

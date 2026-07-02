@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.db import get_db
 from app.models import Team, TeamMember
 from app.schemas import TeamMemberCreate, TeamMemberRead
@@ -24,7 +25,7 @@ def list_members(db: Session = Depends(get_db)) -> list[TeamMemberRead]:
     return [_to_read(m) for m in members]
 
 
-@router.post("", response_model=TeamMemberRead, status_code=201)
+@router.post("", response_model=TeamMemberRead, status_code=201, dependencies=[Depends(require_admin)])
 def create_member(
     payload: TeamMemberCreate, db: Session = Depends(get_db)
 ) -> TeamMemberRead:
@@ -39,7 +40,7 @@ def create_member(
     return _to_read(member)
 
 
-@router.delete("/{member_id}", status_code=204)
+@router.delete("/{member_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_member(member_id: int, db: Session = Depends(get_db)) -> None:
     member = db.get(TeamMember, member_id)
     if member is None:

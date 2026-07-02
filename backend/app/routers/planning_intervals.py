@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.db import get_db
 from app.models import PlanningInterval
 from app.schemas import PlanningIntervalCreate, PlanningIntervalRead
@@ -16,7 +17,7 @@ def list_planning_intervals(db: Session = Depends(get_db)) -> list[PlanningInter
     )
 
 
-@router.post("", response_model=PlanningIntervalRead, status_code=201)
+@router.post("", response_model=PlanningIntervalRead, status_code=201, dependencies=[Depends(require_admin)])
 def create_planning_interval(
     payload: PlanningIntervalCreate, db: Session = Depends(get_db)
 ) -> PlanningInterval:
@@ -30,7 +31,7 @@ def create_planning_interval(
     return pi
 
 
-@router.delete("/{pi_id}", status_code=204)
+@router.delete("/{pi_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_planning_interval(pi_id: int, db: Session = Depends(get_db)) -> None:
     pi = db.get(PlanningInterval, pi_id)
     if pi is None:

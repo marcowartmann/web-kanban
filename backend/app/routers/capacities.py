@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.db import get_db
 from app.models import Capacity, TeamMember
 from app.schemas import CapacityRead, CapacityUpsert
@@ -14,7 +15,7 @@ def list_capacities(db: Session = Depends(get_db)) -> list[Capacity]:
     return list(db.scalars(select(Capacity)))
 
 
-@router.put("", response_model=CapacityRead)
+@router.put("", response_model=CapacityRead, dependencies=[Depends(require_admin)])
 def upsert_capacity(payload: CapacityUpsert, db: Session = Depends(get_db)) -> Capacity:
     if db.get(TeamMember, payload.member_id) is None:
         raise HTTPException(status_code=422, detail="member_id does not exist")

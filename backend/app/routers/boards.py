@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.db import get_db
 from app.models import Board, Lane
 from app.schemas import BoardRead, LaneCreate, LaneOrder, LaneRead, LaneUpdate
@@ -52,7 +53,12 @@ def _name_taken(db: Session, board_id: int, name: str) -> bool:
     ) is not None
 
 
-@router.post("/boards/{board_id}/lanes", response_model=LaneRead, status_code=201)
+@router.post(
+    "/boards/{board_id}/lanes",
+    response_model=LaneRead,
+    status_code=201,
+    dependencies=[Depends(require_admin)],
+)
 def add_lane(board_id: int, payload: LaneCreate, db: Session = Depends(get_db)) -> Lane:
     if db.get(Board, board_id) is None:
         raise HTTPException(status_code=404, detail="Board not found")
@@ -74,7 +80,7 @@ def add_lane(board_id: int, payload: LaneCreate, db: Session = Depends(get_db)) 
     return lane
 
 
-@router.patch("/lanes/{lane_id}", response_model=LaneRead)
+@router.patch("/lanes/{lane_id}", response_model=LaneRead, dependencies=[Depends(require_admin)])
 def rename_lane(lane_id: int, payload: LaneUpdate, db: Session = Depends(get_db)) -> Lane:
     lane = db.get(Lane, lane_id)
     if lane is None:
@@ -89,7 +95,7 @@ def rename_lane(lane_id: int, payload: LaneUpdate, db: Session = Depends(get_db)
     return lane
 
 
-@router.delete("/lanes/{lane_id}", status_code=204)
+@router.delete("/lanes/{lane_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_lane(lane_id: int, db: Session = Depends(get_db)) -> None:
     lane = db.get(Lane, lane_id)
     if lane is None:
@@ -98,7 +104,11 @@ def delete_lane(lane_id: int, db: Session = Depends(get_db)) -> None:
     db.commit()
 
 
-@router.put("/boards/{board_id}/lanes/order", response_model=list[LaneRead])
+@router.put(
+    "/boards/{board_id}/lanes/order",
+    response_model=list[LaneRead],
+    dependencies=[Depends(require_admin)],
+)
 def reorder_lanes(
     board_id: int, payload: LaneOrder, db: Session = Depends(get_db)
 ) -> list[Lane]:

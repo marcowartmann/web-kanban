@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.csv_import import parse_items, read_rows, replace_all
 from app.db import get_db
 from app.schemas import ImportResult
@@ -8,7 +9,7 @@ from app.schemas import ImportResult
 router = APIRouter(prefix="/api", tags=["import"])
 
 
-@router.post("/import", response_model=ImportResult)
+@router.post("/import", response_model=ImportResult, dependencies=[Depends(require_admin)])
 async def import_csv(file: UploadFile, db: Session = Depends(get_db)) -> ImportResult:
     content = await file.read()
     try:
