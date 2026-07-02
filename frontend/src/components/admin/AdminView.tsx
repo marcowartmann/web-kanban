@@ -25,6 +25,8 @@ export default function AdminView({
         <TeamsSection onChanged={onChanged} />
         <TeamMembersSection onChanged={onChanged} />
         <PlanningIntervalsSection onChanged={onChanged} />
+      </div>
+      <div className="mt-4">
         <UsersSection currentUserId={user.id} />
       </div>
       <div className="mt-4">

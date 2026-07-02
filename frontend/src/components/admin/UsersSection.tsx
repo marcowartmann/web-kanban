@@ -1,134 +1,115 @@
 import { useEffect, useState } from "react";
-import { createUser, listUsers, updateUser } from "../../api/client";
-import type { AuthUser } from "../../types";
-import AdminCard, {
-  adminAddButtonClass,
-  adminEmptyClass,
-  adminInputClass,
-  adminRowClass,
-} from "./AdminCard";
+import { getTeams, listUsers } from "../../api/client";
+import type { AuthUser, Team } from "../../types";
+import UserModal from "./UserModal";
+
+const statusPill = (active: boolean) =>
+  active
+    ? "rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
+    : "rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700";
 
 export default function UsersSection({ currentUserId }: { currentUserId: number }) {
   const [users, setUsers] = useState<AuthUser[]>([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"admin" | "member">("member");
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [editing, setEditing] = useState<AuthUser | null>(null);
+  const [adding, setAdding] = useState(false);
 
-  const reload = () => void listUsers().then(setUsers);
+  const reload = () => {
+    void listUsers().then(setUsers);
+    void getTeams().then(setTeams);
+  };
   useEffect(reload, []);
 
-  const add = async () => {
-    if (!name.trim() || !email.trim() || password.length < 8) return;
-    await createUser({ email: email.trim(), display_name: name.trim(), password, role });
-    setName("");
-    setEmail("");
-    setPassword("");
-    setRole("member");
-    reload();
-  };
-
-  const setUserRole = async (id: number, newRole: "admin" | "member") => {
-    await updateUser(id, { role: newRole });
-    reload();
-  };
-
-  const setActive = async (id: number, is_active: boolean) => {
-    await updateUser(id, { is_active });
-    reload();
-  };
-
-  const resetPassword = async (user: AuthUser) => {
-    const pw = window.prompt(`New password for ${user.display_name} (min 8 chars)`);
-    if (!pw || pw.length < 8) return;
-    await updateUser(user.id, { password: pw });
-  };
-
   return (
-    <AdminCard title="Users" icon="👤" accent="bg-rose-50 text-rose-600" count={users.length}>
-      <div className="mb-4 flex flex-wrap gap-2">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Name"
-          className={`${adminInputClass} min-w-[6rem] flex-1`}
-        />
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className={`${adminInputClass} min-w-[8rem] flex-1`}
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          className={`${adminInputClass} min-w-[7rem] flex-1`}
-        />
-        <select
-          aria-label="Role"
-          value={role}
-          onChange={(e) => setRole(e.target.value as "admin" | "member")}
-          className={adminInputClass}
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ring-1 ring-black/5">
+      <header className="mb-4 flex items-center gap-2.5">
+        <span
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-base text-rose-600"
+          aria-hidden
         >
-          <option value="member">member</option>
-          <option value="admin">admin</option>
-        </select>
-        <button onClick={() => void add()} className={adminAddButtonClass}>
-          Add
+          👤
+        </span>
+        <h2 className="text-sm font-semibold text-gray-900">Users</h2>
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+          {users.length}
+        </span>
+        <button
+          onClick={() => setAdding(true)}
+          className="ml-auto rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+        >
+          + Add user
         </button>
+      </header>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-200 text-left text-[11px] uppercase tracking-wide text-gray-400">
+              <th className="py-2 pr-3 font-semibold">Name</th>
+              <th className="px-2 py-2 font-semibold">Email</th>
+              <th className="px-2 py-2 font-semibold">Team</th>
+              <th className="px-2 py-2 font-semibold">Role</th>
+              <th className="px-2 py-2 font-semibold">Status</th>
+              <th className="px-2 py-2" />
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.id} className="border-b border-gray-100 last:border-0">
+                <td
+                  className={`whitespace-nowrap py-2 pr-3 font-medium ${
+                    u.is_active ? "text-gray-800" : "text-gray-400 line-through"
+                  }`}
+                >
+                  {u.display_name}
+                </td>
+                <td className="px-2 py-2 text-gray-600">{u.email}</td>
+                <td className="px-2 py-2 text-gray-600">{u.team_name ?? "—"}</td>
+                <td className="px-2 py-2 text-gray-600">{u.role}</td>
+                <td className="px-2 py-2">
+                  <span className={statusPill(u.is_active)}>{u.is_active ? "active" : "inactive"}</span>
+                </td>
+                <td className="px-2 py-2 text-right">
+                  <button
+                    aria-label={`edit user ${u.display_name}`}
+                    onClick={() => setEditing(u)}
+                    className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+                  >
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={6} className="py-4 text-center text-gray-400">
+                  No users yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-      <ul className="flex flex-col gap-0.5">
-        {users.map((u) => (
-          <li key={u.id} className={adminRowClass}>
-            <span className="flex min-w-0 items-center gap-2 truncate">
-              <span className={`truncate font-medium ${u.is_active ? "text-gray-800" : "text-gray-400 line-through"}`}>
-                {u.display_name}
-              </span>
-              <span className="truncate text-xs text-gray-400">{u.email}</span>
-            </span>
-            <span className="flex shrink-0 items-center gap-1.5">
-              <select
-                aria-label={`role of ${u.display_name}`}
-                value={u.role}
-                onChange={(e) => void setUserRole(u.id, e.target.value as "admin" | "member")}
-                className="rounded-lg border border-gray-200 px-1.5 py-0.5 text-xs text-gray-600"
-                disabled={u.id === currentUserId}
-              >
-                <option value="member">member</option>
-                <option value="admin">admin</option>
-              </select>
-              <button
-                aria-label={`reset password of ${u.display_name}`}
-                onClick={() => void resetPassword(u)}
-                className="rounded-md px-1.5 py-0.5 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
-              >
-                reset
-              </button>
-              {u.id !== currentUserId &&
-                (u.is_active ? (
-                  <button
-                    aria-label={`deactivate ${u.display_name}`}
-                    onClick={() => void setActive(u.id, false)}
-                    className="rounded-md px-1.5 py-0.5 text-xs text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                  >
-                    deactivate
-                  </button>
-                ) : (
-                  <button
-                    aria-label={`activate ${u.display_name}`}
-                    onClick={() => void setActive(u.id, true)}
-                    className="rounded-md px-1.5 py-0.5 text-xs text-gray-400 transition hover:bg-emerald-50 hover:text-emerald-600"
-                  >
-                    activate
-                  </button>
-                ))}
-            </span>
-          </li>
-        ))}
-        {users.length === 0 && <li className={adminEmptyClass}>No users yet.</li>}
-      </ul>
-    </AdminCard>
+
+      {adding && (
+        <UserModal
+          mode="create"
+          teams={teams}
+          currentUserId={currentUserId}
+          onSaved={reload}
+          onClose={() => setAdding(false)}
+        />
+      )}
+      {editing && (
+        <UserModal
+          mode="edit"
+          user={editing}
+          teams={teams}
+          currentUserId={currentUserId}
+          onSaved={reload}
+          onClose={() => setEditing(null)}
+        />
+      )}
+    </section>
   );
 }
