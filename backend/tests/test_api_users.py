@@ -25,21 +25,21 @@ def test_admin_crud_and_duplicate(anon_client, db_session):
     admin = _seed(db_session, "admin@x.ch", role="admin")
     _as(admin)
     created = anon_client.post(
-        "/api/users",
+        "/api/v1/users",
         json={"email": "New@X.ch", "display_name": "New", "password": "longenough1", "role": "member"},
     )
     assert created.status_code == 201
     assert created.json()["email"] == "new@x.ch"  # lowercased
     dupe = anon_client.post(
-        "/api/users",
+        "/api/v1/users",
         json={"email": "new@x.ch", "display_name": "N2", "password": "longenough1", "role": "member"},
     )
     assert dupe.status_code == 409
-    listed = anon_client.get("/api/users").json()
+    listed = anon_client.get("/api/v1/users").json()
     assert [u["display_name"] for u in listed] == sorted(u["display_name"] for u in listed)
 
     target_id = created.json()["id"]
-    patched = anon_client.patch(f"/api/users/{target_id}", json={"role": "admin", "is_active": False})
+    patched = anon_client.patch(f"/api/v1/users/{target_id}", json={"role": "admin", "is_active": False})
     assert patched.status_code == 200
     assert patched.json()["role"] == "admin"
     assert patched.json()["is_active"] is False
@@ -50,7 +50,7 @@ def test_admin_password_reset_revokes_sessions(anon_client, db_session):
     member = _seed(db_session, "m@x.ch")
     create_session(db_session, member)
     _as(admin)
-    resp = anon_client.patch(f"/api/users/{member.id}", json={"password": "resetpass1"})
+    resp = anon_client.patch(f"/api/v1/users/{member.id}", json={"password": "resetpass1"})
     assert resp.status_code == 200
     assert db_session.query(UserSession).filter_by(user_id=member.id).count() == 0
 
@@ -60,7 +60,7 @@ def test_deactivation_revokes_sessions(anon_client, db_session):
     member = _seed(db_session, "m@x.ch")
     create_session(db_session, member)
     _as(admin)
-    resp = anon_client.patch(f"/api/users/{member.id}", json={"is_active": False})
+    resp = anon_client.patch(f"/api/v1/users/{member.id}", json={"is_active": False})
     assert resp.status_code == 200
     assert db_session.query(UserSession).filter_by(user_id=member.id).count() == 0
 
@@ -68,19 +68,19 @@ def test_deactivation_revokes_sessions(anon_client, db_session):
 def test_self_lockout_guard(anon_client, db_session):
     admin = _seed(db_session, "admin@x.ch", role="admin")
     _as(admin)
-    assert anon_client.patch(f"/api/users/{admin.id}", json={"role": "member"}).status_code == 422
-    assert anon_client.patch(f"/api/users/{admin.id}", json={"is_active": False}).status_code == 422
-    ok = anon_client.patch(f"/api/users/{admin.id}", json={"display_name": "Boss"})
+    assert anon_client.patch(f"/api/v1/users/{admin.id}", json={"role": "member"}).status_code == 422
+    assert anon_client.patch(f"/api/v1/users/{admin.id}", json={"is_active": False}).status_code == 422
+    ok = anon_client.patch(f"/api/v1/users/{admin.id}", json={"display_name": "Boss"})
     assert ok.status_code == 200
 
 
 def test_member_gets_403(anon_client, db_session):
     member = _seed(db_session, "m@x.ch")
     _as(member)
-    assert anon_client.get("/api/users").status_code == 403
+    assert anon_client.get("/api/v1/users").status_code == 403
     assert (
         anon_client.post(
-            "/api/users",
+            "/api/v1/users",
             json={"email": "x@x.ch", "display_name": "X", "password": "longenough1", "role": "member"},
         ).status_code
         == 403
@@ -90,14 +90,14 @@ def test_member_gets_403(anon_client, db_session):
 def test_unknown_user_404(anon_client, db_session):
     admin = _seed(db_session, "admin@x.ch", role="admin")
     _as(admin)
-    assert anon_client.patch("/api/users/999", json={"display_name": "X"}).status_code == 404
+    assert anon_client.patch("/api/v1/users/999", json={"display_name": "X"}).status_code == 404
 
 
 def test_multibyte_password_over_72_bytes_is_422(anon_client, db_session):
     admin = _seed(db_session, "admin@x.ch", role="admin")
     _as(admin)
     resp = anon_client.post(
-        "/api/users",
+        "/api/v1/users",
         json={"email": "u@x.ch", "display_name": "U", "password": "ü" * 40, "role": "member"},
     )
     assert resp.status_code == 422
@@ -107,14 +107,14 @@ def test_patch_email_change_dupe_and_self_exclusion(anon_client, db_session):
     admin = _seed(db_session, "admin@x.ch", role="admin")
     other = _seed(db_session, "other@x.ch")
     _as(admin)
-    resp = anon_client.patch(f"/api/users/{other.id}", json={"email": "New@Mail.CH"})
+    resp = anon_client.patch(f"/api/v1/users/{other.id}", json={"email": "New@Mail.CH"})
     assert resp.status_code == 200
     assert resp.json()["email"] == "new@mail.ch"
 
-    dupe = anon_client.patch(f"/api/users/{other.id}", json={"email": "Admin@X.ch"})
+    dupe = anon_client.patch(f"/api/v1/users/{other.id}", json={"email": "Admin@X.ch"})
     assert dupe.status_code == 409
 
-    same = anon_client.patch(f"/api/users/{other.id}", json={"email": "NEW@mail.ch"})
+    same = anon_client.patch(f"/api/v1/users/{other.id}", json={"email": "NEW@mail.ch"})
     assert same.status_code == 200  # own address in different case — self-exclusion
 
 
@@ -128,17 +128,17 @@ def test_patch_team_set_clear_invalid(anon_client, db_session):
     db_session.commit()
     _as(admin)
 
-    set_resp = anon_client.patch(f"/api/users/{member.id}", json={"team_id": team.id})
+    set_resp = anon_client.patch(f"/api/v1/users/{member.id}", json={"team_id": team.id})
     assert set_resp.status_code == 200
     assert set_resp.json()["team_id"] == team.id
     assert set_resp.json()["team_name"] == "Network"
 
-    clear = anon_client.patch(f"/api/users/{member.id}", json={"team_id": None})
+    clear = anon_client.patch(f"/api/v1/users/{member.id}", json={"team_id": None})
     assert clear.status_code == 200
     assert clear.json()["team_id"] is None
     assert clear.json()["team_name"] is None
 
-    bad = anon_client.patch(f"/api/users/{member.id}", json={"team_id": 999})
+    bad = anon_client.patch(f"/api/v1/users/{member.id}", json={"team_id": 999})
     assert bad.status_code == 422
 
 
@@ -152,7 +152,7 @@ def test_create_with_team(anon_client, db_session):
     _as(admin)
 
     created = anon_client.post(
-        "/api/users",
+        "/api/v1/users",
         json={
             "email": "u@x.ch",
             "display_name": "U",
@@ -165,7 +165,7 @@ def test_create_with_team(anon_client, db_session):
     assert created.json()["team_name"] == "Cloud"
 
     bad = anon_client.post(
-        "/api/users",
+        "/api/v1/users",
         json={
             "email": "v@x.ch",
             "display_name": "V",

@@ -9,7 +9,7 @@ from app.links import RELATIONS, canonicalize, relation_options
 from app.models import Item, ItemLink, User
 from app.schemas import LinkCreate, LinkRow, RelationOption
 
-router = APIRouter(prefix="/api", tags=["links"])
+router = APIRouter(prefix="/api/v1", tags=["links"])
 
 
 @router.get("/link-relations", response_model=list[RelationOption])

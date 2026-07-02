@@ -8,7 +8,7 @@ from app.db import get_db
 from app.models import Comment, Item, User
 from app.schemas import CommentCreate, CommentRead, CommentUpdate
 
-router = APIRouter(prefix="/api", tags=["comments"])
+router = APIRouter(prefix="/api/v1", tags=["comments"])
 
 
 def _excerpt(body: str) -> str:

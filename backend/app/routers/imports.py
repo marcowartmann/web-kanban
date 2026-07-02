@@ -8,7 +8,7 @@ from app.db import get_db
 from app.models import User
 from app.schemas import ImportResult
 
-router = APIRouter(prefix="/api", tags=["import"])
+router = APIRouter(prefix="/api/v1", tags=["import"])
 
 
 @router.post("/import", response_model=ImportResult)

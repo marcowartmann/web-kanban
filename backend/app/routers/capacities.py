@@ -8,7 +8,7 @@ from app.db import get_db
 from app.models import Capacity, TeamMember, User
 from app.schemas import CapacityRead, CapacityUpsert
 
-router = APIRouter(prefix="/api/capacities", tags=["capacities"])
+router = APIRouter(prefix="/api/v1/capacities", tags=["capacities"])
 
 
 @router.get("", response_model=list[CapacityRead])

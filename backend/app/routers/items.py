@@ -10,7 +10,7 @@ from app.models import AuditEvent, Item, ItemKind, ItemLink, User
 from app.schemas import AuditEventRead, ItemCreate, ItemDetail, ItemRead, ItemUpdate, ItemRef, LinkedItem
 from app.wsjf import recompute
 
-router = APIRouter(prefix="/api/items", tags=["items"])
+router = APIRouter(prefix="/api/v1/items", tags=["items"])
 
 _WSJF_FIELDS = {"business_value", "time_criticality", "risk_reduction", "job_size"}
 

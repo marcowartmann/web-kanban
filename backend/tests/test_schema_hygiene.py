@@ -6,7 +6,7 @@ from app.models import Capacity, TeamMember
 
 
 def test_item_response_has_no_dependencies_field(client):
-    resp = client.post("/api/items", json={"kind": "feature", "title": "Clean"})
+    resp = client.post("/api/v1/items", json={"kind": "feature", "title": "Clean"})
     assert resp.status_code == 201
     assert "dependencies" not in resp.json()
 

@@ -8,7 +8,7 @@ from app.db import get_db
 from app.models import Capacity, Item, PlanningInterval, User
 from app.schemas import PlanningIntervalCreate, PlanningIntervalRead, PlanningIntervalUpdate
 
-router = APIRouter(prefix="/api/planning-intervals", tags=["planning-intervals"])
+router = APIRouter(prefix="/api/v1/planning-intervals", tags=["planning-intervals"])
 
 
 @router.get("", response_model=list[PlanningIntervalRead])

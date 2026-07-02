@@ -9,7 +9,7 @@ from app.models import Team, User, UserSession
 from app.schemas import UserCreate, UserRead, UserUpdate
 
 router = APIRouter(
-    prefix="/api/users", tags=["users"], dependencies=[Depends(require_admin)]
+    prefix="/api/v1/users", tags=["users"], dependencies=[Depends(require_admin)]
 )
 
 

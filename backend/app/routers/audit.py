@@ -7,7 +7,7 @@ from app.db import get_db
 from app.models import AuditEvent
 from app.schemas import AuditEventRead, AuditPage
 
-router = APIRouter(prefix="/api/audit", tags=["audit"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api/v1/audit", tags=["audit"], dependencies=[Depends(require_admin)])
 
 
 @router.get("", response_model=AuditPage)

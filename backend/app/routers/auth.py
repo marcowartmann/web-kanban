@@ -19,7 +19,7 @@ from app.db import get_db
 from app.models import User, UserSession
 from app.schemas import LoginRequest, PasswordChange, UserRead
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
 def _set_session_cookie(response: Response, token: str) -> None:

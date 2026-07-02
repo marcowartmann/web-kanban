@@ -8,7 +8,7 @@ from app.db import get_db
 from app.models import Item, Team, TeamMember, User
 from app.schemas import TeamMemberCreate, TeamMemberRead, TeamMemberUpdate
 
-router = APIRouter(prefix="/api/team-members", tags=["team-members"])
+router = APIRouter(prefix="/api/v1/team-members", tags=["team-members"])
 
 
 def _to_read(member: TeamMember) -> TeamMemberRead:

@@ -8,7 +8,7 @@ from app.db import get_db
 from app.models import Board, Item, ItemKind, Lane, User
 from app.schemas import BoardRead, LaneCreate, LaneOrder, LaneRead, LaneUpdate
 
-router = APIRouter(prefix="/api", tags=["boards"])
+router = APIRouter(prefix="/api/v1", tags=["boards"])
 
 _DEFAULT_BOARDS = [
     ("Features & Stories", "feature,story", 0, ["Funnel", "Analyzing", "New"]),

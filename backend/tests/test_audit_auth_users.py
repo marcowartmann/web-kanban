@@ -18,12 +18,12 @@ def _seed(db, email, role="member", password="secret123"):
 
 def test_login_success_and_failure_events(anon_client, db_session):
     user = _seed(db_session, "marco@x.ch")
-    ok = anon_client.post("/api/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
+    ok = anon_client.post("/api/v1/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
     assert ok.status_code == 200
     row = db_session.query(AuditEvent).filter_by(event_type="auth.login").one()
     assert row.actor_id == user.id and row.entity_label == "marco@x.ch"
 
-    bad = anon_client.post("/api/auth/login", json={"email": "Ghost@X.ch", "password": "nope-nope"})
+    bad = anon_client.post("/api/v1/auth/login", json={"email": "Ghost@X.ch", "password": "nope-nope"})
     assert bad.status_code == 401
     assert bad.json() == {"detail": "Invalid credentials"}  # semantics unchanged
     failed = db_session.query(AuditEvent).filter_by(event_type="auth.login_failed").one()
@@ -33,17 +33,17 @@ def test_login_success_and_failure_events(anon_client, db_session):
 
 def test_logout_event(anon_client, db_session):
     user = _seed(db_session, "marco@x.ch")
-    anon_client.post("/api/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
-    assert anon_client.post("/api/auth/logout").status_code == 204
+    anon_client.post("/api/v1/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
+    assert anon_client.post("/api/v1/auth/logout").status_code == 204
     row = db_session.query(AuditEvent).filter_by(event_type="auth.logout").one()
     assert row.actor_id == user.id and row.entity_label == "marco@x.ch"
 
 
 def test_password_change_event_redacted(anon_client, db_session):
     _seed(db_session, "marco@x.ch")
-    anon_client.post("/api/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
+    anon_client.post("/api/v1/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
     resp = anon_client.patch(
-        "/api/auth/me/password",
+        "/api/v1/auth/me/password",
         json={"current_password": "secret123", "new_password": "brandnew99"},
     )
     assert resp.status_code == 204
@@ -60,7 +60,7 @@ def test_user_created_and_updated_events(anon_client, db_session):
     app.dependency_overrides[get_current_user] = lambda: admin
 
     created = anon_client.post(
-        "/api/users",
+        "/api/v1/users",
         json={"email": "new@x.ch", "display_name": "New", "password": "longenough1", "role": "member"},
     )
     assert created.status_code == 201
@@ -70,7 +70,7 @@ def test_user_created_and_updated_events(anon_client, db_session):
     assert row.actor_id == admin.id
 
     resp = anon_client.patch(
-        f"/api/users/{target_id}",
+        f"/api/v1/users/{target_id}",
         json={"role": "admin", "team_id": team.id, "password": "resetpass1"},
     )
     assert resp.status_code == 200

@@ -8,7 +8,7 @@ from app.db import get_db
 from app.models import Item, Team, TeamMember, User
 from app.schemas import TeamCreate, TeamRead, TeamUpdate
 
-router = APIRouter(prefix="/api/teams", tags=["teams"])
+router = APIRouter(prefix="/api/v1/teams", tags=["teams"])
 
 
 @router.get("", response_model=list[TeamRead])
