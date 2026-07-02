@@ -1,6 +1,8 @@
 import hashlib
+import json
 
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -14,8 +16,17 @@ from app.schemas import (
     ImportPreviewCurrent,
     ImportPreviewIncoming,
     ImportResult,
+    RestoreResult,
+    SnapshotInfo,
+    SnapshotList,
 )
-from app.snapshots import compute_state_stamp, write_snapshot
+from app.snapshots import (
+    compute_state_stamp,
+    list_snapshots,
+    restore_from_snapshot,
+    snapshot_path,
+    write_snapshot,
+)
 
 router = APIRouter(prefix="/api/v1", tags=["import"])
 
@@ -118,3 +129,44 @@ async def import_csv(
     )
     db.commit()
     return result
+
+
+@router.get("/import/snapshots", response_model=SnapshotList)
+def get_snapshots(current: User = Depends(require_admin)) -> SnapshotList:
+    return SnapshotList(snapshots=[SnapshotInfo(**s) for s in list_snapshots()])
+
+
+@router.get("/import/snapshots/{name}/download")
+def download_snapshot(name: str, current: User = Depends(require_admin)) -> FileResponse:
+    path = snapshot_path(name)
+    if path is None:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    return FileResponse(path, media_type="application/json", filename=name)
+
+
+@router.post("/import/snapshots/{name}/restore", response_model=RestoreResult)
+def restore_snapshot(
+    name: str,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> RestoreResult:
+    path = snapshot_path(name)
+    if path is None:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    data = json.loads(path.read_text())
+    write_snapshot(db, actor=current.email)  # restores are undoable too
+    try:
+        items, comments, links, warnings = restore_from_snapshot(db, data)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Restore failed: {exc}")
+    log_event(
+        db,
+        actor=current,
+        event_type="import.restored",
+        entity_type="import",
+        entity_label=name,
+        new_value=f"items={items} comments={comments} links={links}",
+    )
+    db.commit()
+    return RestoreResult(items=items, comments=comments, links=links, warnings=warnings)

@@ -169,6 +169,26 @@ class ImportPreview(BaseModel):
     removed_more: int
 
 
+class SnapshotInfo(BaseModel):
+    name: str
+    created_at: str
+    actor: str
+    items: int
+    comments: int
+    links: int
+
+
+class SnapshotList(BaseModel):
+    snapshots: list[SnapshotInfo]
+
+
+class RestoreResult(BaseModel):
+    items: int
+    comments: int
+    links: int
+    warnings: list[str]
+
+
 class TeamCreate(BaseModel):
     name: str = Field(min_length=1, max_length=128)
 
