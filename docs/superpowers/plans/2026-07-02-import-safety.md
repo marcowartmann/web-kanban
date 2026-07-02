@@ -25,7 +25,7 @@
 - Restore deletes comments, links, then items **explicitly** (no reliance on FK cascade — SQLite tests run without FK enforcement), re-inserts with original ids via core inserts, items in two passes (`parent_id` NULL first, then update), comments kept only if author exists and parent kept, warnings EXACT: `f"Skipped {n} comment(s) whose author no longer exists"`, `f"Skipped {n} comment(s) whose parent comment was skipped"`. Postgres-only setval via `pg_get_serial_sequence`.
 - Audit: `import.replaced` new_value becomes `f"features={r.features} stories={r.stories} risks={r.risks} snapshot={name}"`; new `import.restored` event `entity_type="import"`, `entity_label=<name>`, `new_value=f"items={i} comments={c} links={l}"`.
 - Frontend copy EXACT (see Task 6/7 code): modal title `Replace all data from CSV?`, buttons `Cancel` / `Replace all data`, note `A snapshot is saved automatically before the import.`, empty state `No snapshots yet — one is created automatically before every import.`
-- Suite math: backend 166 → 167 (T1) → 172 (T2) → 179 (T3) → 187 (T4); frontend 181 → 184 (T5) → 188 (T6) → 192 (T7). Task 8 changes no counts.
+- Suite math: backend 166 → 167 (T1) → 172 (T2) → 180 (T3) → 188 (T4); frontend 181 → 184 (T5) → 188 (T6) → 192 (T7). Task 8 changes no counts.
 - ENV (backend tasks): the backend container does NOT bind-mount code. Before pytest:
   ```bash
   docker compose exec -T backend sh -c 'rm -rf /app/app /app/alembic /app/tests'
@@ -369,7 +369,7 @@ def list_snapshots() -> list[dict]:
 **Files:**
 - Modify: `backend/app/schemas.py` (after `ImportResult`), `backend/app/routers/imports.py`
 - Create: `backend/tests/import_helpers.py`
-- Test: `backend/tests/test_import_preview.py` (new, 7 tests)
+- Test: `backend/tests/test_import_preview.py` (new, 8 tests)
 - Modify tests: `backend/tests/test_import_endpoint.py` (5 import POSTs), `backend/tests/test_audit_links_import.py` (1 POST + audit value)
 
 **Interfaces:**
@@ -520,6 +520,25 @@ def test_import_stamp_mismatch_409(client, db_session):
     assert db_session.query(Item).filter_by(title="Sneaky edit").count() == 1
 
 
+def test_import_snapshot_failure_500_aborts(client, db_session, monkeypatch, tmp_path):
+    client.post("/api/v1/items", json={"kind": "feature", "title": "Survivor"})
+    blocker = tmp_path / "snapshots-blocked"
+    blocker.write_text("a file where the snapshot dir should be")
+    monkeypatch.setenv("SNAPSHOT_DIR", str(blocker))  # mkdir -> FileExistsError (an OSError)
+    data = _csv(["A"])
+    body = _preview(client, data)
+    audit_before = db_session.query(AuditEvent).count()
+    resp = client.post(
+        "/api/v1/import",
+        files={"file": ("p.csv", io.BytesIO(data), "text/csv")},
+        data={"state_stamp": body["state_stamp"], "file_sha256": body["file_sha256"]},
+    )
+    assert resp.status_code == 500
+    assert resp.json()["detail"] == "Snapshot could not be written — import aborted"
+    assert db_session.query(Item).filter_by(title="Survivor").count() == 1
+    assert db_session.query(AuditEvent).count() == audit_before
+
+
 def test_import_writes_snapshot_and_audit_names_it(client, db_session):
     client.post("/api/v1/items", json={"kind": "feature", "title": "Before"})
     resp = post_import(client, _csv(["After"]))
@@ -633,11 +652,16 @@ async def import_csv(
     db: Session = Depends(get_db),
     current: User = Depends(require_admin),
 ) -> ImportResult:
-    content, parsed = await _read_and_parse(file)
+    content = await file.read()
     if hashlib.sha256(content).hexdigest() != file_sha256:
         raise HTTPException(
             status_code=400, detail="Uploaded file does not match the previewed file"
         )
+    try:
+        rows = read_rows(content)
+    except UnicodeDecodeError as exc:
+        raise HTTPException(status_code=400, detail=f"File is not valid UTF-8: {exc}")
+    parsed = parse_items(rows)
     if compute_state_stamp(db) != state_stamp:
         raise HTTPException(
             status_code=409, detail="Data changed since preview — run the preview again"
@@ -670,9 +694,9 @@ async def import_csv(
     return result
 ```
 
-Note the sha check runs on raw bytes before the UTF-8 parse in spec order 1-2; `_read_and_parse` decodes first purely for code reuse — keep the spec's observable contract: a file that is both non-UTF-8 and sha-mismatched may return either 400; both details are 400-class. If the reviewer objects, inline the read and check sha before `read_rows`.
+The confirm endpoint inlines the read so the sha check on raw bytes strictly precedes parsing (spec order 1-2); `_read_and_parse` stays for the preview endpoint only.
 
-- [ ] **Step 7: Run the full backend suite — expect 179 passed** (172 + 7; updated files stay green).
+- [ ] **Step 7: Run the full backend suite — expect 180 passed** (172 + 8; updated files stay green).
 - [ ] **Step 8: Commit** — `git add backend && git commit -m "feat(backend): import preview endpoint + confirm guards + pre-import snapshot"`
 
 ---
@@ -991,7 +1015,7 @@ def restore_snapshot(
     return RestoreResult(items=items, comments=comments, links=links, warnings=warnings)
 ```
 
-- [ ] **Step 6: Run the full backend suite — expect 187 passed** (179 + 8).
+- [ ] **Step 6: Run the full backend suite — expect 188 passed** (180 + 8).
 - [ ] **Step 7: Commit** — `git add backend && git commit -m "feat(backend): snapshot list/download/restore endpoints"`
 
 ---
@@ -1616,7 +1640,7 @@ volumes:
 
 - [ ] **Step 2: Rebuild and start** — `docker compose up -d --build backend frontend` (wait for healthy).
 
-- [ ] **Step 3: Full-suite verification at HEAD** — backend via the ENV protocol (expect **187 passed**), frontend `npx vitest run` (expect **192 passed**) + `npx tsc --noEmit` clean.
+- [ ] **Step 3: Full-suite verification at HEAD** — backend via the ENV protocol (expect **188 passed**), frontend `npx vitest run` (expect **192 passed**) + `npx tsc --noEmit` clean.
 
 - [ ] **Step 4: curl smoke (safe — never confirm an import against live data):**
 
