@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy import Enum, ForeignKey, Index, Integer, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -193,3 +193,24 @@ class UserSession(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column()
+
+
+class AuditEvent(Base):
+    """Immutable audit trail. Deliberately NO foreign keys: rows must survive
+    deletion of the items/teams/users they describe (snapshots carry names)."""
+
+    __tablename__ = "audit_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+    actor_id: Mapped[int | None] = mapped_column(Integer)
+    actor_name: Mapped[str | None] = mapped_column(String(120))
+    event_type: Mapped[str] = mapped_column(String(40), index=True)
+    entity_type: Mapped[str] = mapped_column(String(20))
+    entity_id: Mapped[int | None] = mapped_column(Integer)
+    entity_label: Mapped[str | None] = mapped_column(String(500))
+    field: Mapped[str | None] = mapped_column(String(40))
+    old_value: Mapped[str | None] = mapped_column(Text)
+    new_value: Mapped[str | None] = mapped_column(Text)
+
+    __table_args__ = (Index("ix_audit_events_entity", "entity_type", "entity_id"),)
