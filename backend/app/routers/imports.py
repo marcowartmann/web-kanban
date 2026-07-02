@@ -78,11 +78,16 @@ async def import_csv(
     db: Session = Depends(get_db),
     current: User = Depends(require_admin),
 ) -> ImportResult:
-    content, parsed = await _read_and_parse(file)
+    content = await file.read()
     if hashlib.sha256(content).hexdigest() != file_sha256:
         raise HTTPException(
             status_code=400, detail="Uploaded file does not match the previewed file"
         )
+    try:
+        rows = read_rows(content)
+    except UnicodeDecodeError as exc:
+        raise HTTPException(status_code=400, detail=f"File is not valid UTF-8: {exc}")
+    parsed = parse_items(rows)
     if compute_state_stamp(db) != state_stamp:
         raise HTTPException(
             status_code=409, detail="Data changed since preview — run the preview again"

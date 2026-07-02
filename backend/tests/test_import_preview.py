@@ -89,6 +89,25 @@ def test_import_stamp_mismatch_409(client, db_session):
     assert db_session.query(Item).filter_by(title="Sneaky edit").count() == 1
 
 
+def test_import_snapshot_failure_500_aborts(client, db_session, monkeypatch, tmp_path):
+    client.post("/api/v1/items", json={"kind": "feature", "title": "Survivor"})
+    blocker = tmp_path / "snapshots-blocked"
+    blocker.write_text("a file where the snapshot dir should be")
+    monkeypatch.setenv("SNAPSHOT_DIR", str(blocker))  # mkdir -> FileExistsError (an OSError)
+    data = _csv(["A"])
+    body = _preview(client, data)
+    audit_before = db_session.query(AuditEvent).count()
+    resp = client.post(
+        "/api/v1/import",
+        files={"file": ("p.csv", io.BytesIO(data), "text/csv")},
+        data={"state_stamp": body["state_stamp"], "file_sha256": body["file_sha256"]},
+    )
+    assert resp.status_code == 500
+    assert resp.json()["detail"] == "Snapshot could not be written — import aborted"
+    assert db_session.query(Item).filter_by(title="Survivor").count() == 1
+    assert db_session.query(AuditEvent).count() == audit_before
+
+
 def test_import_writes_snapshot_and_audit_names_it(client, db_session):
     client.post("/api/v1/items", json={"kind": "feature", "title": "Before"})
     resp = post_import(client, _csv(["After"]))
