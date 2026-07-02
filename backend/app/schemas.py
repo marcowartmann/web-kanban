@@ -143,6 +143,32 @@ class ImportResult(BaseModel):
     warnings: list[str]
 
 
+class ImportPreviewIncoming(BaseModel):
+    features: int
+    stories: int
+    risks: int
+    warnings: list[str]
+
+
+class ImportPreviewCurrent(BaseModel):
+    features: int
+    stories: int
+    risks: int
+    comments: int
+    links: int
+
+
+class ImportPreview(BaseModel):
+    file_sha256: str
+    state_stamp: str
+    incoming: ImportPreviewIncoming
+    current: ImportPreviewCurrent
+    added_titles: list[str]
+    removed_titles: list[str]
+    added_more: int
+    removed_more: int
+
+
 class TeamCreate(BaseModel):
     name: str = Field(min_length=1, max_length=128)
 

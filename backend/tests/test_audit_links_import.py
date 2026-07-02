@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from app.models import AuditEvent
+from tests.import_helpers import post_import
 
 _FIXTURE = Path(__file__).parent / "fixtures" / "team_planning.csv"
 
@@ -26,15 +27,15 @@ def test_link_add_and_remove_log_one_row_per_side(client, db_session):
 
 def test_import_logs_exactly_one_summary_event(client, db_session):
     with _FIXTURE.open("rb") as f:
-        resp = client.post("/api/v1/import", files={"file": ("p.csv", f, "text/csv")})
+        resp = post_import(client, f.read(), "p.csv")
     assert resp.status_code == 200
     body = resp.json()
     rows = db_session.query(AuditEvent).filter_by(event_type="import.replaced").all()
     assert len(rows) == 1
     assert rows[0].entity_type == "import"
     assert rows[0].entity_label == "p.csv"
-    assert rows[0].new_value == (
-        f"features={body['features']} stories={body['stories']} risks={body['risks']}"
+    assert rows[0].new_value.startswith(
+        f"features={body['features']} stories={body['stories']} risks={body['risks']} snapshot=import-snapshot-"
     )
     # No per-item events from the import path:
     assert db_session.query(AuditEvent).filter_by(event_type="item.created").count() == 0

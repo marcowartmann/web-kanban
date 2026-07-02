@@ -3,6 +3,7 @@ from pathlib import Path
 from sqlalchemy import select
 
 from app.models import Item, ItemKind, Team, TeamMember
+from tests.import_helpers import post_import
 
 FIXTURE = Path(__file__).parent / "fixtures" / "team_planning.csv"
 
@@ -14,8 +15,7 @@ def test_import_replaces_all_and_returns_counts(client, db_session):
     db_session.commit()
 
     with FIXTURE.open("rb") as fh:
-        resp = client.post("/api/v1/import",
-                           files={"file": ("team_planning.csv", fh, "text/csv")})
+        resp = post_import(client, fh.read(), "team_planning.csv")
 
     assert resp.status_code == 200
     body = resp.json()
@@ -30,17 +30,15 @@ def test_import_replaces_all_and_returns_counts(client, db_session):
 
 def test_second_import_does_not_accumulate(client):
     with FIXTURE.open("rb") as fh:
-        first = client.post("/api/v1/import",
-                           files={"file": ("p.csv", fh, "text/csv")}).json()
+        first = post_import(client, fh.read(), "p.csv").json()
     with FIXTURE.open("rb") as fh:
-        second = client.post("/api/v1/import",
-                            files={"file": ("p.csv", fh, "text/csv")}).json()
+        second = post_import(client, fh.read(), "p.csv").json()
     assert first == second
 
 
 def test_import_seeds_members_and_teams(client, db_session):
     with FIXTURE.open("rb") as fh:
-        client.post("/api/v1/import", files={"file": ("p.csv", fh, "text/csv")})
+        post_import(client, fh.read(), "p.csv")
     members = {m.name for m in db_session.scalars(select(TeamMember))}
     assert "Marco Wartmann" in members
     teams = {t.name for t in db_session.scalars(select(Team))}
@@ -52,7 +50,7 @@ def test_reimport_is_idempotent_and_keeps_manual_members(client, db_session):
     db_session.commit()
     for _ in range(2):
         with FIXTURE.open("rb") as fh:
-            client.post("/api/v1/import", files={"file": ("p.csv", fh, "text/csv")})
+            post_import(client, fh.read(), "p.csv")
     names = [m.name for m in db_session.scalars(select(TeamMember).order_by(TeamMember.name))]
     assert names.count("Marco Wartmann") == 1
     assert "Manual Person" in names
@@ -65,6 +63,6 @@ _FIXTURE = Path(__file__).parent / "fixtures" / "team_planning.csv"
 
 def test_import_seeds_planning_intervals(client):
     with _FIXTURE.open("rb") as f:
-        assert client.post("/api/v1/import", files={"file": ("p.csv", f, "text/csv")}).status_code == 200
+        assert post_import(client, f.read(), "p.csv").status_code == 200
     names = [p["name"] for p in client.get("/api/v1/planning-intervals").json()]
     assert "PI1-Q3" in names
