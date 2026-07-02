@@ -21,3 +21,16 @@ it("lists, adds, and removes planning intervals", async () => {
   await userEvent.click(screen.getByRole("button", { name: /remove planning interval 1/i }));
   expect(del).toHaveBeenCalledWith(1);
 });
+
+it("renames a planning interval inline", async () => {
+  vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([{ id: 1, name: "PI1", position: 0 }] as never);
+  const rename = vi.spyOn(client, "renamePlanningInterval").mockResolvedValue({ id: 1, name: "PI1-Q3", position: 0 } as never);
+
+  render(<PlanningIntervalsSection onChanged={() => {}} />);
+  await userEvent.click(await screen.findByRole("button", { name: /rename planning interval 1/i }));
+  const input = screen.getByRole("textbox", { name: /new name for planning interval 1/i });
+  await userEvent.clear(input);
+  await userEvent.type(input, "PI1-Q3");
+  await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
+  expect(rename).toHaveBeenCalledWith(1, "PI1-Q3");
+});
