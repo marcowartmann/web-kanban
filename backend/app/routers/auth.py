@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.audit import log_event
 from app.auth import (
     SESSION_COOKIE,
     create_session,
     hash_password,
     require_user,
     request_token,
+    resolve_session_user,
     session_ttl,
     verify_password,
     _hash_token,
@@ -34,11 +36,28 @@ def _set_session_cookie(response: Response, token: str) -> None:
 
 @router.post("/login", response_model=UserRead)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)) -> User:
-    user = db.scalar(select(User).where(User.email == payload.email.strip().lower()))
+    email = payload.email.strip().lower()
+    user = db.scalar(select(User).where(User.email == email))
     # Identical 401 for unknown email / wrong password / inactive account.
     if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
+        log_event(
+            db,
+            actor=None,
+            event_type="auth.login_failed",
+            entity_type="auth",
+            entity_label=email,
+        )
+        db.commit()  # the request fails — no mutation commit to ride
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_session(db, user)
+    log_event(
+        db,
+        actor=user,
+        event_type="auth.login",
+        entity_type="auth",
+        entity_id=user.id,
+        entity_label=user.email,
+    )
+    token = create_session(db, user)  # commits, persisting the event atomically
     _set_session_cookie(response, token)
     return user
 
@@ -47,6 +66,16 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 def logout(request: Request, response: Response, db: Session = Depends(get_db)) -> None:
     token = request_token(request)
     if token:
+        user = resolve_session_user(db, token)
+        if user is not None:
+            log_event(
+                db,
+                actor=user,
+                event_type="auth.logout",
+                entity_type="auth",
+                entity_id=user.id,
+                entity_label=user.email,
+            )
         db.execute(delete(UserSession).where(UserSession.token_hash == _hash_token(token)))
         db.commit()
     response.delete_cookie(SESSION_COOKIE, path="/")
@@ -73,4 +102,15 @@ def change_my_password(
     if token:
         stmt = stmt.where(UserSession.token_hash != _hash_token(token))
     db.execute(stmt)
+    log_event(
+        db,
+        actor=user,
+        event_type="user.password_changed",
+        entity_type="user",
+        entity_id=user.id,
+        entity_label=user.email,
+        field="password",
+        old_value="***",
+        new_value="***",
+    )
     db.commit()
