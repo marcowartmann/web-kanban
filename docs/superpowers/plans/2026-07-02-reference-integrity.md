@@ -167,9 +167,11 @@ _NOT_NULL_FIXES = [
 
 def upgrade() -> None:
     op.drop_column("items", "dependencies")
-    op.create_index("ix_items_parent_id", "items", ["parent_id"])
+    # ix_items_parent_id and ix_items_status already exist in Postgres (created
+    # by migration 0001, undeclared in the model until now) — only these four
+    # indexes are new. models.py still declares index=True on all six so the
+    # SQLite create_all fixtures match the real database.
     op.create_index("ix_items_kind", "items", ["kind"])
-    op.create_index("ix_items_status", "items", ["status"])
     op.create_index("ix_items_planning_interval", "items", ["planning_interval"])
     op.create_index("ix_items_leading_team", "items", ["leading_team"])
     op.create_index("ix_items_assignee", "items", ["assignee"])
@@ -185,12 +187,11 @@ def downgrade() -> None:
     for table in reversed(_NOT_NULL_FIXES):
         op.alter_column(table, "created_at", existing_type=sa.DateTime(), nullable=True)
     op.drop_constraint("ck_capacities_iteration", "capacities", type_="check")
+    # ix_items_parent_id / ix_items_status belong to migration 0001 — not dropped here.
     op.drop_index("ix_items_assignee", table_name="items")
     op.drop_index("ix_items_leading_team", table_name="items")
     op.drop_index("ix_items_planning_interval", table_name="items")
-    op.drop_index("ix_items_status", table_name="items")
     op.drop_index("ix_items_kind", table_name="items")
-    op.drop_index("ix_items_parent_id", table_name="items")
     op.add_column("items", sa.Column("dependencies", sa.Text, nullable=True))
 ```
 
@@ -1188,3 +1189,4 @@ Expected: login 200; rename 200; `propagated: RI Smoke 2`; guard 409 with `Team 
 - **Count math:** backend 145 → T1 +3 = 148 → T2 +4 = 152 → T3 +6 = 158. Frontend 168 → T4 +4 = 172 → T5 +5 = 177.
 - **Known trade-offs:** guard counts use live queries (no snapshot race protection — P2 adds versioning); `iteration=7` CHECK test relies on SQLite enforcing named CHECK constraints from `create_all` (it does); the lane test uses the Risks board's "New" lane precisely because both default boards share it; `execution_options(synchronize_session=False)` means in-session Item instances are not refreshed after propagation — tests re-fetch via the API, and endpoints return the renamed master row, not items.
 - **Fixed during self-review:** Task 2 Step 4 originally said 154; the file has exactly 4 tests → correct expectation is **152** (Global Constraints updated to 148 → 152 → 158).
+- **Fixed after Task 1 review (Critical):** migration 0001 already creates `ix_items_parent_id` and `ix_items_status` (undeclared in the model — the reverse drift direction). 0012 now creates only the four genuinely new indexes and its downgrade leaves 0001's two alone; models.py keeps `index=True` on all six for SQLite parity. Migration-authoring tasks must dry-run `alembic upgrade head` + `downgrade` against the compose Postgres, not rely on SQLite fixtures.
