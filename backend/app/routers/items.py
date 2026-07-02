@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.audit import ITEM_TRACKED_FIELDS, diff_item_changes, log_event
@@ -7,7 +7,7 @@ from app.auth import require_user
 from app.db import get_db
 from app.links import RELATIONS
 from app.models import AuditEvent, Item, ItemKind, ItemLink, User
-from app.schemas import AuditEventRead, ItemCreate, ItemDetail, ItemRead, ItemUpdate, ItemRef, LinkedItem
+from app.schemas import AuditEventRead, ItemCreate, ItemDetail, ItemPage, ItemRead, ItemUpdate, ItemRef, LinkedItem
 from app.wsjf import recompute
 
 router = APIRouter(prefix="/api/v1/items", tags=["items"])
@@ -52,7 +52,7 @@ def _resolve_links(db: Session, item_id: int) -> list[LinkedItem]:
     return out
 
 
-@router.get("", response_model=list[ItemRead])
+@router.get("", response_model=ItemPage)
 def list_items(
     kind: ItemKind | None = None,
     status: str | None = None,
@@ -60,8 +60,10 @@ def list_items(
     leading_team: str | None = None,
     assignee: str | None = None,
     q: str | None = None,
+    limit: int = 200,
+    offset: int = 0,
     db: Session = Depends(get_db),
-) -> list[Item]:
+) -> ItemPage:
     stmt = select(Item)
     if kind is not None:
         stmt = stmt.where(Item.kind == kind)
@@ -75,8 +77,11 @@ def list_items(
         stmt = stmt.where(Item.assignee == assignee)
     if q:
         stmt = stmt.where(Item.title.ilike(f"%{q}%"))
-    stmt = stmt.order_by(Item.position)
-    return list(db.scalars(stmt))
+    total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+    limit = max(1, min(limit, 1000))
+    offset = max(0, offset)
+    rows = db.scalars(stmt.order_by(Item.position).offset(offset).limit(limit))
+    return ItemPage(items=[ItemRead.model_validate(r) for r in rows], total=total or 0)
 
 
 @router.get("/{item_id}", response_model=ItemDetail)

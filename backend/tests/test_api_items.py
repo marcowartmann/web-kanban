@@ -60,9 +60,9 @@ def test_list_filter_by_kind_and_search(client, db_session):
     db_session.add(Item(kind=ItemKind.RISK, type="Risk", title="Beta Risk",
                        status="New", position=0))
     db_session.commit()
-    by_kind = client.get("/api/v1/items?kind=risk").json()
+    by_kind = client.get("/api/v1/items?kind=risk").json()["items"]
     assert [i["title"] for i in by_kind] == ["Beta Risk"]
-    by_q = client.get("/api/v1/items?q=alpha").json()
+    by_q = client.get("/api/v1/items?q=alpha").json()["items"]
     assert [i["title"] for i in by_q] == ["Alpha Feature"]
 
 
@@ -70,7 +70,7 @@ def test_list_filter_by_planning_interval(client, db_session):
     _make_feature(db_session, title="Q3 Feature", planning_interval="PI1-Q3")
     _make_feature(db_session, title="Q4 Feature", planning_interval="PI2-Q4")
     db_session.commit()
-    out = client.get("/api/v1/items?planning_interval=PI1-Q3").json()
+    out = client.get("/api/v1/items?planning_interval=PI1-Q3").json()["items"]
     assert [i["title"] for i in out] == ["Q3 Feature"]
 
 
@@ -90,3 +90,29 @@ def test_patch_iteration_out_of_range_rejected(client, db_session):
     story = _make_feature(db_session, kind=ItemKind.STORY, type="Story", title="S")
     assert client.patch(f"/api/v1/items/{story.id}", json={"iteration": 0, "version": 1}).status_code == 422
     assert client.patch(f"/api/v1/items/{story.id}", json={"iteration": 7, "version": 1}).status_code == 422
+
+
+def test_items_are_paginated_with_total(client, db_session):
+    for i in range(5):
+        _make_feature(db_session, title=f"P{i}", position=i)
+    db_session.commit()
+    page = client.get("/api/v1/items?limit=2&offset=2").json()
+    assert page["total"] == 5
+    assert [i["title"] for i in page["items"]] == ["P2", "P3"]
+
+
+def test_items_limit_is_clamped(client, db_session):
+    _make_feature(db_session)
+    db_session.commit()
+    assert client.get("/api/v1/items?limit=99999").status_code == 200
+    assert client.get("/api/v1/items?limit=0").status_code == 200
+    assert client.get("/api/v1/items?offset=-5").status_code == 200
+
+
+def test_items_total_respects_filters(client, db_session):
+    _make_feature(db_session, title="Filtered", planning_interval="PI-X")
+    _make_feature(db_session, title="Other")
+    db_session.commit()
+    page = client.get("/api/v1/items?planning_interval=PI-X&limit=1").json()
+    assert page["total"] == 1
+    assert page["items"][0]["title"] == "Filtered"

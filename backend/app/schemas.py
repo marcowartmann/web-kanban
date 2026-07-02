@@ -78,6 +78,11 @@ class ItemRead(ItemBase):
     updated_at: datetime
 
 
+class ItemPage(BaseModel):
+    items: list[ItemRead]
+    total: int
+
+
 class LinkCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     source_id: int
