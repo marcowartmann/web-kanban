@@ -3,6 +3,7 @@ import type {
   AuthUser,
   Board,
   Capacity,
+  Comment,
   ImportResult,
   Item,
   ItemCreate,
@@ -223,4 +224,23 @@ export function getAuditEvents(
   if (params.entity_type) qs.set("entity_type", params.entity_type);
   const suffix = qs.toString();
   return request<{ items: AuditEvent[]; total: number }>(`/api/audit${suffix ? `?${suffix}` : ""}`);
+}
+
+export function getComments(itemId: number): Promise<Comment[]> {
+  return request<Comment[]>(`/api/items/${itemId}/comments`);
+}
+
+export function createComment(
+  itemId: number,
+  payload: { body: string; parent_id?: number | null },
+): Promise<Comment> {
+  return request<Comment>(`/api/items/${itemId}/comments`, json(payload));
+}
+
+export function updateComment(id: number, body: string): Promise<Comment> {
+  return request<Comment>(`/api/comments/${id}`, { ...json({ body }), method: "PATCH" });
+}
+
+export function deleteComment(id: number): Promise<void> {
+  return request<void>(`/api/comments/${id}`, { method: "DELETE" });
 }

@@ -16,6 +16,12 @@ export function useAuth(): AuthValue {
   return ctx;
 }
 
+/** Like useAuth, but returns null outside the provider (bare component tests,
+ *  or contexts where auth is optional). */
+export function useOptionalAuth(): AuthValue | null {
+  return useContext(AuthContext);
+}
+
 /** Gates the whole app: probes the session once, shows the login page when
  *  logged out, and flips back to it whenever any API call returns 401. */
 export function AuthProvider({ children }: { children: ReactNode }) {

@@ -181,3 +181,14 @@ export interface AuditEvent {
   old_value: string | null;
   new_value: string | null;
 }
+
+export interface Comment {
+  id: number;
+  item_id: number;
+  parent_id: number | null;
+  author_id: number;
+  author_name: string | null;
+  body: string;
+  created_at: string;
+  updated_at: string | null;
+}
