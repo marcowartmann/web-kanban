@@ -29,7 +29,10 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, password_hash: str | None) -> bool:
     if not password_hash:  # IdP-managed accounts have no local password
         return False
-    return bcrypt.checkpw(password.encode(), password_hash.encode())
+    try:
+        return bcrypt.checkpw(password.encode(), password_hash.encode())
+    except ValueError:  # oversized (>72 bytes) or malformed inputs are just "wrong"
+        return False
 
 
 def _hash_token(token: str) -> str:

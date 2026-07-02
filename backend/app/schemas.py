@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -221,3 +222,22 @@ class LaneUpdate(BaseModel):
 
 class LaneOrder(BaseModel):
     lane_ids: list[int]
+
+
+class UserRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    email: str
+    display_name: str
+    role: str
+    is_active: bool
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=72)
