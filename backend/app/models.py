@@ -160,3 +160,26 @@ class PlanningInterval(Base):
     name: Mapped[str] = mapped_column(String(64), unique=True)
     position: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True)  # stored lowercase
+    display_name: Mapped[str] = mapped_column(String(120))
+    password_hash: Mapped[str | None] = mapped_column(String(255))  # None for future IdP users
+    role: Mapped[str] = mapped_column(String(16), default="member")  # 'admin' | 'member'
+    is_active: Mapped[bool] = mapped_column(default=True)
+    auth_provider: Mapped[str] = mapped_column(String(16), default="local")  # 'oidc' later
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)  # sha256 hex
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column()
