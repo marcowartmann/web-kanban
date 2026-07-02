@@ -63,3 +63,8 @@ def anon_client(db_session):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def _snapshot_dir(tmp_path, monkeypatch):
+    monkeypatch.setenv("SNAPSHOT_DIR", str(tmp_path / "snapshots"))
