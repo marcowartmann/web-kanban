@@ -938,11 +938,14 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
     for row in sorted(
         (_revive(Comment, r) for r in data.get("comments", [])), key=lambda r: r["id"]
     ):
-        if row["author_id"] not in existing_users:
-            skipped_author += 1
-            continue
+        # Parent-cascade check first: a reply under a skipped comment counts as
+        # "parent skipped" even when its own author is also gone (matches the
+        # warning split the orphan-author test asserts).
         if row["parent_id"] is not None and row["parent_id"] not in kept_ids:
             skipped_parent += 1
+            continue
+        if row["author_id"] not in existing_users:
+            skipped_author += 1
             continue
         kept_ids.add(row["id"])
         kept_rows.append(row)
