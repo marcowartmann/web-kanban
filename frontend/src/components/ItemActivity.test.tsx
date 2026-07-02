@@ -38,3 +38,15 @@ it("renders link.removed events", async () => {
   render(<ItemActivity itemId={5} />);
   expect(await screen.findByText(/removed link blocks → #9 Other/)).toBeInTheDocument();
 });
+
+it("phrases comment events", async () => {
+  vi.spyOn(client, "getItemEvents").mockResolvedValue([
+    ev({ id: 6, event_type: "comment.deleted", field: "comment", old_value: "bye", new_value: null }),
+    ev({ id: 5, event_type: "comment.edited", field: "comment", old_value: "a", new_value: "b" }),
+    ev({ id: 4, event_type: "comment.added", field: "comment", old_value: null, new_value: "Hello there" }),
+  ] as never);
+  render(<ItemActivity itemId={5} />);
+  expect(await screen.findByText("commented: Hello there")).toBeInTheDocument();
+  expect(screen.getByText("edited a comment")).toBeInTheDocument();
+  expect(screen.getByText("deleted a comment")).toBeInTheDocument();
+});

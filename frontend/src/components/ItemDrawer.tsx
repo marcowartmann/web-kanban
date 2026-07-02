@@ -12,6 +12,7 @@ import {
 import type { Item, ItemKind, ItemUpdate, RelationOption } from "../types";
 import Field from "./Field";
 import ItemActivity from "./ItemActivity";
+import ItemComments from "./ItemComments";
 import SearchableSelect from "./SearchableSelect";
 import WsjfToggle from "./WsjfToggle";
 
@@ -443,6 +444,10 @@ export default function ItemDrawer({
               />
             </div>
           )}
+        </Section>
+
+        <Section label="Comments">
+          <ItemComments itemId={item.id} />
         </Section>
 
         <Section label="Activity">

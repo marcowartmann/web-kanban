@@ -12,6 +12,12 @@ function describe(event: AuditEvent): string {
       return `added link ${event.new_value ?? ""}`;
     case "link.removed":
       return `removed link ${event.old_value ?? ""}`;
+    case "comment.added":
+      return `commented: ${event.new_value ?? ""}`;
+    case "comment.edited":
+      return "edited a comment";
+    case "comment.deleted":
+      return "deleted a comment";
     default:
       return event.event_type;
   }
