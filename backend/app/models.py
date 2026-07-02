@@ -58,6 +58,9 @@ class Item(Base):
         cascade="all, delete-orphan",
         order_by="Item.position",
     )
+    comments: Mapped[list["Comment"]] = relationship(
+        cascade="all, delete-orphan",
+    )
 
 
 class ItemLink(Base):
@@ -214,3 +217,29 @@ class AuditEvent(Base):
     new_value: Mapped[str | None] = mapped_column(Text)
 
     __table_args__ = (Index("ix_audit_events_entity", "entity_type", "entity_id"),)
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    item_id: Mapped[int] = mapped_column(
+        ForeignKey("items.id", ondelete="CASCADE"), index=True
+    )
+    parent_id: Mapped[int | None] = mapped_column(
+        ForeignKey("comments.id", ondelete="CASCADE"), index=True
+    )
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime | None] = mapped_column()  # set on edit
+
+    author: Mapped["User"] = relationship()
+    replies: Mapped[list["Comment"]] = relationship(
+        cascade="all, delete-orphan",
+        order_by="Comment.id",
+    )
+
+    @property
+    def author_name(self) -> str | None:
+        return self.author.display_name if self.author else None
