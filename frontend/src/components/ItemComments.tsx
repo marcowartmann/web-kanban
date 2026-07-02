@@ -31,6 +31,7 @@ export default function ItemComments({ itemId }: { itemId: number }) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const reload = () =>
     getComments(itemId)
@@ -54,11 +55,14 @@ export default function ItemComments({ itemId }: { itemId: number }) {
 
   const post = async () => {
     if (!draft.trim() || busy) return;
+    setError(null);
     setBusy(true);
     try {
       await createComment(itemId, { body: draft.trim() });
       setDraft("");
       await reload();
+    } catch {
+      setError("Could not save your comment. Try again.");
     } finally {
       setBusy(false);
     }
@@ -66,12 +70,15 @@ export default function ItemComments({ itemId }: { itemId: number }) {
 
   const postReply = async (parentId: number) => {
     if (!replyDraft.trim() || busy) return;
+    setError(null);
     setBusy(true);
     try {
       await createComment(itemId, { body: replyDraft.trim(), parent_id: parentId });
       setReplyDraft("");
       setReplyTo(null);
       await reload();
+    } catch {
+      setError("Could not save your comment. Try again.");
     } finally {
       setBusy(false);
     }
@@ -79,20 +86,32 @@ export default function ItemComments({ itemId }: { itemId: number }) {
 
   const saveEdit = async (id: number) => {
     if (!editDraft.trim() || busy) return;
+    setError(null);
     setBusy(true);
     try {
       await updateComment(id, editDraft.trim());
       setEditingId(null);
       await reload();
+    } catch {
+      setError("Could not save your comment. Try again.");
     } finally {
       setBusy(false);
     }
   };
 
   const remove = async (comment: Comment, replyCount: number) => {
+    if (busy) return;
     if (replyCount > 0 && !window.confirm("Delete this comment and its replies?")) return;
-    await deleteComment(comment.id);
-    await reload();
+    setError(null);
+    setBusy(true);
+    try {
+      await deleteComment(comment.id);
+      await reload();
+    } catch {
+      setError("Could not delete the comment. Try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const topLevel = comments.filter((c) => c.parent_id === null);
@@ -108,7 +127,7 @@ export default function ItemComments({ itemId }: { itemId: number }) {
           className={box}
         />
         <div className="flex gap-2">
-          <button onClick={() => void saveEdit(comment.id)} className={action}>
+          <button onClick={() => void saveEdit(comment.id)} disabled={busy} className={action}>
             Save
           </button>
           <button onClick={() => setEditingId(null)} className={action}>
@@ -146,6 +165,7 @@ export default function ItemComments({ itemId }: { itemId: number }) {
           </button>
           <button
             onClick={() => void remove(comment, isReply ? 0 : repliesOf(comment.id).length)}
+            disabled={busy}
             className={`${action} hover:text-red-600`}
           >
             Delete
@@ -157,6 +177,7 @@ export default function ItemComments({ itemId }: { itemId: number }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {error && <p className="text-xs text-red-600">{error}</p>}
       {user && (
         <div className="flex flex-col gap-1.5">
           <textarea

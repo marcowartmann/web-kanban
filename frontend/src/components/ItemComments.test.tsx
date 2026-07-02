@@ -84,3 +84,16 @@ it("confirms before deleting a comment that has replies", async () => {
   expect(confirm).toHaveBeenCalledWith("Delete this comment and its replies?");
   expect(del).not.toHaveBeenCalled();
 });
+
+it("shows an inline error and keeps the draft when posting a comment fails", async () => {
+  vi.spyOn(client, "createComment").mockRejectedValue(new Error("boom"));
+  renderAs(anna, [comment()]);
+  await screen.findByText("First!");
+
+  const textarea = screen.getByPlaceholderText(/write a comment/i);
+  await userEvent.type(textarea, "New thoughts");
+  await userEvent.click(screen.getByRole("button", { name: /^post$/i }));
+
+  expect(await screen.findByText("Could not save your comment. Try again.")).toBeInTheDocument();
+  expect(textarea).toHaveValue("New thoughts");
+});
