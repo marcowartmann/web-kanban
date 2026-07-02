@@ -13,7 +13,7 @@ const item = {
   position: 0, description: "isolate", planning_interval: "PI1-Q3", iteration: null, leading_team: "Network",
   story_points: null, tshirt_size: "XS", kategorie: null, art: "DP",
   sdi_prio: null, supporting_team: null, externer_partner: null, assignee: null,
-  akzeptanzkriterien: null, dependencies: null, bo_stakeholder: null,
+  akzeptanzkriterien: null, bo_stakeholder: null,
   definition_of_done: null, children: [],
 };
 

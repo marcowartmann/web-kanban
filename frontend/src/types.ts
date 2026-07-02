@@ -22,7 +22,6 @@ export interface Item {
   externer_partner: string | null;
   assignee: string | null;
   akzeptanzkriterien: string | null;
-  dependencies: string | null;
   bo_stakeholder: string | null;
   business_value: number | null;
   time_criticality: number | null;
@@ -108,7 +107,6 @@ export interface ItemUpdate {
   kategorie?: string | null;
   sdi_prio?: string | null;
   akzeptanzkriterien?: string | null;
-  dependencies?: string | null;
   bo_stakeholder?: string | null;
   definition_of_done?: string | null;
   story_points?: number | null;

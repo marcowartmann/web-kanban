@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../../api/client";
+import { ConflictError } from "../../api/client";
 import UserModal from "./UserModal";
 
 afterEach(() => vi.restoreAllMocks());
@@ -32,9 +33,7 @@ it("edit: saves only the changed fields", async () => {
 });
 
 it("edit: rejected save shows the server detail inline", async () => {
-  vi.spyOn(client, "updateUser").mockRejectedValue(
-    new Error('409 Conflict: {"detail":"Email already in use"}'),
-  );
+  vi.spyOn(client, "updateUser").mockRejectedValue(new ConflictError("Email already in use"));
   render(
     <UserModal mode="edit" user={ben} teams={teams} currentUserId={1} onSaved={() => {}} onClose={() => {}} />,
   );

@@ -12,7 +12,7 @@ const base = {
   job_size: null, parent_id: null, position: 0, description: null, planning_interval: null,
   iteration: null, leading_team: null, story_points: null, tshirt_size: null, kategorie: null,
   art: null, sdi_prio: null, supporting_team: null, externer_partner: null, assignee: null,
-  akzeptanzkriterien: null, dependencies: null, bo_stakeholder: null, definition_of_done: null,
+  akzeptanzkriterien: null, bo_stakeholder: null, definition_of_done: null,
   children: [],
 };
 

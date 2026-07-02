@@ -23,12 +23,32 @@ export function setUnauthorizedHandler(cb: (() => void) | null): void {
   onUnauthorized = cb;
 }
 
+/** Thrown for HTTP 409 responses; `detail` is the server's conflict message. */
+export class ConflictError extends Error {
+  readonly detail: string;
+  constructor(detail: string) {
+    super(detail);
+    this.name = "ConflictError";
+    this.detail = detail;
+  }
+}
+
 async function request<T>(url: string, init?: RequestInit, notify401 = true): Promise<T> {
   const resp = await fetch(url, init);
   if (!resp.ok) {
     if (resp.status === 401 && notify401) onUnauthorized?.();
-    const detail = await resp.text();
-    throw new Error(`${resp.status} ${resp.statusText}: ${detail}`);
+    const text = await resp.text();
+    if (resp.status === 409) {
+      let detail = text;
+      try {
+        const parsed = JSON.parse(text) as { detail?: unknown };
+        if (typeof parsed.detail === "string") detail = parsed.detail;
+      } catch {
+        // non-JSON body — keep the raw text
+      }
+      throw new ConflictError(detail);
+    }
+    throw new Error(`${resp.status} ${resp.statusText}: ${text}`);
   }
   if (resp.status === 204) return undefined as T;
   return (await resp.json()) as T;
@@ -95,8 +115,12 @@ export function createTeam(name: string): Promise<Team> {
   return request<Team>("/api/teams", json({ name }));
 }
 
-export function deleteTeam(id: number): Promise<void> {
-  return request<void>(`/api/teams/${id}`, { method: "DELETE" });
+export function renameTeam(id: number, name: string): Promise<Team> {
+  return request<Team>(`/api/teams/${id}`, { ...json({ name }), method: "PATCH" });
+}
+
+export function deleteTeam(id: number, force = false): Promise<void> {
+  return request<void>(`/api/teams/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
 export function getTeamMembers(): Promise<TeamMember[]> {
@@ -110,8 +134,12 @@ export function createTeamMember(body: {
   return request<TeamMember>("/api/team-members", json(body));
 }
 
-export function deleteTeamMember(id: number): Promise<void> {
-  return request<void>(`/api/team-members/${id}`, { method: "DELETE" });
+export function renameTeamMember(id: number, name: string): Promise<TeamMember> {
+  return request<TeamMember>(`/api/team-members/${id}`, { ...json({ name }), method: "PATCH" });
+}
+
+export function deleteTeamMember(id: number, force = false): Promise<void> {
+  return request<void>(`/api/team-members/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
 export function getBoards(): Promise<Board[]> {
@@ -158,8 +186,12 @@ export function createPlanningInterval(name: string): Promise<PlanningInterval> 
   return request<PlanningInterval>("/api/planning-intervals", json({ name }));
 }
 
-export function deletePlanningInterval(id: number): Promise<void> {
-  return request<void>(`/api/planning-intervals/${id}`, { method: "DELETE" });
+export function renamePlanningInterval(id: number, name: string): Promise<PlanningInterval> {
+  return request<PlanningInterval>(`/api/planning-intervals/${id}`, { ...json({ name }), method: "PATCH" });
+}
+
+export function deletePlanningInterval(id: number, force = false): Promise<void> {
+  return request<void>(`/api/planning-intervals/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
 export function login(email: string, password: string): Promise<AuthUser> {

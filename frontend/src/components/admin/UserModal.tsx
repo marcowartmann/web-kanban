@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { createUser, updateUser } from "../../api/client";
+import { ConflictError, createUser, updateUser } from "../../api/client";
 import type { AuthUser, Team } from "../../types";
 
 /** Extracts the server's `detail` message from a thrown request error. */
 function errorDetail(e: unknown): string {
-  const text = e instanceof Error ? e.message : String(e);
-  const match = /"detail"\s*:\s*"([^"]+)"/.exec(text);
-  return match ? match[1] : "Could not save user.";
+  if (e instanceof ConflictError) return e.detail;
+  const m = e instanceof Error ? /"detail"\s*:\s*"([^"]+)"/.exec(e.message) : null;
+  return m?.[1] ?? "Could not save user.";
 }
 
 export default function UserModal({
