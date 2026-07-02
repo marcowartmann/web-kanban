@@ -137,7 +137,7 @@ class ImportResult(BaseModel):
 
 
 class TeamCreate(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=128)
 
 
 class TeamUpdate(BaseModel):
@@ -166,7 +166,7 @@ class PlanningIntervalUpdate(BaseModel):
 
 
 class TeamMemberCreate(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=128)
     team_id: int | None = None
 
 

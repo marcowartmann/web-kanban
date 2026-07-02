@@ -138,7 +138,10 @@ export default function TeamMembersSection({ onChanged }: { onChanged: () => voi
                   Save
                 </button>
                 <button
-                  onClick={() => setRenamingId(null)}
+                  onClick={() => {
+                    setRenamingId(null);
+                    setError(null);
+                  }}
                   className="text-xs text-gray-400 hover:underline"
                 >
                   Cancel
