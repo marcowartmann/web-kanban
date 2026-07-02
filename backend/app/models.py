@@ -172,7 +172,17 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(16), default="member")  # 'admin' | 'member'
     is_active: Mapped[bool] = mapped_column(default=True)
     auth_provider: Mapped[str] = mapped_column(String(16), default="local")  # 'oidc' later
+    team_id: Mapped[int | None] = mapped_column(
+        ForeignKey("teams.id", ondelete="SET NULL"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    # No back_populates: Team.members already pairs with TeamMember.team.
+    team: Mapped["Team | None"] = relationship()
+
+    @property
+    def team_name(self) -> str | None:
+        return self.team.name if self.team else None
 
 
 class UserSession(Base):
