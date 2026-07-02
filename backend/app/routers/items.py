@@ -133,12 +133,19 @@ def update_item(
     current: User = Depends(require_user),
 ) -> Item:
     item = _get_or_404(db, item_id)
+    if payload.version != item.version:
+        raise HTTPException(
+            status_code=409,
+            detail="Item was modified by someone else — reload and retry",
+        )
     changes = payload.model_dump(exclude_unset=True)
+    changes.pop("version", None)
     before = {f: getattr(item, f) for f in changes if f in ITEM_TRACKED_FIELDS}
     for key, value in changes.items():
         setattr(item, key, value)
     if _WSJF_FIELDS & changes.keys():
         recompute(item)
+    item.version += 1
     for field, old, new in diff_item_changes(before, changes):
         log_event(
             db,

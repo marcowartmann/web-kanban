@@ -23,6 +23,7 @@ class Item(Base):
         ForeignKey("items.id", ondelete="CASCADE"), index=True
     )
     position: Mapped[int] = mapped_column(Integer, default=0)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
 
     title: Mapped[str] = mapped_column(String(512))
     description: Mapped[str | None] = mapped_column(Text)

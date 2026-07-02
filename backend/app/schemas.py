@@ -40,8 +40,9 @@ class ItemCreate(ItemBase):
 
 
 class ItemUpdate(BaseModel):
-    # every field optional; only provided fields are changed
+    # every field optional except version; only provided fields are changed
     model_config = ConfigDict(extra="forbid")
+    version: int
     title: str | None = None
     description: str | None = None
     status: str | None = None
@@ -72,6 +73,7 @@ class ItemRead(ItemBase):
     kind: ItemKind
     parent_id: int | None
     position: int
+    version: int
     created_at: datetime
     updated_at: datetime
 

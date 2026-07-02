@@ -23,7 +23,7 @@ def test_update_logs_one_row_per_changed_field_and_skips_position(client, db_ses
     item_id = client.post("/api/v1/items", json={"kind": "feature", "title": "F1"}).json()["id"]
     resp = client.patch(
         f"/api/v1/items/{item_id}",
-        json={"status": "Ready", "story_points": 5, "position": 9},
+        json={"status": "Ready", "story_points": 5, "position": 9, "version": 1},
     )
     assert resp.status_code == 200
     rows = _events(db_session, "item.updated")
@@ -37,7 +37,7 @@ def test_unchanged_value_logs_nothing(client, db_session):
     item_id = client.post("/api/v1/items", json={"kind": "feature", "title": "F1"}).json()["id"]
     db_session.query(AuditEvent).delete()
     db_session.commit()
-    client.patch(f"/api/v1/items/{item_id}", json={"title": "F1"})
+    client.patch(f"/api/v1/items/{item_id}", json={"title": "F1", "version": 1})
     assert _events(db_session, "item.updated") == []
 
 
@@ -52,7 +52,7 @@ def test_delete_logs_item_and_cascaded_children(client, db_session):
 def test_item_events_endpoint_newest_first_and_scoped(client, db_session):
     a = client.post("/api/v1/items", json={"kind": "feature", "title": "A"}).json()["id"]
     b = client.post("/api/v1/items", json={"kind": "feature", "title": "B"}).json()["id"]
-    client.patch(f"/api/v1/items/{a}", json={"status": "Ready"})
+    client.patch(f"/api/v1/items/{a}", json={"status": "Ready", "version": 1})
     events = client.get(f"/api/v1/items/{a}/events").json()
     assert [e["event_type"] for e in events] == ["item.updated", "item.created"]
     assert all(e["entity_id"] == a for e in events)
