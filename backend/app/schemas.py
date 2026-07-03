@@ -219,34 +219,17 @@ class PlanningIntervalUpdate(BaseModel):
     name: str = Field(min_length=1, max_length=64)
 
 
-class TeamMemberCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=128)
-    team_id: int | None = None
-
-
-class TeamMemberUpdate(BaseModel):
-    name: str = Field(min_length=1, max_length=128)
-
-
-class TeamMemberRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-    name: str
-    team_id: int | None
-    team_name: str | None = None
-
-
 class CapacityRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    member_id: int
+    user_id: int
     planning_interval: str
     iteration: int
     points: float
 
 
 class CapacityUpsert(BaseModel):
-    member_id: int
+    user_id: int
     planning_interval: str = Field(min_length=1, max_length=64)
     iteration: int = Field(ge=1, le=6)
     points: float = Field(ge=0)

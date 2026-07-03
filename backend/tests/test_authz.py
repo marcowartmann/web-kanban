@@ -19,12 +19,11 @@ def test_member_can_work_with_items_and_read_masters(member_client):
 
 def test_member_blocked_from_admin_mutations(member_client):
     assert member_client.post("/api/v1/teams", json={"name": "T"}).status_code == 403
-    assert member_client.post("/api/v1/team-members", json={"name": "M"}).status_code == 403
     assert member_client.post("/api/v1/planning-intervals", json={"name": "PI9"}).status_code == 403
     assert (
         member_client.put(
             "/api/v1/capacities",
-            json={"member_id": 1, "planning_interval": "PI", "iteration": 1, "points": 1},
+            json={"user_id": 1, "planning_interval": "PI", "iteration": 1, "points": 1},
         ).status_code
         == 403
     )

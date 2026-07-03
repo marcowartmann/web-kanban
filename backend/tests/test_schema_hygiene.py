@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 
-from app.models import Capacity, TeamMember
+from app.models import Capacity, User
 
 
 def test_item_response_has_no_dependencies_field(client):
@@ -24,11 +24,11 @@ def test_items_filter_columns_are_indexed(db_session):
 
 
 def test_capacity_iteration_check_constraint(db_session):
-    member = TeamMember(name="Checked")
-    db_session.add(member)
+    user = User(display_name="Checked")
+    db_session.add(user)
     db_session.flush()
     db_session.add(
-        Capacity(member_id=member.id, planning_interval="PI1", iteration=7, points=1)
+        Capacity(user_id=user.id, planning_interval="PI1", iteration=7, points=1)
     )
     with pytest.raises(IntegrityError):
         db_session.flush()

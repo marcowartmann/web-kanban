@@ -211,8 +211,8 @@ def _resolve_people(db, parsed) -> dict[str, int]:
     return assignee_ids
 
 
-def _seed_teams_and_members(db, parsed) -> None:
-    from app.models import Team, TeamMember
+def _seed_teams_and_users(db, parsed) -> None:
+    from app.models import Team
 
     all_data = []
     for feature in parsed.features:
@@ -233,14 +233,10 @@ def _seed_teams_and_members(db, parsed) -> None:
     for name in team_names - existing_teams:
         db.add(Team(name=name))
 
-    member_names: set[str] = set()
-    for data in all_data:
-        assignee = data.get("assignee")
-        if assignee and str(assignee).strip():
-            member_names.add(str(assignee).strip())
-    existing_members = {m.name for m in db.scalars(select(TeamMember))}
-    for name in member_names - existing_members:
-        db.add(TeamMember(name=name))
+    # Login-less people are upserted by the same helper `replace_all` already
+    # calls for item-assignee resolution — exact display_name match, else
+    # create. Idempotent: re-running never duplicates a person.
+    _resolve_people(db, parsed)
 
 
 def _seed_planning_intervals(db, parsed) -> None:
@@ -277,7 +273,7 @@ def replace_all(db, parsed):
             stories += 1
     for r_index, risk in enumerate(parsed.risks):
         _insert_item(db, risk, None, r_index, assignee_ids)
-    _seed_teams_and_members(db, parsed)
+    _seed_teams_and_users(db, parsed)
     _seed_planning_intervals(db, parsed)
     db.commit()
     return ImportResult(

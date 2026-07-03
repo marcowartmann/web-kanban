@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.audit import log_event
 from app.auth import require_admin
 from app.db import get_db
-from app.models import Item, Team, TeamMember, User
+from app.models import Item, Team, User
 from app.schemas import TeamCreate, TeamRead, TeamUpdate
 
 router = APIRouter(prefix="/api/v1/teams", tags=["teams"])
@@ -87,8 +87,8 @@ def delete_team(
                 detail=f"Team '{team.name}' is referenced by {used} items",
             )
     # Detach members explicitly (DB also enforces ON DELETE SET NULL).
-    for member in db.scalars(select(TeamMember).where(TeamMember.team_id == team_id)):
-        member.team_id = None
+    for user in db.scalars(select(User).where(User.team_id == team_id)):
+        user.team_id = None
     log_event(db, actor=current, event_type="team.deleted", entity_type="team",
               entity_id=team.id, entity_label=team.name)
     db.delete(team)

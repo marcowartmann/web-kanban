@@ -2,7 +2,7 @@ from pathlib import Path
 
 from sqlalchemy import select
 
-from app.models import Item, ItemKind, Team, TeamMember
+from app.models import Item, ItemKind, Team, User
 from tests.import_helpers import post_import
 
 FIXTURE = Path(__file__).parent / "fixtures" / "team_planning.csv"
@@ -36,22 +36,26 @@ def test_second_import_does_not_accumulate(client):
     assert first == second
 
 
-def test_import_seeds_members_and_teams(client, db_session):
+def test_import_seeds_users_and_teams(client, db_session):
     with FIXTURE.open("rb") as fh:
         post_import(client, fh.read(), "p.csv")
-    members = {m.name for m in db_session.scalars(select(TeamMember))}
-    assert "Marco Wartmann" in members
+    seeded = {
+        u.display_name
+        for u in db_session.scalars(select(User).where(User.email.is_(None)))
+    }
+    assert "Marco Wartmann" in seeded
     teams = {t.name for t in db_session.scalars(select(Team))}
     assert "Network" in teams
 
 
-def test_reimport_is_idempotent_and_keeps_manual_members(client, db_session):
-    db_session.add(TeamMember(name="Manual Person"))
-    db_session.commit()
+def test_reimport_is_idempotent_and_keeps_manual_users(client, db_session):
+    assert client.post(
+        "/api/v1/users", json={"display_name": "Manual Person"}
+    ).status_code == 201
     for _ in range(2):
         with FIXTURE.open("rb") as fh:
             post_import(client, fh.read(), "p.csv")
-    names = [m.name for m in db_session.scalars(select(TeamMember).order_by(TeamMember.name))]
+    names = [m.display_name for m in db_session.scalars(select(User).order_by(User.display_name))]
     assert names.count("Marco Wartmann") == 1
     assert "Manual Person" in names
 

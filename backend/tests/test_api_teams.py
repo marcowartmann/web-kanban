@@ -1,4 +1,4 @@
-from app.models import Team, TeamMember
+from app.models import Team, User
 
 
 def test_create_list_delete_team(client):
@@ -19,13 +19,13 @@ def test_delete_missing_team_returns_404(client):
     assert client.delete("/api/v1/teams/999").status_code == 404
 
 
-def test_delete_team_nulls_its_members(client, db_session):
+def test_delete_team_nulls_its_users(client, db_session):
     team = Team(name="Network")
     db_session.add(team)
     db_session.flush()
-    member = TeamMember(name="Marco", team_id=team.id)
-    db_session.add(member)
+    user = User(display_name="Marco", team_id=team.id)
+    db_session.add(user)
     db_session.commit()
     assert client.delete(f"/api/v1/teams/{team.id}").status_code == 204
     db_session.expire_all()
-    assert db_session.get(TeamMember, member.id).team_id is None
+    assert db_session.get(User, user.id).team_id is None

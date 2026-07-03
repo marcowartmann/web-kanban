@@ -76,10 +76,10 @@ def test_team_delete_without_usage_needs_no_force(client):
 
 def test_pi_rename_propagates_items_and_capacities(client, db_session):
     pi = client.post("/api/v1/planning-intervals", json={"name": "PI1"}).json()
-    member = client.post("/api/v1/team-members", json={"name": "Cap"}).json()
+    person = client.post("/api/v1/users", json={"display_name": "Cap"}).json()
     item = _mk_item(client, planning_interval="PI1")
     db_session.add(
-        Capacity(member_id=member["id"], planning_interval="PI1", iteration=1, points=5)
+        Capacity(user_id=person["id"], planning_interval="PI1", iteration=1, points=5)
     )
     db_session.commit()
 
@@ -93,10 +93,10 @@ def test_pi_rename_propagates_items_and_capacities(client, db_session):
 
 def test_pi_delete_guard_counts_items_and_capacities(client, db_session):
     pi = client.post("/api/v1/planning-intervals", json={"name": "PI9"}).json()
-    member = client.post("/api/v1/team-members", json={"name": "Niner"}).json()
+    person = client.post("/api/v1/users", json={"display_name": "Niner"}).json()
     _mk_item(client, planning_interval="PI9")
     db_session.add(
-        Capacity(member_id=member["id"], planning_interval="PI9", iteration=2, points=3)
+        Capacity(user_id=person["id"], planning_interval="PI9", iteration=2, points=3)
     )
     db_session.commit()
 

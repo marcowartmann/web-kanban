@@ -1,18 +1,18 @@
-from app.models import Team, TeamMember
+from app.models import Team, User
 
 
-def test_member_belongs_to_team(db_session):
+def test_user_belongs_to_team(db_session):
     team = Team(name="Network")
     db_session.add(team)
     db_session.flush()
-    member = TeamMember(name="Marco Wartmann", team_id=team.id)
-    db_session.add(member)
+    user = User(display_name="Marco Wartmann", team_id=team.id)
+    db_session.add(user)
     db_session.commit()
-    assert db_session.get(TeamMember, member.id).team.name == "Network"
+    assert db_session.get(User, user.id).team.name == "Network"
 
 
-def test_member_without_team(db_session):
-    member = TeamMember(name="Solo")
-    db_session.add(member)
+def test_user_without_team(db_session):
+    user = User(display_name="Solo")
+    db_session.add(user)
     db_session.commit()
-    assert db_session.get(TeamMember, member.id).team_id is None
+    assert db_session.get(User, user.id).team_id is None

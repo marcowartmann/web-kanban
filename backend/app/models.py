@@ -106,41 +106,20 @@ class Team(Base):
         DateTime(timezone=True), default=utcnow, server_default=func.now()
     )
 
-    members: Mapped[list["TeamMember"]] = relationship(back_populates="team")
-
-
-class TeamMember(Base):
-    __tablename__ = "team_members"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(128), unique=True)
-    team_id: Mapped[int | None] = mapped_column(
-        ForeignKey("teams.id", ondelete="SET NULL")
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, server_default=func.now()
-    )
-
-    team: Mapped["Team | None"] = relationship(back_populates="members")
-
-    capacities: Mapped[list["Capacity"]] = relationship(
-        cascade="all, delete-orphan"
-    )
-
 
 class Capacity(Base):
     __tablename__ = "capacities"
     __table_args__ = (
         UniqueConstraint(
-            "member_id", "planning_interval", "iteration",
-            name="uq_capacity_member_pi_iter",
+            "user_id", "planning_interval", "iteration",
+            name="uq_capacity_user_pi_iter",
         ),
         CheckConstraint("iteration >= 1 AND iteration <= 6", name="ck_capacities_iteration"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    member_id: Mapped[int] = mapped_column(
-        ForeignKey("team_members.id", ondelete="CASCADE")
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE")
     )
     planning_interval: Mapped[str] = mapped_column(String(64))
     iteration: Mapped[int] = mapped_column(Integer)  # 1..5, 6 = IP
@@ -210,8 +189,14 @@ class User(Base):
         DateTime(timezone=True), default=utcnow, server_default=func.now()
     )
 
-    # No back_populates: Team.members already pairs with TeamMember.team.
     team: Mapped["Team | None"] = relationship()
+
+    # cascade-delete-orphan so deleting a user (a person) also removes their
+    # capacity rows, matching the FK's ON DELETE CASCADE without depending on
+    # SQLite enforcing it.
+    capacities: Mapped[list["Capacity"]] = relationship(
+        cascade="all, delete-orphan"
+    )
 
     @property
     def team_name(self) -> str | None:
