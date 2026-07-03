@@ -26,6 +26,8 @@ services:
       INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-admin@example.com}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-admin}
       INITIAL_ADMIN_NAME: ${INITIAL_ADMIN_NAME:-Admin}
+    volumes:
+      - snapshots:/app/snapshots
     depends_on:
       db:
         condition: service_healthy
@@ -47,3 +49,4 @@ services:
 
 volumes:
   pgdata:
+  snapshots:
