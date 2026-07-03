@@ -63,7 +63,12 @@ def utcnow() -> datetime:
 
 Every column in the inventory becomes `DateTime(timezone=True)` and gains a
 Python-side aware default so SQLite tests and core inserts produce aware values too
-(`server_default=func.now()` stays for raw SQL):
+(`server_default=func.now()` stays for raw SQL). **`DateTime` here is a thin
+`TypeDecorator` in `app/timeutil.py`** (impl `sa.DateTime`, the documented SQLAlchemy
+recipe): SQLite's dialect ignores the `timezone` flag and returns naive values, so the
+decorator normalizes to UTC on bind and attaches `timezone.utc` on result — a no-op on
+PostgreSQL's native timestamptz, and it keeps old naive-UTC snapshot restores correct.
+`app/snapshots.py`'s `_revive` imports this `DateTime` for its column-type check.
 
 ```python
 created_at: Mapped[datetime] = mapped_column(
@@ -83,9 +88,9 @@ Specifics:
 
 ### Behavior after the flip
 
-- Pydantic v2 serializes aware datetimes with offset (`…+00:00`) → JS `new Date()`
-  parses correctly → **zero frontend code changes**; the UI starts showing correct
-  local times.
+- Pydantic v2 serializes aware datetimes with a UTC designator (`…Z` on this Pydantic
+  version; offset forms parse identically) → JS `new Date()` parses correctly →
+  **zero frontend code changes**; the UI starts showing correct local times.
 - Session expiry comparisons become aware-vs-aware (`auth.py` uses `utcnow()`
   everywhere already).
 - Snapshots: `_jsonable` isoformat now carries the offset; `_revive`'s
@@ -144,8 +149,9 @@ unaffected). A dead DB now flips the container to unhealthy — intended.
 **Backend** (SQLite suite + compose dry-run):
 - Migration: upgrade + downgrade dry-run against compose Postgres (task step, not a
   pytest); `psql` column-type check for a sample of the 14 columns.
-- Awareness: creating an item via the API returns `created_at`/`updated_at` ending in
-  `+00:00`; PATCH refreshes `updated_at` and it stays aware; a comment edit sets an
+- Awareness: creating an item via the API returns `created_at`/`updated_at` that
+  `datetime.fromisoformat` parses with non-null `tzinfo` (suffix-agnostic — Pydantic
+  emits `Z`); PATCH refreshes `updated_at` and it stays aware; a comment edit sets an
   aware `updated_at`; session login → `expires_at` aware and expiry check still works.
 - Middleware: response carries a generated `X-Request-ID`; a valid incoming id is
   echoed; an invalid one (`"bad id!"` / overlong) is replaced; `caplog` shows one

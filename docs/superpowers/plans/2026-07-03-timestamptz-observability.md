@@ -35,7 +35,7 @@
 
 **Files:**
 - Create: `backend/app/timeutil.py`
-- Modify: `backend/app/auth.py` (replace local utcnow), `backend/app/models.py` (14 columns + imports)
+- Modify: `backend/app/auth.py` (replace local utcnow), `backend/app/models.py` (14 columns + imports), `backend/app/snapshots.py` (_revive's DateTime import source)
 - Create: `backend/alembic/versions/0014_timestamptz.py`
 - Test: `backend/tests/test_timestamptz.py` (new, 4 tests)
 
@@ -45,6 +45,8 @@
 - [ ] **Step 1: Write the failing tests** — create `backend/tests/test_timestamptz.py`:
 
 ```python
+from datetime import datetime
+
 from app.models import Comment, User, UserSession
 from app.timeutil import utcnow
 
@@ -52,8 +54,9 @@ from app.timeutil import utcnow
 def test_item_create_returns_aware_timestamps(client):
     body = client.post("/api/v1/items", json={"kind": "feature", "title": "TZ"}).json()
     detail = client.get(f"/api/v1/items/{body['id']}").json()
-    assert detail["created_at"].endswith("+00:00")
-    assert detail["updated_at"].endswith("+00:00")
+    # Pydantic emits Z for exact-UTC; offset forms parse identically in JS new Date().
+    assert datetime.fromisoformat(detail["created_at"]).tzinfo is not None
+    assert datetime.fromisoformat(detail["updated_at"]).tzinfo is not None
 
 
 def test_item_update_refreshes_aware_updated_at(client):
@@ -61,7 +64,7 @@ def test_item_update_refreshes_aware_updated_at(client):
     updated = client.patch(
         f"/api/v1/items/{body['id']}", json={"title": "TZ2b", "version": 1}
     ).json()
-    assert updated["updated_at"].endswith("+00:00")
+    assert datetime.fromisoformat(updated["updated_at"]).tzinfo is not None
 
 
 def test_comment_edit_sets_aware_updated_at(client, db_session):
@@ -103,15 +106,47 @@ flow actually verifies against (read auth.py first) — everything else stays as
   partial implementation the `endswith("+00:00")` asserts fail because serialized
   datetimes carry no offset).
 
-- [ ] **Step 3: Create `backend/app/timeutil.py`:**
+- [ ] **Step 3: Create `backend/app/timeutil.py`** — `utcnow()` plus a `DateTime`
+  TypeDecorator (SQLAlchemy's documented recipe): SQLite's dialect ignores
+  `timezone=True` and returns naive values after commit+reload, so the decorator
+  normalizes to UTC on bind and attaches `timezone.utc` on result (no-op on Postgres
+  timestamptz). Models import `DateTime` from here, keeping the column definitions
+  textually `DateTime(timezone=True)`:
 
 ```python
 from datetime import datetime, timezone
 
+from sqlalchemy import DateTime as _DateTime
+from sqlalchemy.types import TypeDecorator
+
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+class DateTime(TypeDecorator):
+    """Drop-in for sqlalchemy.DateTime that always round-trips aware UTC,
+    even on backends whose dialect ignores ``timezone=True`` (SQLite)."""
+
+    impl = _DateTime
+    cache_ok = True
+
+    def process_bind_param(self, value: datetime | None, dialect) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
+    def process_result_value(self, value: datetime | None, dialect) -> datetime | None:
+        if value is None or value.tzinfo is not None:
+            return value
+        return value.replace(tzinfo=timezone.utc)
 ```
+
+  Consequence: `app/snapshots.py`'s `_revive` changes its type-check import to
+  `from app.timeutil import DateTime` (the `isinstance(col.type, DateTime)` check
+  must match the decorator, not `sqlalchemy.DateTime`).
 
 - [ ] **Step 4: auth.py** — delete the local definition:
 
@@ -123,8 +158,10 @@ def utcnow() -> datetime:
 and add `from app.timeutil import utcnow` with the app imports. Fix the
 `datetime`/`timezone` imports if now unused (keep `timedelta` — `session_ttl` uses it).
 
-- [ ] **Step 5: models.py** — add `DateTime` to the `sqlalchemy` import list and
-  `from app.timeutil import utcnow` after it. Then convert exactly the 14 columns:
+- [ ] **Step 5: models.py** — add `from app.timeutil import DateTime, utcnow` after
+  the sqlalchemy imports (do NOT import DateTime from sqlalchemy — the timeutil
+  decorator is the one that round-trips aware on SQLite). Then convert exactly the
+  14 columns:
   - All nine plain `created_at` columns (item_links, teams, team_members, boards,
     lanes, planning_intervals, users, user_sessions, comments) and items.created_at:
 
@@ -591,7 +628,7 @@ curl -si http://localhost:8080/api/health -H 'X-Request-ID: smoke-42' | grep -i 
 # authenticated: timestamps now carry offsets
 curl -s -c /tmp/kb.jar -X POST http://localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' -d '{"email":"admin@example.com","password":"admin"}' >/dev/null
 curl -s -b /tmp/kb.jar 'http://localhost:8080/api/v1/items?limit=1' | python3 -c 'import json,sys; item=json.load(sys.stdin)["items"][0]; print(item["created_at"], item["updated_at"])'
-# expect both ending +00:00
+# expect both carrying a UTC designator (Z suffix)
 docker compose logs backend --tail 5   # JSON access lines for the API calls; NO lines for /api/health probes
 ```
 
