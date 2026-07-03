@@ -75,6 +75,7 @@ class ItemRead(ItemBase):
     kind: ItemKind
     parent_id: int | None
     position: int
+    manual_rank: int | None = None
     version: int
     assignee: str | None = None
     created_at: datetime
