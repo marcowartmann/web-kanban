@@ -205,11 +205,12 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str | None] = mapped_column(String(255), unique=True)  # lowercase; NULL = cannot log in
+    username: Mapped[str | None] = mapped_column(String(150), unique=True)  # login id (uid for ldap); NULL = cannot log in
     display_name: Mapped[str] = mapped_column(String(120))
     password_hash: Mapped[str | None] = mapped_column(String(255))  # None for future IdP users
     role: Mapped[str] = mapped_column(String(16), default="member")  # 'admin' | 'member'
     is_active: Mapped[bool] = mapped_column(default=True)
-    auth_provider: Mapped[str] = mapped_column(String(16), default="local")  # 'oidc' later
+    auth_provider: Mapped[str] = mapped_column(String(16), default="local")  # 'local' | 'ldap' | 'oidc' later
     team_id: Mapped[int | None] = mapped_column(
         ForeignKey("teams.id", ondelete="SET NULL"), index=True
     )

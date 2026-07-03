@@ -97,6 +97,36 @@ def require_admin(user: User = Depends(require_user)) -> User:
     return user
 
 
+def find_or_provision_ldap_user(db: Session, identity) -> User | None:
+    """Return the LDAP-backed User for this identity, creating it on first login.
+    Returns None if the username is already taken by a non-LDAP account."""
+    email = identity.email.strip().lower() if identity.email else None
+    user = db.scalar(select(User).where(User.username == identity.uid))
+    if user is not None:
+        if user.auth_provider != "ldap":
+            return None  # username owned by a local account — do not cross providers
+        user.display_name = identity.display_name or user.display_name
+        # Only adopt the directory email if it is free (email is unique).
+        if email and not db.scalar(
+            select(User.id).where(User.email == email, User.id != user.id)
+        ):
+            user.email = email
+        return user
+    if email and db.scalar(select(User.id).where(User.email == email)):
+        email = None  # avoid violating the unique email constraint
+    user = User(
+        username=identity.uid,
+        email=email,
+        display_name=identity.display_name or identity.uid,
+        password_hash=None,
+        role="member",
+        auth_provider="ldap",
+    )
+    db.add(user)
+    db.flush()
+    return user
+
+
 def ensure_initial_admin(db: Session) -> None:
     """Seed the first admin from settings. Idempotent; no-op once any user exists."""
     if db.scalar(select(User.id).limit(1)) is not None:
@@ -104,6 +134,7 @@ def ensure_initial_admin(db: Session) -> None:
     db.add(
         User(
             email=settings.initial_admin_email.strip().lower(),
+            username=settings.initial_admin_username.strip(),
             display_name=settings.initial_admin_name,
             password_hash=hash_password(settings.initial_admin_password),
             role="admin",

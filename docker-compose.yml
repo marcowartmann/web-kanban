@@ -26,6 +26,18 @@ services:
       INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-admin@example.com}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-admin}
       INITIAL_ADMIN_NAME: ${INITIAL_ADMIN_NAME:-Admin}
+      INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-admin}
+      # LDAP authentication — off by default; set LDAP_ENABLED=true + the rest to enable.
+      LDAP_ENABLED: ${LDAP_ENABLED:-false}
+      LDAP_SERVER_URI: ${LDAP_SERVER_URI:-ldaps://ldap.internal:636}
+      LDAP_START_TLS: ${LDAP_START_TLS:-false}
+      LDAP_CA_CERT_FILE: ${LDAP_CA_CERT_FILE:-}
+      LDAP_BIND_DN: ${LDAP_BIND_DN:-}
+      LDAP_BIND_PASSWORD: ${LDAP_BIND_PASSWORD:-}
+      LDAP_BASE_DN: ${LDAP_BASE_DN:-ou=people,dc=example,dc=com}
+      LDAP_USER_FILTER: ${LDAP_USER_FILTER:-(&(objectClass=inetOrgPerson)(uid={uid}))}
+      LDAP_ATTR_EMAIL: ${LDAP_ATTR_EMAIL:-mail}
+      LDAP_ATTR_DISPLAY_NAME: ${LDAP_ATTR_DISPLAY_NAME:-cn}
     volumes:
       - snapshots:/app/snapshots
     depends_on:

@@ -40,6 +40,7 @@ def test_session_expiry_is_aware(anon_client, db_session):
 
     user = User(
         email="tz@x.local",
+        username="tz",
         display_name="TZ",
         password_hash=hash_password("secret123"),
         role="member",
@@ -47,7 +48,7 @@ def test_session_expiry_is_aware(anon_client, db_session):
     db_session.add(user)
     db_session.commit()
     resp = anon_client.post(
-        "/api/v1/auth/login", json={"email": "tz@x.local", "password": "secret123"}
+        "/api/v1/auth/login", json={"username": "tz", "password": "secret123", "method": "local"}
     )
     assert resp.status_code == 200
     sess = db_session.query(UserSession).filter_by(user_id=user.id).one()

@@ -29,6 +29,14 @@ def test_user_and_session_roundtrip(db_session):
     assert sess.created_at is not None
 
 
+def test_user_has_username_column(db_session):
+    u = User(username="jdoe", display_name="J", email="j@x.ch")
+    db_session.add(u)
+    db_session.commit()
+    db_session.refresh(u)
+    assert u.username == "jdoe"
+
+
 def test_user_team_relationship_and_name(db_session):
     from app.models import Team
 

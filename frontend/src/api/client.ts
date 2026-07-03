@@ -240,8 +240,16 @@ export function deletePlanningInterval(id: number, force = false): Promise<void>
   return request<void>(`${API}/planning-intervals/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
-export function login(email: string, password: string): Promise<AuthUser> {
-  return request<AuthUser>(`${API}/auth/login`, json({ email, password }), false);
+export function login(
+  username: string,
+  password: string,
+  method: "local" | "ldap",
+): Promise<AuthUser> {
+  return request<AuthUser>(`${API}/auth/login`, json({ username, password, method }), false);
+}
+
+export function getAuthConfig(): Promise<{ ldap_enabled: boolean }> {
+  return request<{ ldap_enabled: boolean }>(`${API}/auth/config`, {}, false);
 }
 
 export function logout(): Promise<void> {

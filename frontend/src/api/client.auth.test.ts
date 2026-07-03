@@ -32,17 +32,21 @@ afterEach(() => {
 describe("auth client", () => {
   it("login posts credentials", async () => {
     const spy = mockFetch(200, { id: 1, email: "a@b.ch", display_name: "A", role: "admin", is_active: true });
-    const user = await login("a@b.ch", "pw123456");
+    const user = await login("jdoe", "pw123456", "ldap");
     expect(user.role).toBe("admin");
     expect(spy.mock.calls[0][0]).toBe("/api/v1/auth/login");
-    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({ email: "a@b.ch", password: "pw123456" });
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({
+      username: "jdoe",
+      password: "pw123456",
+      method: "ldap",
+    });
   });
 
   it("login 401 does NOT trigger the unauthorized handler", async () => {
     mockFetch(401, "Invalid credentials");
     const handler = vi.fn();
     setUnauthorizedHandler(handler);
-    await expect(login("a@b.ch", "bad")).rejects.toThrow();
+    await expect(login("jdoe", "bad", "local")).rejects.toThrow();
     expect(handler).not.toHaveBeenCalled();
   });
 

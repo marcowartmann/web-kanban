@@ -6,6 +6,7 @@ from app.models import AuditEvent, Team, User
 def _seed(db, email, role="member", password="secret123"):
     user = User(
         email=email,
+        username=email.split("@")[0],
         display_name=email.split("@")[0],
         password_hash=hash_password(password),
         role=role,
@@ -18,22 +19,22 @@ def _seed(db, email, role="member", password="secret123"):
 
 def test_login_success_and_failure_events(anon_client, db_session):
     user = _seed(db_session, "marco@x.ch")
-    ok = anon_client.post("/api/v1/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
+    ok = anon_client.post("/api/v1/auth/login", json={"username": "marco", "password": "secret123", "method": "local"})
     assert ok.status_code == 200
     row = db_session.query(AuditEvent).filter_by(event_type="auth.login").one()
     assert row.actor_id == user.id and row.entity_label == "marco@x.ch"
 
-    bad = anon_client.post("/api/v1/auth/login", json={"email": "Ghost@X.ch", "password": "nope-nope"})
+    bad = anon_client.post("/api/v1/auth/login", json={"username": "ghost", "password": "nope-nope", "method": "local"})
     assert bad.status_code == 401
     assert bad.json() == {"detail": "Invalid credentials"}  # semantics unchanged
     failed = db_session.query(AuditEvent).filter_by(event_type="auth.login_failed").one()
     assert failed.actor_id is None and failed.actor_name is None
-    assert failed.entity_label == "ghost@x.ch"
+    assert failed.entity_label == "ghost"
 
 
 def test_logout_event(anon_client, db_session):
     user = _seed(db_session, "marco@x.ch")
-    anon_client.post("/api/v1/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
+    anon_client.post("/api/v1/auth/login", json={"username": "marco", "password": "secret123", "method": "local"})
     assert anon_client.post("/api/v1/auth/logout").status_code == 204
     row = db_session.query(AuditEvent).filter_by(event_type="auth.logout").one()
     assert row.actor_id == user.id and row.entity_label == "marco@x.ch"
@@ -41,7 +42,7 @@ def test_logout_event(anon_client, db_session):
 
 def test_password_change_event_redacted(anon_client, db_session):
     _seed(db_session, "marco@x.ch")
-    anon_client.post("/api/v1/auth/login", json={"email": "marco@x.ch", "password": "secret123"})
+    anon_client.post("/api/v1/auth/login", json={"username": "marco", "password": "secret123", "method": "local"})
     resp = anon_client.patch(
         "/api/v1/auth/me/password",
         json={"current_password": "secret123", "new_password": "brandnew99"},

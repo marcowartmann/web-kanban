@@ -6,6 +6,7 @@ from app.audit import log_event
 from app.auth import (
     SESSION_COOKIE,
     create_session,
+    find_or_provision_ldap_user,
     hash_password,
     require_user,
     request_token,
@@ -16,6 +17,7 @@ from app.auth import (
 )
 from app.config import settings
 from app.db import get_db
+from app.ldap_auth import LdapAuthenticator, get_authenticator
 from app.models import User, UserSession
 from app.schemas import LoginRequest, PasswordChange, UserRead
 
@@ -35,17 +37,38 @@ def _set_session_cookie(response: Response, token: str) -> None:
 
 
 @router.post("/login", response_model=UserRead)
-def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)) -> User:
-    email = payload.email.strip().lower()
-    user = db.scalar(select(User).where(User.email == email))
-    # Identical 401 for unknown email / wrong password / inactive account.
-    if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
+def login(
+    payload: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+    authenticator: LdapAuthenticator = Depends(get_authenticator),
+) -> User:
+    username = payload.username.strip()
+    user: User | None = None
+    if payload.method == "local":
+        candidate = db.scalar(select(User).where(User.username == username))
+        if (
+            candidate is not None
+            and candidate.auth_provider == "local"
+            and candidate.is_active
+            and verify_password(payload.password, candidate.password_hash)
+        ):
+            user = candidate
+    elif payload.method == "ldap" and settings.ldap_enabled:
+        identity = authenticator.authenticate(username, payload.password)
+        if identity is not None:
+            resolved = find_or_provision_ldap_user(db, identity)
+            if resolved is not None and resolved.is_active:
+                user = resolved
+
+    # Identical 401 for unknown user / wrong password / inactive / disabled method.
+    if user is None:
         log_event(
             db,
             actor=None,
             event_type="auth.login_failed",
             entity_type="auth",
-            entity_label=email,
+            entity_label=username,
         )
         db.commit()  # the request fails — no mutation commit to ride
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -55,11 +78,16 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         event_type="auth.login",
         entity_type="auth",
         entity_id=user.id,
-        entity_label=user.email,
+        entity_label=user.email or user.username,
     )
-    token = create_session(db, user)  # commits, persisting the event atomically
+    token = create_session(db, user)  # commits, persisting the event + provisioning atomically
     _set_session_cookie(response, token)
     return user
+
+
+@router.get("/config")
+def auth_config() -> dict:
+    return {"ldap_enabled": settings.ldap_enabled}
 
 
 @router.post("/logout", status_code=204)

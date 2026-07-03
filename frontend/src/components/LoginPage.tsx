@@ -1,22 +1,38 @@
-import { useState } from "react";
-import { login } from "../api/client";
+import { useEffect, useState } from "react";
+import { getAuthConfig, login } from "../api/client";
 import type { AuthUser } from "../types";
 import { captionClass, inputClass } from "./ui";
 
+type Method = "ldap" | "local";
+
 export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser) => void }) {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [method, setMethod] = useState<Method>("ldap");
+  const [ldapEnabled, setLdapEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    getAuthConfig()
+      .then((c) => {
+        setLdapEnabled(c.ldap_enabled);
+        setMethod(c.ldap_enabled ? "ldap" : "local");
+      })
+      .catch(() => {
+        setLdapEnabled(false);
+        setMethod("local");
+      });
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      onLoggedIn(await login(email.trim(), password));
+      onLoggedIn(await login(username.trim(), password, method));
     } catch {
-      setError("Invalid email or password");
+      setError("Invalid username or password");
     } finally {
       setBusy(false);
     }
@@ -30,14 +46,32 @@ export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser)
       >
         <h1 className="text-lg font-semibold text-gray-900">SAFe Kanban</h1>
         <p className="mb-6 mt-0.5 text-sm text-gray-500">Sign in to your workspace.</p>
+
+        {ldapEnabled && (
+          <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1">
+            {(["ldap", "local"] as Method[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMethod(m)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                  method === m ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+                }`}
+              >
+                {m === "ldap" ? "LDAP" : "Local"}
+              </button>
+            ))}
+          </div>
+        )}
+
         <label className="mb-3 block">
-          <span className={`mb-1 block ${captionClass}`}>Email</span>
+          <span className={`mb-1 block ${captionClass}`}>Username</span>
           <input
-            type="email"
+            type="text"
             autoComplete="username"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className={`w-full ${inputClass}`}
           />
         </label>
