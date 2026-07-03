@@ -75,6 +75,7 @@ class ItemRead(ItemBase):
     kind: ItemKind
     parent_id: int | None
     position: int
+    manual_rank: int | None = None
     version: int
     assignee: str | None = None
     created_at: datetime
@@ -314,6 +315,11 @@ class LoginRequest(BaseModel):
     username: str
     password: str
     method: Literal["local", "ldap"] = "ldap"
+
+
+class FeatureReorderRequest(BaseModel):
+    feature_id: int
+    after_id: int | None = None
 
 
 def _password_fits_bcrypt(value: str | None) -> str | None:

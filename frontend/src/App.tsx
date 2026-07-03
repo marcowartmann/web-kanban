@@ -8,6 +8,7 @@ import StoryBoardModal from "./components/StoryBoardModal";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
+import RankingView from "./components/RankingView";
 import TimelineView from "./components/TimelineView";
 import UserMenu from "./components/UserMenu";
 import { useAuth } from "./auth/AuthContext";
@@ -16,7 +17,7 @@ import { getContainers, getPersonOptions, getTeams } from "./api/client";
 import { statusOptionsByKind } from "./lib/boardLanes";
 import type { Container, PersonOption, Team } from "./types";
 
-type View = "board" | "admin" | "planning" | "timeline";
+type View = "board" | "admin" | "planning" | "timeline" | "ranking";
 
 export default function App() {
   const { user, setUser } = useAuth();
@@ -115,6 +116,7 @@ export default function App() {
             {navButton("board", "Board")}
             {navButton("planning", "Planning")}
             {navButton("timeline", "Timeline")}
+            {navButton("ranking", "Ranking")}
             {isAdmin && navButton("admin", "Admin")}
           </nav>
         </div>
@@ -145,6 +147,15 @@ export default function App() {
           links={links}
           planningIntervals={planningIntervals}
           onOpenCard={openItem}
+          onChanged={handleChanged}
+        />
+      ) : view === "ranking" ? (
+        <RankingView
+          items={items}
+          planningIntervals={planningIntervals}
+          teams={teams}
+          containers={containers}
+          user={user}
           onChanged={handleChanged}
         />
       ) : loading && !activeBoard ? (

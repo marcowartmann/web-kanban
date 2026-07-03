@@ -6,6 +6,7 @@ export interface Item {
   type: string | null;
   parent_id: number | null;
   position: number;
+  manual_rank?: number | null;
   version: number;
   title: string;
   description: string | null;

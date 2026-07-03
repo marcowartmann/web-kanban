@@ -12,6 +12,12 @@ def _make_feature(db, **kw):
     return item
 
 
+def test_item_read_includes_manual_rank(client, db_session):
+    f = _make_feature(db_session, manual_rank=3)
+    body = client.get(f"/api/v1/items/{f.id}").json()
+    assert body["manual_rank"] == 3
+
+
 def test_create_item(client):
     resp = client.post("/api/v1/items", json={
         "kind": "feature", "title": "New Feature", "status": "Funnel",
