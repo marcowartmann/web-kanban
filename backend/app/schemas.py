@@ -22,6 +22,7 @@ class ItemBase(BaseModel):
     leading_team: str | None = None
     supporting_team: str | None = None
     container_id: int | None = None
+    department_id: int | None = None
     externer_partner: str | None = None
     assignee_id: int | None = None
     akzeptanzkriterien: str | None = None
@@ -54,6 +55,7 @@ class ItemUpdate(BaseModel):
     leading_team: str | None = None
     supporting_team: str | None = None
     container_id: int | None = None
+    department_id: int | None = None
     externer_partner: str | None = None
     assignee_id: int | None = None
     kategorie: str | None = None
@@ -78,6 +80,7 @@ class ItemRead(ItemBase):
     manual_rank: int | None = None
     version: int
     assignee: str | None = None
+    department_name: str | None = None
     created_at: datetime
     updated_at: datetime
 

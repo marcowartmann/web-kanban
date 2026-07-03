@@ -55,6 +55,9 @@ class Item(Base):
     container_id: Mapped[int | None] = mapped_column(
         ForeignKey("containers.id", ondelete="SET NULL"), index=True
     )
+    department_id: Mapped[int | None] = mapped_column(
+        ForeignKey("team_departments.id", ondelete="SET NULL"), index=True
+    )
     externer_partner: Mapped[str | None] = mapped_column(String(128))
     akzeptanzkriterien: Mapped[str | None] = mapped_column(Text)
     bo_stakeholder: Mapped[str | None] = mapped_column(String(256))
@@ -83,10 +86,15 @@ class Item(Base):
     )
 
     assignee_user: Mapped["User | None"] = relationship(foreign_keys=[assignee_id])
+    department: Mapped["TeamDepartment | None"] = relationship()
 
     @property
     def assignee(self) -> str | None:
         return self.assignee_user.display_name if self.assignee_user else None
+
+    @property
+    def department_name(self) -> str | None:
+        return self.department.name if self.department else None
 
 
 class ItemLink(Base):
