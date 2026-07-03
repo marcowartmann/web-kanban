@@ -43,7 +43,7 @@ def create_user(
     db: Session = Depends(get_db),
     current: User = Depends(require_admin),
 ) -> User:
-    email = payload.email.strip().lower() if payload.email else None
+    email = (payload.email or "").strip().lower() or None  # whitespace-only -> None
     if payload.password is not None and email is None:
         raise HTTPException(status_code=422, detail="Password requires an email")
     if email and db.scalar(select(User).where(func.lower(User.email) == email)):
@@ -91,12 +91,13 @@ def update_user(
             audited[key] = getattr(user, key)
     if "email" in changes:
         email = changes.pop("email")
+        if email is not None:
+            email = email.strip().lower() or None  # whitespace-only counts as clearing
         if email is None:
             if user.password_hash is not None:
                 raise HTTPException(status_code=422, detail="Remove the password first")
             user.email = None
         else:
-            email = email.strip().lower()
             if db.scalar(
                 select(User).where(func.lower(User.email) == email, User.id != user.id)
             ):

@@ -77,6 +77,8 @@ def member_client(db_session):
 
 @pytest.fixture()
 def anon_client(db_session):
+    # Do not combine anon_client with client/member_client in one test — the
+    # get_current_user override would bypass anon's real cookie-auth path.
     app.dependency_overrides[get_db] = lambda: db_session
     with TestClient(app) as c:
         yield c

@@ -67,6 +67,33 @@ def test_delete_is_audited(client, db_session):
     assert row.entity_label == "Bye P"
 
 
+def test_whitespace_email_is_treated_as_absent(client):
+    resp = client.post(
+        "/api/v1/users", json={"display_name": "W", "email": "   ", "password": "secret123"}
+    )
+    assert resp.status_code == 422
+    assert "Password requires an email" in resp.text
+
+    full = client.post(
+        "/api/v1/users",
+        json={"display_name": "WL", "email": "wl@x.local", "password": "secret123"},
+    ).json()
+    resp = client.patch(f"/api/v1/users/{full['id']}", json={"email": "   "})
+    assert resp.status_code == 422
+    assert resp.json()["detail"] == "Remove the password first"
+
+
+def test_member_blocked_from_new_user_endpoints(client, member_client):
+    person = client.post("/api/v1/users", json={"display_name": "Guarded"}).json()
+    assert member_client.delete(f"/api/v1/users/{person['id']}").status_code == 403
+    assert (
+        member_client.patch(
+            f"/api/v1/users/{person['id']}", json={"display_name": "Nope"}
+        ).status_code
+        == 403
+    )
+
+
 def test_options_is_member_accessible(client, member_client):
     _person(client, "Zeta")
     _person(client, "Alpha")
