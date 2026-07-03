@@ -295,6 +295,7 @@ class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     email: str | None
+    username: str | None = None
     display_name: str
     role: str
     is_active: bool
@@ -332,6 +333,7 @@ class PasswordChange(BaseModel):
 
 class UserCreate(BaseModel):
     email: str | None = Field(default=None, min_length=3, max_length=255)
+    username: str | None = Field(default=None, min_length=1, max_length=150)
     display_name: str = Field(min_length=1, max_length=120)
     password: str | None = Field(default=None, min_length=8, max_length=72)
     role: Literal["admin", "member"] = "member"
@@ -343,6 +345,7 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=120)
     email: str | None = Field(default=None, min_length=3, max_length=255)
+    username: str | None = Field(default=None, max_length=150)  # "" normalized to None in the handler
     team_id: int | None = None
     role: Literal["admin", "member"] | None = None
     is_active: bool | None = None

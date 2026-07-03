@@ -274,6 +274,7 @@ export function listUsers(): Promise<AuthUser[]> {
 
 export function createUser(payload: {
   email: string | null;
+  username: string | null;
   display_name: string;
   password: string | null;
   role: "admin" | "member";
@@ -287,6 +288,7 @@ export function updateUser(
   payload: Partial<{
     display_name: string;
     email: string | null;
+    username: string | null;
     role: "admin" | "member";
     is_active: boolean;
     password: string;

@@ -81,7 +81,7 @@ describe("auth client", () => {
     expect(pw.mock.calls[0][1]?.method).toBe("PATCH");
 
     const cu = mockFetch(201, { id: 2, email: "x@x.ch", display_name: "X", role: "member", is_active: true });
-    await createUser({ email: "x@x.ch", display_name: "X", password: "pw123456", role: "member" });
+    await createUser({ email: "x@x.ch", username: "x", display_name: "X", password: "pw123456", role: "member" });
     expect(cu.mock.calls[0][0]).toBe("/api/v1/users");
 
     const uu = mockFetch(200, { id: 2, email: "x@x.ch", display_name: "X", role: "admin", is_active: true });

@@ -6,6 +6,7 @@ from app.models import User, UserSession
 def _seed(db, email, role="member", **over):
     user = User(
         email=email,
+        username=over.pop("username", email.split("@")[0]),
         display_name=over.pop("display_name", email.split("@")[0]),
         password_hash=hash_password("secret123"),
         role=role,
@@ -26,13 +27,13 @@ def test_admin_crud_and_duplicate(anon_client, db_session):
     _as(admin)
     created = anon_client.post(
         "/api/v1/users",
-        json={"email": "New@X.ch", "display_name": "New", "password": "longenough1", "role": "member"},
+        json={"email": "New@X.ch", "username": "newuser", "display_name": "New", "password": "longenough1", "role": "member"},
     )
     assert created.status_code == 201
     assert created.json()["email"] == "new@x.ch"  # lowercased
     dupe = anon_client.post(
         "/api/v1/users",
-        json={"email": "new@x.ch", "display_name": "N2", "password": "longenough1", "role": "member"},
+        json={"email": "new@x.ch", "username": "newuser2", "display_name": "N2", "password": "longenough1", "role": "member"},
     )
     assert dupe.status_code == 409
     listed = anon_client.get("/api/v1/users").json()
@@ -155,6 +156,7 @@ def test_create_with_team(anon_client, db_session):
         "/api/v1/users",
         json={
             "email": "u@x.ch",
+            "username": "u1",
             "display_name": "U",
             "password": "longenough1",
             "role": "member",
@@ -168,6 +170,7 @@ def test_create_with_team(anon_client, db_session):
         "/api/v1/users",
         json={
             "email": "v@x.ch",
+            "username": "v1",
             "display_name": "V",
             "password": "longenough1",
             "role": "member",
@@ -175,3 +178,72 @@ def test_create_with_team(anon_client, db_session):
         },
     )
     assert bad.status_code == 422
+
+
+def test_local_login_account_can_authenticate(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    _as(admin)
+    created = anon_client.post(
+        "/api/v1/users",
+        json={"username": "cleo", "display_name": "Cleo", "password": "longenough1", "role": "member"},
+    )
+    assert created.status_code == 201
+    assert created.json()["username"] == "cleo"
+    # Clear the admin override so the real cookie-auth login path runs.
+    app.dependency_overrides.pop(get_current_user, None)
+    login = anon_client.post(
+        "/api/v1/auth/login",
+        json={"username": "cleo", "password": "longenough1", "method": "local"},
+    )
+    assert login.status_code == 200
+
+
+def test_password_without_username_is_422(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    _as(admin)
+    resp = anon_client.post(
+        "/api/v1/users",
+        json={"email": "p@x.ch", "display_name": "P", "password": "longenough1", "role": "member"},
+    )
+    assert resp.status_code == 422
+
+
+def test_duplicate_username_is_409(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin", username="admin")
+    _as(admin)
+    resp = anon_client.post(
+        "/api/v1/users",
+        json={"username": "admin", "display_name": "Clone", "password": "longenough1", "role": "member"},
+    )
+    assert resp.status_code == 409
+
+
+def test_edit_add_username_and_password_enables_login(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    member = _seed(db_session, "m@x.ch")  # seeded with a hash but no username
+    member.password_hash = None
+    db_session.commit()
+    _as(admin)
+    resp = anon_client.patch(
+        f"/api/v1/users/{member.id}",
+        json={"username": "mem", "password": "longenough1"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["username"] == "mem"
+
+
+def test_clearing_username_with_password_is_422(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    member = _seed(db_session, "m@x.ch", username="mem")  # has password_hash + username
+    _as(admin)
+    resp = anon_client.patch(f"/api/v1/users/{member.id}", json={"username": ""})
+    assert resp.status_code == 422
+
+
+def test_clearing_email_with_password_now_succeeds(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    member = _seed(db_session, "m@x.ch", username="mem")  # has password_hash + username + email
+    _as(admin)
+    resp = anon_client.patch(f"/api/v1/users/{member.id}", json={"email": None})
+    assert resp.status_code == 200
+    assert resp.json()["email"] is None
