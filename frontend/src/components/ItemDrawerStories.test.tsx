@@ -19,17 +19,29 @@ const feature = {
   children: [{ id: 6, kind: "story", title: "Existing Story", parent_id: 5 }],
 };
 
-it("adds a child story to the feature", async () => {
+it("adds a child story via the inline input (Enter submits)", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue(feature as never);
   const create = vi.spyOn(client, "createItem").mockResolvedValue({ id: 7 } as never);
-  vi.spyOn(window, "prompt").mockReturnValue("Fresh Story");
   render(<ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} />);
 
   await screen.findByText("Existing Story");
   await userEvent.click(screen.getByRole("button", { name: /add story/i }));
+  await userEvent.type(screen.getByLabelText("New story title"), "Fresh Story{Enter}");
   expect(create).toHaveBeenCalledWith(
     expect.objectContaining({ kind: "story", title: "Fresh Story", parent_id: 5 }),
   );
+});
+
+it("Escape cancels the inline story input without creating", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(feature as never);
+  const create = vi.spyOn(client, "createItem").mockResolvedValue({ id: 7 } as never);
+  render(<ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} />);
+
+  await screen.findByText("Existing Story");
+  await userEvent.click(screen.getByRole("button", { name: /add story/i }));
+  await userEvent.type(screen.getByLabelText("New story title"), "Half typed{Escape}");
+  expect(create).not.toHaveBeenCalled();
+  expect(screen.queryByLabelText("New story title")).not.toBeInTheDocument();
 });
 
 it("deletes a child story", async () => {

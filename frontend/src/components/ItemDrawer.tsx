@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ConflictError,
   createItem,
@@ -11,7 +11,9 @@ import {
   updateItem,
 } from "../api/client";
 import type { Item, ItemKind, ItemUpdate, PersonOption, RelationOption } from "../types";
+import Avatar from "./Avatar";
 import Field from "./Field";
+import InlineAddInput from "./InlineAddInput";
 import ItemActivity from "./ItemActivity";
 import ItemComments from "./ItemComments";
 import SearchableSelect from "./SearchableSelect";
@@ -25,15 +27,18 @@ const NUMERIC_FIELDS = new Set([
   "job_size",
 ]);
 
+const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
 const KIND_CHIP: Record<string, string> = {
   feature: "bg-blue-100 text-blue-700",
-  story: "bg-slate-100 text-slate-700",
+  story: "bg-slate-200 text-slate-700",
   risk: "bg-red-100 text-red-700",
 };
-const KIND_ACCENT: Record<string, string> = {
-  feature: "bg-blue-500",
-  story: "bg-slate-400",
-  risk: "bg-red-500",
+// Soft kind-tinted band fading into the panel body.
+const KIND_BAND: Record<string, string> = {
+  feature: "bg-gradient-to-b from-blue-50/90 via-blue-50/40 to-white",
+  story: "bg-gradient-to-b from-slate-100/90 via-slate-50/40 to-white",
+  risk: "bg-gradient-to-b from-red-50/90 via-red-50/40 to-white",
 };
 
 const withCurrent = (current: string | null, options: string[]): string[] =>
@@ -41,6 +46,7 @@ const withCurrent = (current: string | null, options: string[]): string[] =>
 
 export default function ItemDrawer({
   itemId,
+  compact = false,
   people = [],
   statusOptionsByKind = {},
   planningIntervalOptions = [],
@@ -54,6 +60,7 @@ export default function ItemDrawer({
   onLinksChanged,
 }: {
   itemId: number;
+  compact?: boolean;
   people?: PersonOption[];
   statusOptionsByKind?: Partial<Record<ItemKind, string[]>>;
   planningIntervalOptions?: string[];
@@ -74,7 +81,10 @@ export default function ItemDrawer({
   const [relations, setRelations] = useState<RelationOption[]>([]);
   const [candidates, setCandidates] = useState<Item[]>([]);
   const [adding, setAdding] = useState(false);
+  const [addingStory, setAddingStory] = useState(false);
   const [pickRelation, setPickRelation] = useState<RelationOption | null>(null);
+  const [tab, setTab] = useState<"comments" | "activity">("comments");
+  const [activityVisited, setActivityVisited] = useState(false);
 
   useEffect(() => {
     void getLinkRelations().then(setRelations).catch(() => undefined);
@@ -86,7 +96,7 @@ export default function ItemDrawer({
     void getItem(itemId).then(setItem).catch((e) => setError(String(e)));
   }, [itemId]);
 
-  // For stories, load the parent feature so we can show a link to it.
+  // For stories, load the parent feature so we can show a breadcrumb to it.
   useEffect(() => {
     let active = true;
     if (item && item.kind === "story" && item.parent_id != null) {
@@ -129,10 +139,9 @@ export default function ItemDrawer({
     }
   };
 
-  const addStory = async () => {
-    const title = window.prompt("New story title");
-    if (!title) return;
+  const addStory = async (title: string) => {
     await createItem({ kind: "story", title, parent_id: itemId });
+    setAddingStory(false);
     await reloadItem();
   };
 
@@ -143,14 +152,14 @@ export default function ItemDrawer({
 
   if (error)
     return (
-      <Drawer>
+      <Drawer compact={compact}>
         <CloseBar onClose={onClose} />
         <p className="p-6 text-sm text-red-600">{error}</p>
       </Drawer>
     );
   if (!item)
     return (
-      <Drawer>
+      <Drawer compact={compact}>
         <CloseBar onClose={onClose} />
         <p className="p-6 text-sm text-gray-500">Loading…</p>
       </Drawer>
@@ -167,10 +176,14 @@ export default function ItemDrawer({
     setDraft((d) => ({ ...d, [key]: next }));
   };
 
+  const dirty = Object.keys(draft).length > 0;
+
   const save = async () => {
     try {
-      await updateItem(item.id, { ...draft, version: item.version });
+      const updated = await updateItem(item.id, { ...draft, version: item.version });
       setConflict(null);
+      setItem(updated);
+      setDraft({});
       onChanged();
     } catch (e) {
       if (e instanceof ConflictError) {
@@ -189,7 +202,7 @@ export default function ItemDrawer({
     onChanged();
   };
 
-  // Only offer the parent link when the parent isn't already open beside us.
+  // Only offer the parent breadcrumb when the parent isn't already open beside us.
   const showParentLink =
     item.kind === "story" &&
     item.parent_id != null &&
@@ -197,283 +210,509 @@ export default function ItemDrawer({
     !openIds.includes(item.parent_id);
 
   const children = item.children ?? [];
+  const currentPerson =
+    people.find((p) => p.id === (value("assignee_id") as number | null)) ?? null;
+  const assigneeName = currentPerson?.display_name ?? (item.assignee || null);
+
+  const properties = (
+    <>
+      <PropLabel text="Status">
+        <SearchableSelect
+          ariaLabel="Status"
+          value={(value("status") as string | null) || null}
+          options={withCurrent(
+            (value("status") as string | null) || null,
+            statusOptionsByKind[item.kind] ?? [],
+          )}
+          onChange={(v) => setDraft((d) => ({ ...d, status: v ?? "" }))}
+          placeholder="Select status…"
+        />
+      </PropLabel>
+      <PropLabel text="Planning Interval">
+        <SearchableSelect
+          ariaLabel="Planning Interval"
+          value={(value("planning_interval") as string | null) || null}
+          options={withCurrent(
+            (value("planning_interval") as string | null) || null,
+            planningIntervalOptions,
+          )}
+          onChange={(v) => setDraft((d) => ({ ...d, planning_interval: v ?? "" }))}
+          placeholder="Select planning interval…"
+        />
+      </PropLabel>
+      <PropLabel text="Leading Team">
+        <SearchableSelect
+          ariaLabel="Leading Team"
+          value={(value("leading_team") as string | null) || null}
+          options={withCurrent((value("leading_team") as string | null) || null, leadingTeamOptions)}
+          onChange={(v) => setDraft((d) => ({ ...d, leading_team: v ?? "" }))}
+          placeholder="Select team…"
+        />
+      </PropLabel>
+      <PropLabel text="Supporting Team">
+        <SearchableSelect
+          ariaLabel="Supporting Team"
+          value={(value("supporting_team") as string | null) || null}
+          options={withCurrent(
+            (value("supporting_team") as string | null) || null,
+            leadingTeamOptions,
+          )}
+          onChange={(v) => setDraft((d) => ({ ...d, supporting_team: v ?? "" }))}
+          placeholder="Select team…"
+        />
+      </PropLabel>
+      <PropLabel text="Assignee">
+        <div className="flex items-center gap-2">
+          {assigneeName && <Avatar name={assigneeName} />}
+          <div className="min-w-0 flex-1">
+            <SearchableSelect
+              ariaLabel="Assignee"
+              value={assigneeName}
+              options={people.map((p) => p.display_name)}
+              onChange={(v) =>
+                setDraft((d) => ({
+                  ...d,
+                  assignee_id:
+                    v == null ? null : people.find((p) => p.display_name === v)?.id ?? null,
+                }))
+              }
+              placeholder="Search person…"
+            />
+          </div>
+        </div>
+      </PropLabel>
+      <PropLabel text="T-Shirt Size">
+        <SearchableSelect
+          ariaLabel="T-Shirt Size"
+          value={(value("tshirt_size") as string | null) || null}
+          options={withCurrent((value("tshirt_size") as string | null) || null, TSHIRT_SIZES)}
+          onChange={(v) => setDraft((d) => ({ ...d, tshirt_size: v ?? "" }))}
+          placeholder="Select size…"
+        />
+      </PropLabel>
+      <Field
+        label="Stakeholder"
+        value={value("bo_stakeholder")}
+        onChange={(v) => set("bo_stakeholder", v)}
+      />
+      <div className="border-t border-gray-200 pt-4">
+        <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          Estimation
+        </h3>
+        {item.kind === "feature" ? (
+          <div className="flex flex-col gap-3">
+            <WsjfToggle
+              label="Business Value"
+              value={value("business_value")}
+              onChange={(v) => setDraft((d) => ({ ...d, business_value: v }))}
+            />
+            <WsjfToggle
+              label="Time Criticality"
+              value={value("time_criticality")}
+              onChange={(v) => setDraft((d) => ({ ...d, time_criticality: v }))}
+            />
+            <WsjfToggle
+              label="Risk Reduction"
+              value={value("risk_reduction")}
+              onChange={(v) => setDraft((d) => ({ ...d, risk_reduction: v }))}
+            />
+            <WsjfToggle
+              label="Job Size"
+              value={value("job_size")}
+              onChange={(v) => setDraft((d) => ({ ...d, job_size: v }))}
+            />
+          </div>
+        ) : (
+          <Field
+            label="Story Points"
+            type="number"
+            value={value("story_points")}
+            onChange={(v) => set("story_points", v)}
+          />
+        )}
+      </div>
+    </>
+  );
+
+  const content = (
+    <>
+      <NarrativeText
+        label="Description"
+        placeholder="Add a description…"
+        value={(value("description") as string | null) ?? ""}
+        onChange={(v) => set("description", v)}
+      />
+      <NarrativeText
+        label="Acceptance criteria"
+        placeholder="Add acceptance criteria…"
+        value={(value("akzeptanzkriterien") as string | null) ?? ""}
+        onChange={(v) => set("akzeptanzkriterien", v)}
+      />
+      <NarrativeText
+        label="Definition of Done"
+        placeholder="Add a definition of done…"
+        value={(value("definition_of_done") as string | null) ?? ""}
+        onChange={(v) => set("definition_of_done", v)}
+      />
+
+      {item.kind === "feature" && (
+        <Section
+          label={`Stories · ${children.length}`}
+          action={
+            !addingStory && (
+              <button
+                onClick={() => setAddingStory(true)}
+                className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
+              >
+                + Add story
+              </button>
+            )
+          }
+        >
+          <ul className="flex flex-col gap-1.5">
+            {children.map((child) => (
+              <li
+                key={child.id}
+                className={`group flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition ${
+                  openIds.includes(child.id)
+                    ? "border-blue-200 bg-blue-50"
+                    : "border-gray-100 bg-gray-50 hover:border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                {onOpenChild ? (
+                  <button
+                    onClick={() => onOpenChild(child.id)}
+                    className="min-w-0 flex-1 truncate text-left font-medium text-gray-800 hover:text-blue-700 hover:underline"
+                  >
+                    {child.title}
+                  </button>
+                ) : (
+                  <span className="min-w-0 flex-1 truncate">{child.title}</span>
+                )}
+                {child.status && (
+                  <span className="shrink-0 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-500 ring-1 ring-gray-200">
+                    {child.status}
+                  </span>
+                )}
+                {child.story_points != null && (
+                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
+                    {child.story_points} SP
+                  </span>
+                )}
+                <button
+                  aria-label={`remove story ${child.id}`}
+                  onClick={() => removeStory(child.id)}
+                  className="shrink-0 rounded p-0.5 text-gray-300 transition hover:bg-white hover:text-red-600 group-hover:text-gray-400"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+            {addingStory && (
+              <li>
+                <InlineAddInput
+                  ariaLabel="New story title"
+                  placeholder="Story title — Enter to add, Esc to cancel"
+                  onSubmit={addStory}
+                  onCancel={() => setAddingStory(false)}
+                />
+              </li>
+            )}
+          </ul>
+        </Section>
+      )}
+
+      <Section
+        label="Dependencies"
+        action={
+          <button
+            onClick={() => setAdding((v) => !v)}
+            className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
+          >
+            {adding ? "Cancel" : "+ Add dependency"}
+          </button>
+        }
+      >
+        <ul className="flex flex-col gap-1.5">
+          {(item.links ?? []).map((link) => (
+            <li
+              key={link.link_id}
+              className="group flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5 text-sm transition hover:border-gray-200 hover:bg-gray-100"
+            >
+              <button
+                onClick={() => onOpenItem?.(link.item.id)}
+                className="min-w-0 flex-1 truncate text-left"
+              >
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  {link.label}
+                </span>{" "}
+                <span className="font-medium text-gray-800 hover:text-blue-700 hover:underline">
+                  {link.item.title}
+                </span>
+                <span className="ml-1 text-xs text-gray-400">({link.item.kind})</span>
+              </button>
+              <button
+                aria-label={`remove link ${link.link_id}`}
+                onClick={() => removeLink(link.link_id)}
+                className="ml-2 shrink-0 rounded p-0.5 text-gray-300 transition hover:bg-white hover:text-red-600 group-hover:text-gray-400"
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {adding && (
+          <div className="mt-2 flex flex-col gap-2.5 rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
+            <ul role="listbox" className="flex flex-wrap gap-1.5">
+              {relations.map((rel) => (
+                <li key={`${rel.relation}-${rel.direction}`}>
+                  <button
+                    role="option"
+                    aria-selected={pickRelation?.label === rel.label}
+                    onClick={() => setPickRelation(rel)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                      pickRelation?.label === rel.label
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    {rel.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <ItemPicker
+              disabled={!pickRelation}
+              items={candidates.filter((c) => c.id !== itemId)}
+              onPick={(otherId) => pickRelation && void addLink(pickRelation, otherId)}
+            />
+          </div>
+        )}
+      </Section>
+
+      <section>
+        <div role="tablist" className="mb-3 flex w-fit gap-0.5 rounded-lg bg-gray-100 p-0.5">
+          <TabButton selected={tab === "comments"} onClick={() => setTab("comments")}>
+            Comments
+          </TabButton>
+          <TabButton
+            selected={tab === "activity"}
+            onClick={() => {
+              setTab("activity");
+              setActivityVisited(true);
+            }}
+          >
+            Activity
+          </TabButton>
+        </div>
+        <div hidden={tab !== "comments"}>
+          <ItemComments itemId={item.id} />
+        </div>
+        {(activityVisited || tab === "activity") && (
+          <div hidden={tab !== "activity"}>
+            <ItemActivity itemId={item.id} />
+          </div>
+        )}
+      </section>
+    </>
+  );
 
   return (
     <Drawer
+      compact={compact}
       footer={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {dirty && <span className="text-xs text-gray-400">Unsaved changes</span>}
           <button
             onClick={save}
-            className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            disabled={!dirty}
+            className="ml-auto rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-default disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
           >
             Save
           </button>
           <button
             onClick={remove}
-            className="rounded-lg px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
           >
             Delete
           </button>
         </div>
       }
     >
-      {/* Sticky header with a kind-colored accent, id/WSJF, close, the title, and (if present) the conflict notice. */}
+      {/* Sticky header: kind-tinted band, chips row, breadcrumb (stories), title, conflict. */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white">
-        <div className={`h-1 w-full ${KIND_ACCENT[item.kind] ?? "bg-gray-300"}`} />
-        <div className="flex items-center justify-between gap-2 px-5 pt-3">
-          <span className="flex items-center gap-2">
-            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${KIND_CHIP[item.kind] ?? "bg-gray-100 text-gray-700"}`}>
-              {item.type ?? item.kind}
-            </span>
-            <span className="text-xs text-gray-400">#{item.id}</span>
-            {item.wsjf_score != null && (
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                WSJF {item.wsjf_score}
+        <div className={KIND_BAND[item.kind] ?? "bg-white"}>
+          <div className="flex items-center justify-between gap-2 px-5 pt-3">
+            <span className="flex min-w-0 items-center gap-2">
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${KIND_CHIP[item.kind] ?? "bg-gray-100 text-gray-700"}`}
+              >
+                {item.type ?? item.kind}
               </span>
-            )}
-          </span>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="-mr-1 rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="px-4 pb-3 pt-1">
-          <input
-            value={(value("title") as string) ?? ""}
-            onChange={(e) => set("title", e.target.value)}
-            placeholder="Title"
-            className="w-full rounded-lg border border-transparent bg-transparent px-1 py-1 text-lg font-semibold text-gray-900 transition hover:bg-gray-50 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-        {conflict && <p className="px-4 pb-2 pt-2 text-xs font-medium text-amber-700">{conflict}</p>}
-      </div>
-
-      <div className="space-y-6 p-5">
-        {showParentLink && (
-          <button
-            onClick={() => onOpenParent!(item.parent_id!)}
-            className="flex w-full items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-left transition hover:bg-blue-100"
-          >
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-blue-400">
-              Parent feature
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-blue-700">
-              {parent ? parent.title : `#${item.parent_id}`}
-            </span>
-          </button>
-        )}
-
-        <Section label="Details">
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-              Status
-            </span>
-            <SearchableSelect
-              ariaLabel="Status"
-              value={(value("status") as string | null) || null}
-              options={withCurrent(
-                (value("status") as string | null) || null,
-                statusOptionsByKind[item.kind] ?? [],
-              )}
-              onChange={(v) => setDraft((d) => ({ ...d, status: v ?? "" }))}
-              placeholder="Select status…"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-              Planning Interval
-            </span>
-            <SearchableSelect
-              ariaLabel="Planning Interval"
-              value={(value("planning_interval") as string | null) || null}
-              options={withCurrent((value("planning_interval") as string | null) || null, planningIntervalOptions)}
-              onChange={(v) => setDraft((d) => ({ ...d, planning_interval: v ?? "" }))}
-              placeholder="Select planning interval…"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-              Leading Team
-            </span>
-            <SearchableSelect
-              ariaLabel="Leading Team"
-              value={(value("leading_team") as string | null) || null}
-              options={withCurrent((value("leading_team") as string | null) || null, leadingTeamOptions)}
-              onChange={(v) => setDraft((d) => ({ ...d, leading_team: v ?? "" }))}
-              placeholder="Select team…"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-              Assignee
-            </span>
-            <SearchableSelect
-              ariaLabel="Assignee"
-              value={
-                people.find((p) => p.id === (value("assignee_id") as number | null))
-                  ?.display_name ?? (item.assignee || null)
-              }
-              options={people.map((p) => p.display_name)}
-              onChange={(v) =>
-                setDraft((d) => ({
-                  ...d,
-                  assignee_id: v == null ? null : people.find((p) => p.display_name === v)?.id ?? null,
-                }))
-              }
-              placeholder="Search person…"
-            />
-          </label>
-        </Section>
-
-        <Section label="Estimation">
-          {item.kind === "feature" ? (
-            <div className="flex flex-col gap-3">
-              <WsjfToggle
-                label="Business Value"
-                value={value("business_value")}
-                onChange={(v) => setDraft((d) => ({ ...d, business_value: v }))}
-              />
-              <WsjfToggle
-                label="Time Criticality"
-                value={value("time_criticality")}
-                onChange={(v) => setDraft((d) => ({ ...d, time_criticality: v }))}
-              />
-              <WsjfToggle
-                label="Risk Reduction"
-                value={value("risk_reduction")}
-                onChange={(v) => setDraft((d) => ({ ...d, risk_reduction: v }))}
-              />
-              <WsjfToggle
-                label="Job Size"
-                value={value("job_size")}
-                onChange={(v) => setDraft((d) => ({ ...d, job_size: v }))}
-              />
-            </div>
-          ) : (
-            <Field label="Story Points" type="number" value={value("story_points")} onChange={(v) => set("story_points", v)} />
-          )}
-        </Section>
-
-        {item.kind === "feature" && (
-          <Section
-            label={`Stories · ${children.length}`}
-            action={
               <button
-                onClick={addStory}
-                className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
+                aria-label="copy id"
+                title="Copy id"
+                onClick={() => void navigator.clipboard?.writeText(`#${item.id}`)}
+                className="shrink-0 rounded px-0.5 text-xs text-gray-400 transition hover:text-gray-600"
               >
-                + Add story
+                #{item.id}
               </button>
-            }
-          >
-            <ul className="flex flex-col gap-1.5">
-              {children.map((child) => (
-                <li
-                  key={child.id}
-                  className={`flex items-center justify-between rounded-lg border px-3 py-1.5 text-sm transition ${
-                    openIds.includes(child.id)
-                      ? "border-blue-200 bg-blue-50"
-                      : "border-gray-100 bg-gray-50 hover:bg-gray-100"
-                  }`}
-                >
-                  {onOpenChild ? (
-                    <button
-                      onClick={() => onOpenChild(child.id)}
-                      className="min-w-0 flex-1 truncate text-left font-medium text-blue-700 hover:underline"
-                    >
-                      {child.title}
-                    </button>
-                  ) : (
-                    <span className="min-w-0 flex-1 truncate">{child.title}</span>
-                  )}
-                  <button
-                    aria-label={`remove story ${child.id}`}
-                    onClick={() => removeStory(child.id)}
-                    className="ml-2 shrink-0 rounded p-0.5 text-gray-400 transition hover:bg-white hover:text-red-600"
-                  >
-                    ✕
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Section>
-        )}
-
-        <Section
-          label="Dependencies"
-          action={
+              {item.wsjf_score != null && (
+                <span className="shrink-0 rounded-full bg-amber-100/80 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                  WSJF {item.wsjf_score}
+                </span>
+              )}
+            </span>
             <button
-              onClick={() => setAdding((v) => !v)}
-              className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
+              onClick={onClose}
+              aria-label="Close"
+              className="-mr-1 shrink-0 rounded-lg p-1 text-gray-400 transition hover:bg-white/70 hover:text-gray-700"
             >
-              {adding ? "Cancel" : "+ Add dependency"}
+              ✕
             </button>
-          }
-        >
-          <ul className="flex flex-col gap-1.5">
-            {(item.links ?? []).map((link) => (
-              <li
-                key={link.link_id}
-                className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5 text-sm transition hover:bg-gray-100"
-              >
-                <button onClick={() => onOpenItem?.(link.item.id)} className="min-w-0 flex-1 truncate text-left">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                    {link.label}
-                  </span>{" "}
-                  <span className="font-medium text-blue-700 hover:underline">{link.item.title}</span>
-                  <span className="ml-1 text-xs text-gray-400">({link.item.kind})</span>
-                </button>
-                <button
-                  aria-label={`remove link ${link.link_id}`}
-                  onClick={() => removeLink(link.link_id)}
-                  className="ml-2 shrink-0 rounded p-0.5 text-gray-400 transition hover:bg-white hover:text-red-600"
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          {adding && (
-            <div className="mt-2 flex flex-col gap-2 rounded-lg border border-gray-200 p-2">
-              <ul role="listbox" className="flex flex-col gap-0.5">
-                {relations.map((rel) => (
-                  <li key={`${rel.relation}-${rel.direction}`}>
-                    <button
-                      role="option"
-                      aria-selected={pickRelation?.label === rel.label}
-                      onClick={() => setPickRelation(rel)}
-                      className={`w-full rounded-lg px-2.5 py-1.5 text-left text-sm transition hover:bg-gray-50 ${
-                        pickRelation?.label === rel.label ? "bg-blue-50 font-medium text-blue-700" : "text-gray-700"
-                      }`}
-                    >
-                      {rel.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-
-              <ItemPicker
-                disabled={!pickRelation}
-                items={candidates.filter((c) => c.id !== itemId)}
-                onPick={(otherId) => pickRelation && void addLink(pickRelation, otherId)}
-              />
-            </div>
+          </div>
+          {showParentLink && (
+            <button
+              onClick={() => onOpenParent!(item.parent_id!)}
+              className="group mx-5 mt-1.5 flex max-w-full items-center gap-1.5 text-xs"
+            >
+              <span className="shrink-0 font-semibold uppercase tracking-wide text-gray-400">
+                Parent feature
+              </span>
+              <span aria-hidden className="text-gray-300">
+                ❯
+              </span>
+              <span className="truncate font-medium text-blue-600 group-hover:underline">
+                {parent ? parent.title : `#${item.parent_id}`}
+              </span>
+            </button>
           )}
-        </Section>
-
-        <Section label="Comments">
-          <ItemComments itemId={item.id} />
-        </Section>
-
-        <Section label="Activity">
-          <ItemActivity itemId={item.id} />
-        </Section>
+          <div className="px-4 pb-3 pt-1">
+            <GrowingTextarea
+              ariaLabel="Title"
+              value={(value("title") as string) ?? ""}
+              onChange={(v) => set("title", v)}
+              placeholder="Title"
+              className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1 py-1 text-lg font-semibold leading-snug text-gray-900 transition hover:bg-white/60 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          {conflict && (
+            <p className="px-4 pb-2 text-xs font-medium text-amber-700">{conflict}</p>
+          )}
+        </div>
       </div>
+
+      {compact ? (
+        <div className="space-y-6 p-5">
+          <div className="grid grid-cols-2 items-start gap-x-3 gap-y-4">{properties}</div>
+          {content}
+        </div>
+      ) : (
+        <div className="flex min-h-full items-stretch">
+          <div className="min-w-0 flex-1 space-y-6 p-5">{content}</div>
+          <aside className="w-56 shrink-0 space-y-4 border-l border-gray-100 bg-gray-50/60 p-4">
+            {properties}
+          </aside>
+        </div>
+      )}
     </Drawer>
+  );
+}
+
+function PropLabel({ text, children }: { text: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
+        {text}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function NarrativeText({
+  label,
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <section>
+      <h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+        {label}
+      </h3>
+      <GrowingTextarea
+        ariaLabel={label}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1.5 py-1 text-sm leading-relaxed text-gray-700 transition placeholder:text-gray-300 hover:bg-gray-50 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+      />
+    </section>
+  );
+}
+
+function GrowingTextarea({
+  value,
+  onChange,
+  placeholder,
+  ariaLabel,
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  ariaLabel: string;
+  className?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (el) {
+      el.style.height = "0px";
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      value={value}
+      aria-label={ariaLabel}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className={className}
+    />
+  );
+}
+
+function TabButton({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      role="tab"
+      aria-selected={selected}
+      onClick={onClick}
+      className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
+        selected ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -512,11 +751,23 @@ function CloseBar({ onClose }: { onClose: () => void }) {
 }
 
 // A single docked panel. The full-screen backdrop is owned by the parent so
-// multiple panels can sit side by side in one right-docked row.
-function Drawer({ children, footer }: { children: React.ReactNode; footer?: React.ReactNode }) {
+// multiple panels can sit side by side in one right-docked row. Width adapts:
+// wide two-zone layout alone, compact column when panels share the row.
+function Drawer({
+  children,
+  footer,
+  compact = false,
+}: {
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  compact?: boolean;
+}) {
   return (
     <aside
-      className="flex h-full w-96 shrink-0 flex-col border-l border-gray-200 bg-white shadow-xl"
+      data-testid="item-panel"
+      className={`flex h-full shrink-0 flex-col border-l border-gray-200 bg-white shadow-xl ${
+        compact ? "w-[26rem]" : "w-[40rem]"
+      }`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex-1 overflow-y-auto">{children}</div>
@@ -546,12 +797,12 @@ function ItemPicker({
         aria-label="choose item"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+        className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
         Choose item…
       </button>
       {open && !disabled && (
-        <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+        <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
           <input
             autoFocus
             value={query}

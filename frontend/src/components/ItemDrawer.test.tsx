@@ -124,7 +124,8 @@ it("shows the conflict notice and reloads on 409", async () => {
     new client.ConflictError("Item was modified by someone else — reload and retry"),
   );
   render(<ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} />);
-  await screen.findByDisplayValue("Teton Isolierung");
+  const title = await screen.findByDisplayValue("Teton Isolierung");
+  await userEvent.type(title, " v2"); // Save is disabled until something is edited
   await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
   expect(
     await screen.findByText("This item was changed by someone else — showing the latest version."),

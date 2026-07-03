@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api/client";
 import StoryBoardModal, { handleStoryDragEnd } from "./StoryBoardModal";
@@ -52,16 +53,16 @@ it("opens a story for editing on card click", async () => {
   expect(onOpenItem).toHaveBeenCalledWith(6);
 });
 
-it("adds a story with the feature as parent", async () => {
+it("adds a story with the feature as parent via the inline input", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue(feature as never);
   const create = vi.spyOn(client, "createItem").mockResolvedValue({ id: 8 } as never);
-  vi.spyOn(window, "prompt").mockReturnValue("Fresh Story");
   const onChanged = vi.fn();
   render(
     <StoryBoardModal featureId={5} onClose={() => {}} onOpenItem={() => {}} onChanged={onChanged} />,
   );
   await screen.findByText("Story Six");
   fireEvent.click(screen.getByRole("button", { name: /add story/i }));
+  await userEvent.type(screen.getByLabelText("New story title"), "Fresh Story{Enter}");
   expect(create).toHaveBeenCalledWith(
     expect.objectContaining({ kind: "story", title: "Fresh Story", parent_id: 5 }),
   );

@@ -10,6 +10,7 @@ import { ConflictError, createItem, getItem, updateItem } from "../api/client";
 import { groupByStatus } from "../lib/groupByStatus";
 import type { Item } from "../types";
 import Column from "./Column";
+import InlineAddInput from "./InlineAddInput";
 
 export async function handleStoryDragEnd(
   event: DragEndEvent,
@@ -44,6 +45,7 @@ export default function StoryBoardModal({
 }) {
   const [feature, setFeature] = useState<Item | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [addingStory, setAddingStory] = useState(false);
 
   const reload = useCallback(async () => {
     try {
@@ -62,11 +64,10 @@ export default function StoryBoardModal({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
-  const addStory = async () => {
-    const title = window.prompt("New story title");
-    if (!title) return;
+  const addStory = async (title: string) => {
     try {
       await createItem({ kind: "story", title, parent_id: featureId });
+      setAddingStory(false);
       await reload();
       onChanged();
     } catch (e) {
@@ -95,33 +96,50 @@ export default function StoryBoardModal({
         className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-5 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-gradient-to-b from-blue-50/90 via-blue-50/40 to-white px-5 py-3.5">
           <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold text-gray-900">
             <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
               Feature
             </span>
+            {feature && <span className="shrink-0 text-xs text-gray-400">#{feature.id}</span>}
             <span className="truncate">{feature ? feature.title : "Loading…"}</span>
-            <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+            <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-gray-200">
               {feature?.children?.length ?? 0} stories
             </span>
+            {feature?.wsjf_score != null && (
+              <span className="shrink-0 rounded-full bg-amber-100/80 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                WSJF {feature.wsjf_score}
+              </span>
+            )}
           </h2>
           <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={() => onOpenItem(featureId)}
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
             >
               Edit feature
             </button>
-            <button
-              onClick={addStory}
-              className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
-            >
-              + Add story
-            </button>
+            {addingStory ? (
+              <div className="w-64">
+                <InlineAddInput
+                  ariaLabel="New story title"
+                  placeholder="Story title — Enter to add"
+                  onSubmit={addStory}
+                  onCancel={() => setAddingStory(false)}
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => setAddingStory(true)}
+                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              >
+                + Add story
+              </button>
+            )}
             <button
               onClick={onClose}
               aria-label="Close"
-              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-white/70 hover:text-gray-700"
             >
               ✕
             </button>

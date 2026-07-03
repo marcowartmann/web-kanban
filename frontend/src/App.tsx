@@ -186,6 +186,7 @@ export default function App() {
             <ItemDrawer
               key={id}
               itemId={id}
+              compact={panels.length > 1}
               people={people}
               statusOptionsByKind={statusOptions}
               planningIntervalOptions={planningIntervals}
