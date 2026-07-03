@@ -63,12 +63,14 @@ it("create: save disabled until valid, then sends everything", async () => {
   const save = screen.getByRole("button", { name: /^save$/i });
   expect(save).toBeDisabled();
   await userEvent.type(screen.getByLabelText(/display name/i), "Cleo");
+  await userEvent.type(screen.getByLabelText(/username/i), "cleo");
   await userEvent.type(screen.getByLabelText(/email/i), "c@b.ch");
   await userEvent.type(screen.getByLabelText(/^password$/i), "pw123456");
   await userEvent.selectOptions(screen.getByLabelText(/team/i), "1");
   await userEvent.click(save);
   expect(create).toHaveBeenCalledWith({
     email: "c@b.ch",
+    username: "cleo",
     display_name: "Cleo",
     password: "pw123456",
     role: "member",
@@ -85,6 +87,7 @@ it("create: name only posts null email and password (person, no login)", async (
   await userEvent.click(save);
   expect(create).toHaveBeenCalledWith({
     email: null,
+    username: null,
     display_name: "Cleo",
     password: null,
     role: "member",
@@ -92,16 +95,26 @@ it("create: name only posts null email and password (person, no login)", async (
   });
 });
 
-it("edit: clearing the email of a passworded user surfaces the server detail", async () => {
+it("edit: clearing the username of a passworded user surfaces the server detail", async () => {
+  const withLogin = { ...(ben as Record<string, unknown>), username: "ben" } as never;
   const update = vi.spyOn(client, "updateUser").mockRejectedValue(
-    new Error('422 Unprocessable Entity: {"detail":"Remove the password first"}'),
+    new Error('422 Unprocessable Entity: {"detail":"Password requires a username"}'),
   );
   render(
-    <UserModal mode="edit" user={ben} teams={teams} currentUserId={1} onSaved={() => {}} onClose={() => {}} />,
+    <UserModal mode="edit" user={withLogin} teams={teams} currentUserId={1} onSaved={() => {}} onClose={() => {}} />,
   );
-  const email = screen.getByLabelText(/email/i);
-  await userEvent.clear(email);
+  const username = screen.getByLabelText(/username/i);
+  await userEvent.clear(username);
   await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
-  expect(await screen.findByText("Remove the password first")).toBeInTheDocument();
-  expect(update).toHaveBeenCalledWith(2, { email: null });
+  expect(await screen.findByText("Password requires a username")).toBeInTheDocument();
+  expect(update).toHaveBeenCalledWith(2, { username: null });
+});
+
+it("create: a password without a username keeps Save disabled", async () => {
+  render(<UserModal mode="create" teams={teams} currentUserId={1} onSaved={() => {}} onClose={() => {}} />);
+  await userEvent.type(screen.getByLabelText(/display name/i), "Cleo");
+  await userEvent.type(screen.getByLabelText(/^password$/i), "pw123456");
+  expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
+  await userEvent.type(screen.getByLabelText(/username/i), "cleo");
+  expect(screen.getByRole("button", { name: /^save$/i })).not.toBeDisabled();
 });

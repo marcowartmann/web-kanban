@@ -27,6 +27,7 @@ export default function UserModal({
 }) {
   const [name, setName] = useState(user?.display_name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
+  const [username, setUsername] = useState(user?.username ?? "");
   const [teamId, setTeamId] = useState<number | null>(user?.team_id ?? null);
   const [role, setRole] = useState<"admin" | "member">(user?.role ?? "member");
   const [active, setActive] = useState(user?.is_active ?? true);
@@ -37,7 +38,7 @@ export default function UserModal({
   const isSelf = mode === "edit" && user?.id === currentUserId;
   const emailOk = email.trim() === "" || email.trim().length >= 3;
   const passwordOk =
-    password === "" ? true : password.length >= 8 && email.trim().length >= 3;
+    password === "" ? true : password.length >= 8 && username.trim() !== "";
   const valid = name.trim().length > 0 && emailOk && passwordOk;
 
   const save = async () => {
@@ -48,6 +49,7 @@ export default function UserModal({
       if (mode === "create") {
         await createUser({
           email: email.trim() === "" ? null : email.trim(),
+          username: username.trim() === "" ? null : username.trim(),
           display_name: name.trim(),
           password: password === "" ? null : password,
           role,
@@ -60,6 +62,10 @@ export default function UserModal({
         const currentEmail = user.email ?? "";
         if (trimmedEmail.toLowerCase() !== currentEmail) {
           diff.email = trimmedEmail === "" ? null : trimmedEmail;
+        }
+        const trimmedUsername = username.trim();
+        if (trimmedUsername !== (user.username ?? "")) {
+          diff.username = trimmedUsername === "" ? null : trimmedUsername;
         }
         if ((user.team_id ?? null) !== teamId) diff.team_id = teamId;
         if (role !== user.role) diff.role = role;
@@ -91,12 +97,21 @@ export default function UserModal({
             <input value={name} onChange={(e) => setName(e.target.value)} className={field} />
           </label>
           <label className="col-span-2 block">
+            <span className={caption}>Username</span>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Optional — needed to log in"
+              className={field}
+            />
+          </label>
+          <label className="col-span-2 block">
             <span className={caption}>Email</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Optional — needed to log in"
+              placeholder="Optional"
               className={field}
             />
           </label>

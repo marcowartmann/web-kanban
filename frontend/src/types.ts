@@ -197,6 +197,7 @@ export interface PlanningInterval {
 export interface AuthUser {
   id: number;
   email: string | null;
+  username?: string | null;
   display_name: string;
   role: "admin" | "member";
   is_active: boolean;
