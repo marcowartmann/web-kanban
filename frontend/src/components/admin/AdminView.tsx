@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/AuthContext";
 import AuditLogSection from "./AuditLogSection";
 import CapacitySection from "./CapacitySection";
 import ContainersSection from "./ContainersSection";
+import DepartmentsSection from "./DepartmentsSection";
 import ImportSection from "./ImportSection";
 import PlanningIntervalsSection from "./PlanningIntervalsSection";
 import SnapshotsSection from "./SnapshotsSection";
@@ -73,6 +74,7 @@ export default function AdminView({
                 }}
               />
               <CapacitySection key={capacityKey} planningIntervals={planningIntervals} />
+              <DepartmentsSection onChanged={onChanged} />
             </div>
           )}
           {section === "intervals" && <PlanningIntervalsSection onChanged={onChanged} />}

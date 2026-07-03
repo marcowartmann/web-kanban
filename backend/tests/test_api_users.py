@@ -247,3 +247,49 @@ def test_clearing_email_with_password_now_succeeds(anon_client, db_session):
     resp = anon_client.patch(f"/api/v1/users/{member.id}", json={"email": None})
     assert resp.status_code == 200
     assert resp.json()["email"] is None
+
+
+def test_user_read_includes_department_ids(anon_client, db_session):
+    from app.models import Team, TeamDepartment
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    net = Team(name="Net")
+    db_session.add(net)
+    db_session.commit()
+    dep = TeamDepartment(name="FE", team_id=net.id)
+    db_session.add(dep)
+    db_session.commit()
+    admin.departments.append(dep)
+    db_session.commit()
+    _as(admin)
+    body = anon_client.get("/api/v1/users").json()
+    row = next(u for u in body if u["id"] == admin.id)
+    assert row["department_ids"] == [dep.id]
+    app.dependency_overrides.clear()
+
+
+def test_set_user_departments_replaces(anon_client, db_session):
+    from app.models import Team, TeamDepartment
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    member = _seed(db_session, "m@x.ch")
+    net = Team(name="Net")
+    db_session.add(net)
+    db_session.commit()
+    d1 = TeamDepartment(name="FE", team_id=net.id)
+    d2 = TeamDepartment(name="BE", team_id=net.id)
+    db_session.add_all([d1, d2])
+    db_session.commit()
+    _as(admin)
+    r1 = anon_client.put(f"/api/v1/users/{member.id}/departments", json={"department_ids": [d1.id, d2.id]})
+    assert r1.status_code == 200 and r1.json()["department_ids"] == sorted([d1.id, d2.id])
+    r2 = anon_client.put(f"/api/v1/users/{member.id}/departments", json={"department_ids": [d2.id]})
+    assert r2.json()["department_ids"] == [d2.id]
+    app.dependency_overrides.clear()
+
+
+def test_set_user_departments_unknown_422(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    member = _seed(db_session, "m@x.ch")
+    _as(admin)
+    resp = anon_client.put(f"/api/v1/users/{member.id}/departments", json={"department_ids": [9999]})
+    assert resp.status_code == 422
+    app.dependency_overrides.clear()

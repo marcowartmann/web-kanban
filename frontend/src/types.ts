@@ -195,10 +195,19 @@ export interface PlanningInterval {
   position: number;
 }
 
+export interface Department {
+  id: number;
+  name: string;
+  team_id: number;
+  team_name: string;
+  member_ids: number[];
+}
+
 export interface AuthUser {
   id: number;
   email: string | null;
   username?: string | null;
+  department_ids?: number[];
   display_name: string;
   role: "admin" | "member";
   is_active: boolean;

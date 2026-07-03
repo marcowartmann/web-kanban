@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from app.audit import log_event
 from app.auth import hash_password, require_admin, require_user
 from app.db import get_db
-from app.models import Team, User, UserSession
-from app.schemas import PersonOption, UserCreate, UserRead, UserUpdate
+from app.models import Team, TeamDepartment, User, UserSession
+from app.schemas import PersonOption, UserCreate, UserDepartments, UserRead, UserUpdate
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
@@ -163,6 +163,28 @@ def update_user(
     # Password reset and deactivation both invalidate every session of the user.
     if password is not None or changes.get("is_active") is False:
         db.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.put("/{user_id}/departments", response_model=UserRead, dependencies=[Depends(require_admin)])
+def set_user_departments(
+    user_id: int,
+    payload: UserDepartments,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> User:
+    user = _get_or_404(db, user_id)
+    departments = []
+    for dep_id in payload.department_ids:
+        dep = db.get(TeamDepartment, dep_id)
+        if dep is None:
+            raise HTTPException(status_code=422, detail=f"department {dep_id} does not exist")
+        departments.append(dep)
+    user.departments = departments
+    log_event(db, actor=current, event_type="user.departments_changed", entity_type="user",
+              entity_id=user.id, entity_label=user.email or user.display_name)
     db.commit()
     db.refresh(user)
     return user
