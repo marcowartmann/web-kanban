@@ -95,6 +95,10 @@ export function deleteItem(id: number): Promise<void> {
   return request<void>(`${API}/items/${id}`, { method: "DELETE" });
 }
 
+export function reorderFeatureRanking(featureId: number, afterId: number | null): Promise<void> {
+  return request<void>(`${API}/features/ranking/reorder`, json({ feature_id: featureId, after_id: afterId }));
+}
+
 export function getLinkRelations(): Promise<RelationOption[]> {
   return request<RelationOption[]>(`${API}/link-relations`);
 }
