@@ -51,8 +51,23 @@ def _wipe(db):
     db.commit()
 
 
+def test_create_snapshot_manually(client, db_session):
+    _seed_rich(db_session)
+    resp = client.post("/api/v1/import/snapshots")
+    assert resp.status_code == 201
+    body = resp.json()
+    assert (body["items"], body["comments"], body["links"]) == (3, 2, 1)
+    listed = client.get("/api/v1/import/snapshots").json()["snapshots"]
+    assert listed[0]["name"] == body["name"]
+
+    row = db_session.query(AuditEvent).filter_by(event_type="snapshot.created").one()
+    assert row.entity_type == "import"
+    assert row.entity_label == body["name"]
+
+
 def test_snapshot_endpoints_require_admin(member_client):
     assert member_client.get("/api/v1/import/snapshots").status_code == 403
+    assert member_client.post("/api/v1/import/snapshots").status_code == 403
     assert (
         member_client.get(
             "/api/v1/import/snapshots/import-snapshot-20260101T000000-000000Z.json/download"

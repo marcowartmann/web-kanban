@@ -133,6 +133,10 @@ export function listSnapshots(): Promise<SnapshotInfo[]> {
   return request<{ snapshots: SnapshotInfo[] }>(`${API}/import/snapshots`).then((r) => r.snapshots);
 }
 
+export function createSnapshot(): Promise<SnapshotInfo> {
+  return request<SnapshotInfo>(`${API}/import/snapshots`, { method: "POST" });
+}
+
 export function restoreSnapshot(name: string): Promise<RestoreResult> {
   return request<RestoreResult>(`${API}/import/snapshots/${encodeURIComponent(name)}/restore`, {
     method: "POST",

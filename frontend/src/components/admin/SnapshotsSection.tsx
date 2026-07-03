@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { API, listSnapshots, restoreSnapshot } from "../../api/client";
+import { API, createSnapshot, listSnapshots, restoreSnapshot } from "../../api/client";
 import type { SnapshotInfo } from "../../types";
 import ConfirmDialog from "../ConfirmDialog";
+import { btnPrimary } from "../ui";
 import AdminCard, { adminEmptyClass } from "./AdminCard";
 
 export default function SnapshotsSection({ onChanged }: { onChanged: () => void }) {
@@ -9,10 +10,26 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [confirmRestore, setConfirmRestore] = useState<string | null>(null);
 
   const reload = () => void listSnapshots().then(setSnapshots);
   useEffect(reload, []);
+
+  const create = async () => {
+    setError(null);
+    setStatus(null);
+    setCreating(true);
+    try {
+      const s = await createSnapshot();
+      setStatus(`Snapshot created — ${s.items} items, ${s.comments} comments, ${s.links} links`);
+      reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not create the snapshot.");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const restore = async (name: string) => {
     setError(null);
@@ -40,11 +57,17 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
       accent="bg-emerald-50 text-emerald-600"
       count={snapshots.length}
     >
+      <div className="mb-3">
+        <button onClick={create} disabled={creating} className={btnPrimary}>
+          Create snapshot
+        </button>
+      </div>
       {status && <p className="mb-2 text-xs text-emerald-700">{status}</p>}
       {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
       {snapshots.length === 0 ? (
         <p className={adminEmptyClass}>
-          No snapshots yet — one is created automatically before every import.
+          No snapshots yet — create one here, or import a CSV (one is created automatically
+          before every import).
         </p>
       ) : (
         <div className="overflow-x-auto">

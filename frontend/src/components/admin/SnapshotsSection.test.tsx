@@ -31,9 +31,23 @@ it("renders snapshot rows with counts and a download link", async () => {
 it("shows the empty state", async () => {
   vi.spyOn(client, "listSnapshots").mockResolvedValue([]);
   render(<SnapshotsSection onChanged={() => {}} />);
+  expect(await screen.findByText(/no snapshots yet — create one here/i)).toBeInTheDocument();
+});
+
+it("Create snapshot posts, reports counts, and reloads the list", async () => {
+  const listSpy = vi
+    .spyOn(client, "listSnapshots")
+    .mockResolvedValueOnce([])
+    .mockResolvedValueOnce([SNAP]);
+  const createSpy = vi.spyOn(client, "createSnapshot").mockResolvedValue(SNAP);
+  render(<SnapshotsSection onChanged={() => {}} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Create snapshot" }));
   expect(
-    await screen.findByText("No snapshots yet — one is created automatically before every import."),
+    await screen.findByText("Snapshot created — 131 items, 12 comments, 5 links"),
   ).toBeInTheDocument();
+  expect(createSpy).toHaveBeenCalled();
+  await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
+  expect(await screen.findByText("admin@example.com")).toBeInTheDocument();
 });
 
 it("cancelling the dialog does not restore", async () => {

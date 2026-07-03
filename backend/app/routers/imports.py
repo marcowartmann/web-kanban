@@ -136,6 +136,19 @@ def get_snapshots(current: User = Depends(require_admin)) -> SnapshotList:
     return SnapshotList(snapshots=[SnapshotInfo(**s) for s in list_snapshots()])
 
 
+@router.post("/import/snapshots", response_model=SnapshotInfo, status_code=201)
+def create_snapshot_endpoint(
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> SnapshotInfo:
+    name = write_snapshot(db, actor=current.email)
+    log_event(db, actor=current, event_type="snapshot.created",
+              entity_type="import", entity_id=None, entity_label=name)
+    db.commit()
+    info = next(s for s in list_snapshots() if s["name"] == name)
+    return SnapshotInfo(**info)
+
+
 @router.get("/import/snapshots/{name}/download")
 def download_snapshot(name: str, current: User = Depends(require_admin)) -> FileResponse:
     path = snapshot_path(name)
