@@ -295,7 +295,9 @@ export default function ItemDrawer({
         value={value("bo_stakeholder")}
         onChange={(v) => set("bo_stakeholder", v)}
       />
-      <div className="border-t border-gray-200 pt-4">
+      {/* col-span-2 lets the block take the full width of the compact grid;
+          it is inert in the wide mode's block-layout rail. */}
+      <div className="col-span-2 border-t border-gray-200 pt-4">
         <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
           Estimation
         </h3>
@@ -675,10 +677,18 @@ function GrowingTextarea({
   const ref = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const el = ref.current;
-    if (el) {
+    if (!el) return;
+    const grow = () => {
       el.style.height = "0px";
       el.style.height = `${el.scrollHeight}px`;
-    }
+    };
+    grow();
+    // Panel width changes (second panel opening/closing) re-wrap the text.
+    // jsdom has no ResizeObserver; auto-grow is layout-only there anyway.
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(grow);
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [value]);
   return (
     <textarea
@@ -688,7 +698,7 @@ function GrowingTextarea({
       aria-label={ariaLabel}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className={className}
+      className={`overflow-hidden ${className ?? ""}`}
     />
   );
 }
