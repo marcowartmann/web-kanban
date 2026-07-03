@@ -16,6 +16,7 @@ it("adds a team", async () => {
   } as never);
   vi.spyOn(client, "listUsers").mockResolvedValue([] as never);
   vi.spyOn(client, "getAuditEvents").mockResolvedValue({ items: [], total: 0 } as never);
+  vi.spyOn(client, "listSnapshots").mockResolvedValue([]);
   const create = vi.spyOn(client, "createTeam").mockResolvedValue({ id: 1, name: "Network" });
   render(
     <AuthProvider>
@@ -37,6 +38,7 @@ it("adds a member with a team", async () => {
   } as never);
   vi.spyOn(client, "listUsers").mockResolvedValue([] as never);
   vi.spyOn(client, "getAuditEvents").mockResolvedValue({ items: [], total: 0 } as never);
+  vi.spyOn(client, "listSnapshots").mockResolvedValue([]);
   const create = vi.spyOn(client, "createTeamMember").mockResolvedValue({
     id: 1, name: "Marco", team_id: 2, team_name: "Network",
   });

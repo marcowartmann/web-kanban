@@ -2,6 +2,7 @@ import { useAuth } from "../../auth/AuthContext";
 import AuditLogSection from "./AuditLogSection";
 import CapacitySection from "./CapacitySection";
 import PlanningIntervalsSection from "./PlanningIntervalsSection";
+import SnapshotsSection from "./SnapshotsSection";
 import TeamMembersSection from "./TeamMembersSection";
 import TeamsSection from "./TeamsSection";
 import UsersSection from "./UsersSection";
@@ -35,6 +36,9 @@ export default function AdminView({
       </div>
       <div className="mt-4">
         <CapacitySection planningIntervals={planningIntervals} />
+      </div>
+      <div className="mt-4">
+        <SnapshotsSection onChanged={onChanged} />
       </div>
     </div>
   );
