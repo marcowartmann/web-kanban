@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { getCapacities, getTeamMembers, upsertCapacity } from "../../api/client";
+import { getCapacities, getPersonOptions, upsertCapacity } from "../../api/client";
 import { ITERATION_SLOTS, iterationLabel } from "../../lib/iterations";
-import type { Capacity, TeamMember } from "../../types";
+import type { Capacity, PersonOption } from "../../types";
 import { adminCardClass } from "./AdminCard";
 
 export default function CapacitySection({
@@ -9,13 +9,13 @@ export default function CapacitySection({
 }: {
   planningIntervals: string[];
 }) {
-  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [people, setPeople] = useState<PersonOption[]>([]);
   const [capacities, setCapacities] = useState<Capacity[]>([]);
   const [pi, setPi] = useState<string | null>(planningIntervals[0] ?? null);
   const [values, setValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    void getTeamMembers().then(setMembers);
+    void getPersonOptions().then(setPeople);
     void getCapacities().then(setCapacities);
   }, []);
 
@@ -35,12 +35,12 @@ export default function CapacitySection({
     setValues(next);
   }, [pi, capacities]);
 
-  const commit = async (memberId: number, slot: number, raw: string) => {
+  const commit = async (personId: number, slot: number, raw: string) => {
     if (!pi) return;
     const points = raw === "" ? 0 : Number(raw);
     if (Number.isNaN(points) || points < 0) return;
     const saved = await upsertCapacity({
-      user_id: memberId,
+      user_id: personId,
       planning_interval: pi,
       iteration: slot,
       points,
@@ -112,22 +112,22 @@ export default function CapacitySection({
             </tr>
           </thead>
           <tbody>
-            {members.map((m) => (
-              <tr key={m.id} className="border-b border-gray-100 last:border-0">
+            {people.map((p) => (
+              <tr key={p.id} className="border-b border-gray-100 last:border-0">
                 <td className="whitespace-nowrap py-1.5 pr-3 font-medium text-gray-800">
-                  {m.name}
+                  {p.display_name}
                 </td>
                 {ITERATION_SLOTS.map((slot) => {
-                  const key = `${m.id}:${slot}`;
+                  const key = `${p.id}:${slot}`;
                   return (
                     <td key={slot} className="px-1 py-1.5 text-center">
                       <input
                         type="number"
                         min="0"
-                        aria-label={`${m.name} ${iterationLabel(slot)}`}
+                        aria-label={`${p.display_name} ${iterationLabel(slot)}`}
                         value={values[key] ?? ""}
                         onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-                        onBlur={(e) => void commit(m.id, slot, e.target.value)}
+                        onBlur={(e) => void commit(p.id, slot, e.target.value)}
                         className="w-16 rounded-lg border border-gray-200 px-2 py-1.5 text-center text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
                       />
                     </td>
@@ -135,7 +135,7 @@ export default function CapacitySection({
                 })}
               </tr>
             ))}
-            {members.length === 0 && (
+            {people.length === 0 && (
               <tr>
                 <td colSpan={ITERATION_SLOTS.length + 1} className="py-4 text-center text-gray-400">
                   No team members yet.

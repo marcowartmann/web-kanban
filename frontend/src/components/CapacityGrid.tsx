@@ -43,10 +43,10 @@ export default function CapacityGrid({ rows }: { rows: MemberLoadRow[] }) {
   return (
     <div className="mb-4 w-max rounded-xl border border-gray-200 bg-white text-gray-600">
       {rows.map((r) => {
-        const name = r.member?.name ?? "Unassigned";
-        const unassigned = r.member === null;
+        const name = r.person?.display_name ?? "Unassigned";
+        const unassigned = r.person === null;
         return (
-          <div key={r.member?.id ?? "unassigned"} data-testid="capacity-row" className="flex gap-4 hover:bg-gray-50/60">
+          <div key={r.person?.id ?? "unassigned"} data-testid="capacity-row" className="flex gap-4 hover:bg-gray-50/60">
             <NameCell
               label={name}
               avatar={unassigned ? "?" : initials(name)}

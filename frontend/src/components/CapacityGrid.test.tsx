@@ -17,7 +17,7 @@ const row = (id: number | null, name: string, o: Partial<Record<number, SlotLoad
     totalCapacity += slots[i].capacity;
   }
   return {
-    member: id === null ? null : { id, name, team_id: 1, team_name: null },
+    person: id === null ? null : { id, display_name: name },
     slots,
     totalLoad,
     totalCapacity,

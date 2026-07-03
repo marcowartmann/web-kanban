@@ -6,8 +6,8 @@ import CapacitySection from "./CapacitySection";
 afterEach(() => vi.restoreAllMocks());
 
 it("commits a capacity edit on blur", async () => {
-  vi.spyOn(client, "getTeamMembers").mockResolvedValue([
-    { id: 1, name: "Marco", team_id: null, team_name: null },
+  vi.spyOn(client, "getPersonOptions").mockResolvedValue([
+    { id: 1, display_name: "Marco" },
   ]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
   const up = vi.spyOn(client, "upsertCapacity").mockResolvedValue({
@@ -27,7 +27,7 @@ it("commits a capacity edit on blur", async () => {
 });
 
 it("shows an empty state when there are no planning intervals", () => {
-  vi.spyOn(client, "getTeamMembers").mockResolvedValue([]);
+  vi.spyOn(client, "getPersonOptions").mockResolvedValue([]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
   render(<CapacitySection planningIntervals={[]} />);
   expect(screen.getByText(/no planning intervals yet/i)).toBeInTheDocument();

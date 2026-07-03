@@ -9,6 +9,7 @@ afterEach(() => vi.restoreAllMocks());
 it("adds a team", async () => {
   vi.spyOn(client, "getTeams").mockResolvedValue([]);
   vi.spyOn(client, "getTeamMembers").mockResolvedValue([]);
+  vi.spyOn(client, "getPersonOptions").mockResolvedValue([]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
   vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([]);
   vi.spyOn(client, "getMe").mockResolvedValue({
@@ -31,6 +32,7 @@ it("adds a team", async () => {
 it("adds a member with a team", async () => {
   vi.spyOn(client, "getTeams").mockResolvedValue([{ id: 2, name: "Network" }]);
   vi.spyOn(client, "getTeamMembers").mockResolvedValue([]);
+  vi.spyOn(client, "getPersonOptions").mockResolvedValue([]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
   vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([]);
   vi.spyOn(client, "getMe").mockResolvedValue({

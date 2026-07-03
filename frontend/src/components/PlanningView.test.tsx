@@ -27,8 +27,8 @@ beforeEach(() => {
     { id: 1, name: "Network" },
     { id: 2, name: "Platform" },
   ]);
-  vi.spyOn(client, "getTeamMembers").mockResolvedValue([
-    { id: 1, name: "Marco", team_id: 1, team_name: "Network" },
+  vi.spyOn(client, "getPersonOptions").mockResolvedValue([
+    { id: 1, display_name: "Marco" },
   ]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([
     { id: 1, user_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5 },

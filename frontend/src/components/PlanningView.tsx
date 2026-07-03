@@ -6,7 +6,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useEffect, useMemo, useState } from "react";
-import { ConflictError, getCapacities, getTeamMembers, getTeams, updateItem } from "../api/client";
+import { ConflictError, getCapacities, getPersonOptions, getTeams, updateItem } from "../api/client";
 import {
   ITERATION_SLOTS,
   capacityBySlot,
@@ -16,7 +16,7 @@ import {
 } from "../lib/iterations";
 import { loadCapacityRows } from "../lib/capacity";
 import { computePlanningLinks } from "../lib/planningLinks";
-import type { Capacity, Item, LinkRow, Team, TeamMember } from "../types";
+import type { Capacity, Item, LinkRow, PersonOption, Team } from "../types";
 import CapacityGrid from "./CapacityGrid";
 import FilterSelect from "./FilterSelect";
 import PlanningColumn from "./PlanningColumn";
@@ -55,7 +55,7 @@ export default function PlanningView({
 }) {
   const [pi, setPi] = useState<string | null>(planningIntervals[0] ?? null);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [people, setPeople] = useState<PersonOption[]>([]);
   const [capacities, setCapacities] = useState<Capacity[]>([]);
   const [teamId, setTeamId] = useState<number | null>(null);
   const [assigneeName, setAssigneeName] = useState<string | null>(null);
@@ -66,7 +66,7 @@ export default function PlanningView({
 
   useEffect(() => {
     void getTeams().then(setTeams);
-    void getTeamMembers().then(setMembers);
+    void getPersonOptions().then(setPeople);
     void getCapacities().then(setCapacities);
   }, []);
 
@@ -117,23 +117,20 @@ export default function PlanningView({
     [items, links, pi],
   );
 
+  // PersonOption has no team_id (unlike the retired member records), so team
+  // selection can no longer narrow which people's capacity counts here — only the
+  // assignee filter can. Team scoping of the *load* side is unaffected: teamStories
+  // below still restricts stories to the selected team.
   const caps = useMemo(() => {
     if (!pi) return null;
-    let memberIds: Set<number> | null = null;
-    if (assigneeName) {
-      memberIds = new Set(members.filter((m) => m.name === assigneeName).map((m) => m.id));
-    } else if (teamId != null) {
-      memberIds = new Set(members.filter((m) => m.team_id === teamId).map((m) => m.id));
-    }
-    return capacityBySlot(capacities, pi, memberIds);
-  }, [capacities, pi, teamId, assigneeName, members]);
+    const personIds = assigneeName
+      ? new Set(people.filter((p) => p.display_name === assigneeName).map((p) => p.id))
+      : null;
+    return capacityBySlot(capacities, pi, personIds);
+  }, [capacities, pi, assigneeName, people]);
 
-  // Per-member load/capacity rows for the grid, scoped to the selected team (all
-  // when "All teams"), independent of the assignee filter.
-  const teamMembers = useMemo(
-    () => (teamId != null ? members.filter((m) => m.team_id === teamId) : members),
-    [members, teamId],
-  );
+  // Per-person load/capacity rows for the grid. Stories are scoped to the selected
+  // team (all when "All teams"); the people list is org-wide (see note above).
   const teamStories = useMemo(
     () =>
       (team ? items.filter((i) => i.leading_team === team.name) : items).filter(
@@ -142,8 +139,8 @@ export default function PlanningView({
     [items, team, pi],
   );
   const capacityRows = useMemo(
-    () => (pi ? loadCapacityRows(teamMembers, capacities, teamStories, pi) : []),
-    [teamMembers, capacities, teamStories, pi],
+    () => (pi ? loadCapacityRows(people, capacities, teamStories, pi) : []),
+    [people, capacities, teamStories, pi],
   );
 
   if (!planningIntervals.length) {
