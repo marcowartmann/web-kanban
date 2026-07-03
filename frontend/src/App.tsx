@@ -12,9 +12,9 @@ import TimelineView from "./components/TimelineView";
 import UserMenu from "./components/UserMenu";
 import { useAuth } from "./auth/AuthContext";
 import { useBoard } from "./hooks/useBoard";
-import { getPersonOptions, getTeams } from "./api/client";
+import { getContainers, getPersonOptions, getTeams } from "./api/client";
 import { statusOptionsByKind } from "./lib/boardLanes";
-import type { PersonOption } from "./types";
+import type { Container, PersonOption, Team } from "./types";
 
 type View = "board" | "admin" | "planning" | "timeline";
 
@@ -50,7 +50,8 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<BoardFilters>({});
   const [people, setPeople] = useState<PersonOption[]>([]);
-  const [leadingTeamOptions, setLeadingTeamOptions] = useState<string[]>([]);
+  const [teamOptions, setTeamOptions] = useState<Team[]>([]);
+  const [containers, setContainers] = useState<Container[]>([]);
 
   useEffect(() => {
     if (activeBoardId == null && boards.length) setActiveBoardId(boards[0].id);
@@ -61,7 +62,8 @@ export default function App() {
   }, [refreshKey]);
 
   useEffect(() => {
-    void getTeams().then((ts) => setLeadingTeamOptions(ts.map((t) => t.name)));
+    void getTeams().then(setTeamOptions);
+    void getContainers().then(setContainers);
   }, [refreshKey]);
 
   const statusOptions = useMemo(() => statusOptionsByKind(boards), [boards]);
@@ -75,6 +77,10 @@ export default function App() {
   const assignees = useMemo(
     () => [...new Set(items.map((i) => i.assignee).filter(Boolean) as string[])].sort(),
     [items],
+  );
+  const containerNames = useMemo(
+    () => [...new Set(containers.map((c) => c.name))].sort(),
+    [containers],
   );
 
   const selectBoard = (id: number) => {
@@ -154,6 +160,7 @@ export default function App() {
             planningIntervals={planningIntervals}
             teams={teams}
             assignees={assignees}
+            containerNames={containerNames}
             kindOptions={activeBoard.kinds}
           />
           <BoardView
@@ -161,6 +168,7 @@ export default function App() {
             items={items}
             links={links}
             filters={filters}
+            containers={containers}
             onOpenCard={openItem}
             onOpenStories={setOpenStoriesFeatureId}
             onChanged={handleChanged}
@@ -191,7 +199,9 @@ export default function App() {
               people={people}
               statusOptionsByKind={statusOptions}
               planningIntervalOptions={planningIntervals}
-              leadingTeamOptions={leadingTeamOptions}
+              leadingTeamOptions={teamOptions.map((t) => t.name)}
+              containers={containers}
+              teams={teamOptions}
               openIds={panels}
               onClose={() => closePanel(id)}
               onChanged={handleChanged}

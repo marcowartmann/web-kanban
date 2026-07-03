@@ -8,7 +8,7 @@ import {
 import { useMemo, useState } from "react";
 import { ConflictError, updateItem } from "../api/client";
 import { UNSCHEDULED, buildBoardCards, groupIntoLanes } from "../lib/boardLanes";
-import type { Board, BoardCard, Item, LinkRow } from "../types";
+import type { Board, BoardCard, Container, Item, LinkRow } from "../types";
 import type { BoardFilters } from "./Toolbar";
 import Column from "./Column";
 import LaneEditor from "./LaneEditor";
@@ -36,16 +36,27 @@ export async function handleCardDragEnd(
   await reload();
 }
 
-function visible(cards: BoardCard[], board: Board, f: BoardFilters): BoardCard[] {
+function visible(
+  cards: BoardCard[],
+  board: Board,
+  f: BoardFilters,
+  containers: Container[] = [],
+): BoardCard[] {
   const boardKinds = new Set(board.kinds);
   const selected = f.kinds && f.kinds.length ? new Set(f.kinds) : null;
   const q = f.q?.toLowerCase();
+  // Container names repeat across (team, PI) scopes — filtering by name means
+  // matching any container id carrying that name.
+  const containerIds = f.container
+    ? new Set(containers.filter((c) => c.name === f.container).map((c) => c.id))
+    : null;
   return cards.filter((c) => {
     if (!boardKinds.has(c.kind)) return false;
     if (selected && !selected.has(c.kind)) return false;
     if (f.planning_interval && c.planning_interval !== f.planning_interval) return false;
     if (f.leading_team && c.leading_team !== f.leading_team) return false;
     if (f.assignee && c.assignee !== f.assignee) return false;
+    if (containerIds && (c.container_id == null || !containerIds.has(c.container_id))) return false;
     if (q && !c.title.toLowerCase().includes(q)) return false;
     return true;
   });
@@ -56,6 +67,7 @@ export default function BoardView({
   items,
   links,
   filters,
+  containers = [],
   onOpenCard,
   onOpenStories,
   onChanged,
@@ -65,6 +77,7 @@ export default function BoardView({
   items: Item[];
   links: LinkRow[];
   filters: BoardFilters;
+  containers?: Container[];
   onOpenCard: (id: number) => void;
   onOpenStories: (featureId: number) => void;
   onChanged: () => void | Promise<void>;
@@ -75,8 +88,8 @@ export default function BoardView({
   );
   const columns = useMemo(() => {
     const cards = buildBoardCards(items, links);
-    return groupIntoLanes(visible(cards, board, filters), board.lanes);
-  }, [items, links, board, filters]);
+    return groupIntoLanes(visible(cards, board, filters, containers), board.lanes);
+  }, [items, links, board, filters, containers]);
 
   const [editing, setEditing] = useState(false);
 

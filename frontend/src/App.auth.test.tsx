@@ -16,6 +16,7 @@ function mockAppData(role: "admin" | "member") {
   vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([] as never);
   vi.spyOn(client, "getPersonOptions").mockResolvedValue([] as never);
   vi.spyOn(client, "getTeams").mockResolvedValue([] as never);
+  vi.spyOn(client, "getContainers").mockResolvedValue([] as never);
 }
 
 it("admins see the Admin tab and Import", async () => {

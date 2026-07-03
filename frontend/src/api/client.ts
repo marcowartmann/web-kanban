@@ -4,6 +4,7 @@ import type {
   Board,
   Capacity,
   Comment,
+  Container,
   ImportPreview,
   ImportResult,
   Item,
@@ -152,6 +153,28 @@ export function renameTeam(id: number, name: string): Promise<Team> {
 
 export function deleteTeam(id: number, force = false): Promise<void> {
   return request<void>(`${API}/teams/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
+}
+
+export function getContainers(): Promise<Container[]> {
+  return request<Container[]>(`${API}/containers`);
+}
+
+export function createContainer(body: {
+  name: string;
+  planning_interval: string;
+  team_id: number;
+}): Promise<Container> {
+  return request<Container>(`${API}/containers`, json(body));
+}
+
+export function renameContainer(id: number, name: string): Promise<Container> {
+  return request<Container>(`${API}/containers/${id}`, { ...json({ name }), method: "PATCH" });
+}
+
+export function deleteContainer(id: number, force = false): Promise<void> {
+  return request<void>(`${API}/containers/${id}${force ? "?force=true" : ""}`, {
+    method: "DELETE",
+  });
 }
 
 export function getBoards(): Promise<Board[]> {

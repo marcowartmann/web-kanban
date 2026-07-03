@@ -10,7 +10,7 @@ import {
   listItems,
   updateItem,
 } from "../api/client";
-import type { Item, ItemKind, ItemUpdate, PersonOption, RelationOption } from "../types";
+import type { Container, Item, ItemKind, ItemUpdate, PersonOption, RelationOption, Team } from "../types";
 import Avatar from "./Avatar";
 import ConfirmDialog from "./ConfirmDialog";
 import Field from "./Field";
@@ -52,6 +52,8 @@ export default function ItemDrawer({
   statusOptionsByKind = {},
   planningIntervalOptions = [],
   leadingTeamOptions = [],
+  containers = [],
+  teams = [],
   openIds = [],
   onClose,
   onChanged,
@@ -66,6 +68,8 @@ export default function ItemDrawer({
   statusOptionsByKind?: Partial<Record<ItemKind, string[]>>;
   planningIntervalOptions?: string[];
   leadingTeamOptions?: string[];
+  containers?: Container[];
+  teams?: Team[];
   openIds?: number[];
   onClose: () => void;
   onChanged: () => void;
@@ -249,6 +253,40 @@ export default function ItemDrawer({
           onChange={(v) => setDraft((d) => ({ ...d, leading_team: v ?? "" }))}
           placeholder="Select team…"
         />
+      </PropLabel>
+      <PropLabel text="Container">
+        {(() => {
+          // Containers are scoped to the draft-aware PI + leading team, so
+          // changing either immediately rescopes the options.
+          const scopePi = (value("planning_interval") as string | null) || null;
+          const scopeTeamName = (value("leading_team") as string | null) || null;
+          const scopeTeam = teams.find((t) => t.name === scopeTeamName) ?? null;
+          if (!scopePi || !scopeTeam) {
+            return (
+              <p className="py-1.5 text-sm text-gray-400">
+                Set planning interval and leading team first
+              </p>
+            );
+          }
+          const scoped = containers.filter(
+            (c) => c.planning_interval === scopePi && c.team_id === scopeTeam.id,
+          );
+          const currentId = value("container_id") as number | null;
+          return (
+            <SearchableSelect
+              ariaLabel="Container"
+              value={scoped.find((c) => c.id === currentId)?.name ?? null}
+              options={scoped.map((c) => c.name)}
+              onChange={(v) =>
+                setDraft((d) => ({
+                  ...d,
+                  container_id: v == null ? null : scoped.find((c) => c.name === v)?.id ?? null,
+                }))
+              }
+              placeholder="Select container…"
+            />
+          );
+        })()}
       </PropLabel>
       <PropLabel text="Supporting Team">
         <SearchableSelect

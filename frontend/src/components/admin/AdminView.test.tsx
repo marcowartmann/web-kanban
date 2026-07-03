@@ -8,6 +8,7 @@ afterEach(() => vi.restoreAllMocks());
 
 function mockAll() {
   vi.spyOn(client, "getTeams").mockResolvedValue([]);
+  vi.spyOn(client, "getContainers").mockResolvedValue([]);
   vi.spyOn(client, "getPersonOptions").mockResolvedValue([]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
   vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([]);

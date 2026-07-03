@@ -36,6 +36,49 @@ it("Status is a dropdown of the item-kind's board lanes and saves the pick", asy
   expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ status: "Ready" }));
 });
 
+it("Container options are scoped to the item's PI + leading team and save container_id", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(feature as never);
+  const update = vi.spyOn(client, "updateItem").mockResolvedValue(feature as never);
+  render(
+    <ItemDrawer
+      itemId={5}
+      teams={[{ id: 1, name: "Network" }, { id: 2, name: "Cloud" }]}
+      containers={[
+        { id: 1, name: "Operations", planning_interval: "PI1-Q3", team_id: 1 },
+        { id: 2, name: "Old Operations", planning_interval: "PI0", team_id: 1 },
+        { id: 3, name: "Cloud Ops", planning_interval: "PI1-Q3", team_id: 2 },
+      ]}
+      onClose={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  const container = await screen.findByRole("combobox", { name: "Container" });
+  fireEvent.focus(container);
+  // Only the (PI1-Q3, Network) container is offered.
+  expect(screen.queryByText("Old Operations")).toBeNull();
+  expect(screen.queryByText("Cloud Ops")).toBeNull();
+  fireEvent.mouseDown(screen.getByText("Operations"));
+  fireEvent.click(screen.getByRole("button", { name: /save/i }));
+  expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ container_id: 1 }));
+});
+
+it("Container shows a hint until PI and leading team are set", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue({ ...feature, leading_team: null } as never);
+  render(
+    <ItemDrawer
+      itemId={5}
+      teams={[{ id: 1, name: "Network" }]}
+      containers={[{ id: 1, name: "Operations", planning_interval: "PI1-Q3", team_id: 1 }]}
+      onClose={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  expect(
+    await screen.findByText(/set planning interval and leading team first/i),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("combobox", { name: "Container" })).toBeNull();
+});
+
 it("keeps an off-list current planning interval selectable", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue({ ...feature, planning_interval: "LEGACY-PI" } as never);
   render(

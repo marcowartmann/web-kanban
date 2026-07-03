@@ -20,7 +20,7 @@ const items: Item[] = [
   { id: 1, kind: "feature", type: "Feature", parent_id: null, position: 0, version: 1, title: "Feat A",
     status: "Analyzing", description: null, kategorie: null, art: null, sdi_prio: null,
     tshirt_size: null, wsjf_score: null, story_points: null, planning_interval: null, iteration: null,
-    leading_team: null, supporting_team: null, externer_partner: null, assignee: null,
+    leading_team: null, supporting_team: null, container_id: null, externer_partner: null, assignee: null,
     assignee_id: null,
     akzeptanzkriterien: null, bo_stakeholder: null,
     business_value: null, time_criticality: null, risk_reduction: null,
@@ -28,7 +28,7 @@ const items: Item[] = [
   { id: 2, kind: "risk", type: "Risk", parent_id: null, position: 1, version: 1, title: "Risk B",
     status: "Analyzing", description: null, kategorie: null, art: null, sdi_prio: null,
     tshirt_size: null, wsjf_score: null, story_points: null, planning_interval: null, iteration: null,
-    leading_team: null, supporting_team: null, externer_partner: null, assignee: null,
+    leading_team: null, supporting_team: null, container_id: null, externer_partner: null, assignee: null,
     assignee_id: null,
     akzeptanzkriterien: null, bo_stakeholder: null,
     business_value: null, time_criticality: null, risk_reduction: null,
@@ -43,6 +43,31 @@ it("renders the board's lanes + Unscheduled and only the board's kinds", () => {
   expect(screen.getByText("Feat A")).toBeInTheDocument();
   // the risk is not one of this board's kinds, so it must not appear
   expect(screen.queryByText("Risk B")).toBeNull();
+});
+
+it("container filter matches cards by their container's name", () => {
+  const containers = [
+    { id: 7, name: "Operations", planning_interval: "PI1-Q3", team_id: 1 },
+    { id: 8, name: "Operations", planning_interval: "PI2-Q4", team_id: 2 },
+  ];
+  const boxed = [
+    { ...items[0], id: 1, title: "Feat A", container_id: 7 },
+    { ...items[0], id: 3, title: "Feat C", container_id: null },
+  ];
+  render(
+    <BoardView
+      board={board}
+      items={boxed}
+      links={[]}
+      filters={{ container: "Operations" }}
+      containers={containers}
+      onOpenCard={() => {}}
+      onOpenStories={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  expect(screen.getByText("Feat A")).toBeInTheDocument();
+  expect(screen.queryByText("Feat C")).toBeNull();
 });
 
 it("drag handler sets status to the lane (and '' for Unscheduled) then reloads", async () => {

@@ -6,6 +6,7 @@ export interface BoardFilters {
   planning_interval?: string;
   leading_team?: string;
   assignee?: string;
+  container?: string;
   kinds?: ItemKind[];
   q?: string;
 }
@@ -16,6 +17,7 @@ export default function Toolbar({
   planningIntervals,
   teams,
   assignees,
+  containerNames = [],
   kindOptions,
 }: {
   filters: BoardFilters;
@@ -23,6 +25,7 @@ export default function Toolbar({
   planningIntervals: string[];
   teams: string[];
   assignees: string[];
+  containerNames?: string[];
   kindOptions: ItemKind[];
 }) {
   const [searchValue, setSearchValue] = useState(filters.q ?? "");
@@ -53,6 +56,7 @@ export default function Toolbar({
     !!filters.planning_interval ||
     !!filters.leading_team ||
     !!filters.assignee ||
+    !!filters.container ||
     !!filters.kinds?.length;
 
   return (
@@ -94,6 +98,12 @@ export default function Toolbar({
         value={filters.assignee}
         options={assignees}
         onChange={(v) => set({ assignee: v })}
+      />
+      <FilterSelect
+        label="Container"
+        value={filters.container}
+        options={containerNames}
+        onChange={(v) => set({ container: v })}
       />
 
       <div className="flex items-center gap-1.5">

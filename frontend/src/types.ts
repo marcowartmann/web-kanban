@@ -20,6 +20,7 @@ export interface Item {
   iteration: number | null;
   leading_team: string | null;
   supporting_team: string | null;
+  container_id: number | null;
   externer_partner: string | null;
   assignee: string | null;
   assignee_id: number | null;
@@ -131,6 +132,7 @@ export interface ItemUpdate {
   iteration?: number | null;
   leading_team?: string | null;
   supporting_team?: string | null;
+  container_id?: number | null;
   externer_partner?: string | null;
   assignee_id?: number | null;
   kategorie?: string | null;
@@ -149,6 +151,13 @@ export interface ItemUpdate {
 export interface Team {
   id: number;
   name: string;
+}
+
+export interface Container {
+  id: number;
+  name: string;
+  planning_interval: string;
+  team_id: number;
 }
 
 export interface PersonOption {
