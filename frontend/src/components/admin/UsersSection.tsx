@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ConflictError, deleteUser, getTeams, listUsers } from "../../api/client";
-import type { AuthUser, Team } from "../../types";
+import { ConflictError, deleteUser, getDepartments, getTeams, listUsers } from "../../api/client";
+import type { AuthUser, Department, Team } from "../../types";
 import ConfirmDialog from "../ConfirmDialog";
 import UserModal from "./UserModal";
 
@@ -12,6 +12,7 @@ const statusPill = (active: boolean) =>
 export default function UsersSection({ currentUserId }: { currentUserId: number }) {
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [editing, setEditing] = useState<AuthUser | null>(null);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +21,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
   const reload = () => {
     void listUsers().then(setUsers);
     void getTeams().then(setTeams);
+    void getDepartments().then(setDepartments);
   };
   useEffect(reload, []);
 
@@ -141,6 +143,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
         <UserModal
           mode="create"
           teams={teams}
+          departments={departments}
           currentUserId={currentUserId}
           onSaved={reload}
           onClose={() => setAdding(false)}
@@ -151,6 +154,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
           mode="edit"
           user={editing}
           teams={teams}
+          departments={departments}
           currentUserId={currentUserId}
           onSaved={reload}
           onClose={() => setEditing(null)}
