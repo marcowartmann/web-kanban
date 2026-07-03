@@ -76,7 +76,7 @@ function ManualRow({
       style={style}
       data-testid="manual-row"
       data-draggable={canMove}
-      className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm ${
+      className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm transition hover:bg-blue-50 ${
         canMove ? "cursor-grab bg-white" : "bg-gray-50 text-gray-400"
       }`}
       {...(canMove ? { ...attributes, ...listeners } : {})}
@@ -166,7 +166,7 @@ export default function RankingView({
           <h2 className="mb-2 text-sm font-semibold text-gray-700">WSJF ranking</h2>
           <div data-testid="wsjf-list" className="space-y-1">
             {wsjfOrder.map((f, i) => (
-              <div key={f.id} className="flex items-center gap-3 rounded-md border bg-white px-3 py-2 text-sm">
+              <div key={f.id} className="flex items-center gap-3 rounded-md border bg-white px-3 py-2 text-sm transition hover:bg-blue-50">
                 <span className="w-6 text-right tabular-nums text-gray-400">{i + 1}</span>
                 <span className="tabular-nums text-xs text-gray-400">#{f.id}</span>
                 <span data-testid="rank-title" className="flex-1 truncate text-gray-900">{f.title}</span>
