@@ -120,6 +120,7 @@ export default function ImportButton({
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={close}
+                disabled={busy}
                 className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
                 Cancel

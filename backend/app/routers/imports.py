@@ -153,7 +153,10 @@ def restore_snapshot(
     path = snapshot_path(name)
     if path is None:
         raise HTTPException(status_code=404, detail="Snapshot not found")
-    data = json.loads(path.read_text())
+    try:
+        data = json.loads(path.read_text())
+    except (ValueError, OSError):
+        raise HTTPException(status_code=400, detail="Snapshot is unreadable")
     write_snapshot(db, actor=current.email)  # restores are undoable too
     try:
         items, comments, links, warnings = restore_from_snapshot(db, data)

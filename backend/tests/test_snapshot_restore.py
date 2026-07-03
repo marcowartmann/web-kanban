@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import select
@@ -33,6 +34,7 @@ def _seed_rich(db):
     db.add(f2)
     db.flush()
     s1.parent_id = f2.id  # re-parented: parent_id > id
+    s1.updated_at = datetime(2020, 1, 2, 3, 4, 5)
     top = Comment(item_id=f1.id, author_id=author.id, body="top")
     db.add(top)
     db.flush()
@@ -148,3 +150,17 @@ def test_restore_writes_pre_restore_snapshot_and_audit(client, db_session):
     assert row.entity_type == "import"
     assert row.entity_label == name
     assert row.new_value == "items=3 comments=2 links=1"
+
+
+def test_restore_unreadable_snapshot_400(client, db_session):
+    import os
+    from pathlib import Path
+
+    name = "import-snapshot-20260101T000000-000000Z.json"
+    d = Path(os.environ["SNAPSHOT_DIR"])
+    d.mkdir(parents=True, exist_ok=True)
+    (d / name).write_text("{corrupt")
+    resp = client.post(f"/api/v1/import/snapshots/{name}/restore")
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "Snapshot is unreadable"
+    assert client.get("/api/v1/import/snapshots").json()["snapshots"] == []

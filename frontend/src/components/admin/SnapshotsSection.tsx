@@ -7,6 +7,7 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
   const [snapshots, setSnapshots] = useState<SnapshotInfo[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
 
   const reload = () => void listSnapshots().then(setSnapshots);
   useEffect(reload, []);
@@ -17,6 +18,7 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
     }
     setError(null);
     setStatus(null);
+    setRestoring(true);
     try {
       const r = await restoreSnapshot(name);
       setStatus(
@@ -27,6 +29,8 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
       onChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not restore the snapshot.");
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -76,6 +80,7 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
                       <button
                         onClick={() => restore(s.name)}
                         aria-label={`restore snapshot ${s.name}`}
+                        disabled={restoring}
                         className="text-xs font-semibold text-red-600 hover:underline"
                       >
                         Restore

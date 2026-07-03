@@ -102,3 +102,12 @@ def test_compute_state_stamp_moves_on_changes(client, db_session):
 
     assert len(set(stamps)) == len(stamps)
     assert all(len(s) == 16 for s in stamps)
+
+
+def test_list_snapshots_skips_unreadable_files(db_session):
+    _seed(db_session)
+    good = write_snapshot(db_session, actor="a@x.local")
+    d = _dir()
+    (d / "import-snapshot-20260101T000000-000000Z.json").write_text("{corrupt")
+    listed = list_snapshots()
+    assert [s["name"] for s in listed] == [good]

@@ -100,7 +100,10 @@ def list_snapshots() -> list[dict]:
         (p.name for p in directory.iterdir() if FILENAME_RE.match(p.name)),
         reverse=True,
     ):
-        data = json.loads((directory / name).read_text())
+        try:
+            data = json.loads((directory / name).read_text())
+        except (ValueError, OSError):
+            continue
         counts = data.get("counts", {})
         out.append(
             {
@@ -148,7 +151,7 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
                 db.execute(
                     update(Item.__table__)
                     .where(Item.__table__.c.id == row["id"])
-                    .values(parent_id=row["parent_id"])
+                    .values(parent_id=row["parent_id"], updated_at=row["updated_at"])
                 )
 
     existing_users = set(db.scalars(select(User.id)))
