@@ -57,6 +57,7 @@ function visible(
     if (f.leading_team && c.leading_team !== f.leading_team) return false;
     if (f.assignee && c.assignee !== f.assignee) return false;
     if (containerIds && (c.container_id == null || !containerIds.has(c.container_id))) return false;
+    if (f.department && c.department_name !== f.department) return false;
     if (q && !c.title.toLowerCase().includes(q)) return false;
     return true;
   });

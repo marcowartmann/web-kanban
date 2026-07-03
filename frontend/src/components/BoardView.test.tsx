@@ -70,6 +70,28 @@ it("container filter matches cards by their container's name", () => {
   expect(screen.queryByText("Feat C")).toBeNull();
 });
 
+it("department filter matches cards by their department name", () => {
+  const carded = [
+    { ...items[0], id: 1, title: "Feat A", department_name: "Frontend" },
+    { ...items[0], id: 3, title: "Feat C", department_name: "Backend" },
+    { ...items[0], id: 4, title: "Feat D", department_name: null },
+  ];
+  render(
+    <BoardView
+      board={board}
+      items={carded}
+      links={[]}
+      filters={{ department: "Frontend" }}
+      onOpenCard={() => {}}
+      onOpenStories={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  expect(screen.getByText("Feat A")).toBeInTheDocument();
+  expect(screen.queryByText("Feat C")).toBeNull();
+  expect(screen.queryByText("Feat D")).toBeNull();
+});
+
 it("drag handler sets status to the lane (and '' for Unscheduled) then reloads", async () => {
   const update = vi.spyOn(client, "updateItem").mockResolvedValue({} as never);
   const reload = vi.fn().mockResolvedValue(undefined);
