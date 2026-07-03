@@ -22,6 +22,17 @@ function renderView() {
   );
 }
 
+it("clicking a row's info icon opens the feature detail", async () => {
+  const onOpenCard = vi.fn();
+  render(
+    <RankingView items={items} planningIntervals={[]} teams={["Net", "Cloud"]} containers={[]} user={user} onOpenCard={onOpenCard} onChanged={vi.fn()} />,
+  );
+  const wsjf = screen.getByTestId("wsjf-list");
+  // The top WSJF row is "Bravo" (id 2, wsjf 20).
+  await userEvent.click(within(wsjf).getAllByRole("button", { name: /feature detail/i })[0]);
+  expect(onOpenCard).toHaveBeenCalledWith(2);
+});
+
 it("filters features by department", async () => {
   const withDept: Item[] = [
     { id: 1, kind: "feature", title: "Alpha", leading_team: "Net", wsjf_score: 10, manual_rank: null, department_name: "FE" } as Item,

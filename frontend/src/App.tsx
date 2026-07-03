@@ -159,6 +159,7 @@ export default function App() {
           containers={containers}
           departmentNames={departmentNames}
           user={user}
+          onOpenCard={openItem}
           onChanged={handleChanged}
         />
       ) : loading && !activeBoard ? (
