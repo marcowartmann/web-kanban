@@ -164,3 +164,39 @@ def test_restore_unreadable_snapshot_400(client, db_session):
     assert resp.status_code == 400
     assert resp.json()["detail"] == "Snapshot is unreadable"
     assert client.get("/api/v1/import/snapshots").json()["snapshots"] == []
+
+
+def test_restore_clears_dangling_assignees_with_warning(client, db_session):
+    person = client.post("/api/v1/users", json={"display_name": "Doomed"}).json()
+    item = Item(kind=ItemKind.FEATURE, title="Owned", position=0, assignee_id=person["id"])
+    db_session.add(item)
+    db_session.commit()
+    name = write_snapshot(db_session, actor="a@x.local")
+    _wipe(db_session)
+    assert client.delete(f"/api/v1/users/{person['id']}").status_code == 204
+
+    body = client.post(f"/api/v1/import/snapshots/{name}/restore").json()
+    assert "Cleared assignee for 1 item(s) whose user no longer exists" in body["warnings"]
+    db_session.expire_all()
+    assert db_session.query(Item).filter_by(title="Owned").one().assignee_id is None
+
+
+def test_restore_legacy_snapshot_warns_and_unassigns(client, db_session):
+    import json as _json
+    import os
+    from pathlib import Path
+
+    _seed_rich(db_session)
+    name = write_snapshot(db_session, actor="a@x.local")
+    path = Path(os.environ["SNAPSHOT_DIR"]) / name
+    data = _json.loads(path.read_text())
+    for row in data["items"]:
+        row.pop("assignee_id", None)
+        row["assignee"] = "Legacy Name"
+    path.write_text(_json.dumps(data))
+    _wipe(db_session)
+
+    body = client.post(f"/api/v1/import/snapshots/{name}/restore").json()
+    assert "Legacy snapshot: assignee names were not restored" in body["warnings"]
+    db_session.expire_all()
+    assert all(i.assignee_id is None for i in db_session.query(Item))

@@ -144,7 +144,21 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
     db.query(Item).delete()
     db.flush()
 
-    item_rows = [_revive(Item, r) for r in data.get("items", [])]
+    raw_items = data.get("items", [])
+    legacy_assignee = any("assignee" in r for r in raw_items)
+    if legacy_assignee:
+        warnings.append("Legacy snapshot: assignee names were not restored")
+    item_rows = [_revive(Item, r) for r in raw_items]
+    existing_user_ids = set(db.scalars(select(User.id)))
+    cleared_assignees = 0
+    for row in item_rows:
+        if row.get("assignee_id") is not None and row["assignee_id"] not in existing_user_ids:
+            row["assignee_id"] = None
+            cleared_assignees += 1
+    if cleared_assignees:
+        warnings.append(
+            f"Cleared assignee for {cleared_assignees} item(s) whose user no longer exists"
+        )
     if item_rows:
         db.execute(insert(Item.__table__), [{**r, "parent_id": None} for r in item_rows])
         for row in item_rows:
@@ -155,7 +169,6 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
                     .values(parent_id=row["parent_id"], updated_at=row["updated_at"])
                 )
 
-    existing_users = set(db.scalars(select(User.id)))
     kept_ids: set[int] = set()
     kept_rows: list[dict] = []
     skipped_author = 0
@@ -170,7 +183,7 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
         if row["parent_id"] is not None and row["parent_id"] not in kept_ids:
             skipped_parent += 1
             continue
-        if row["author_id"] not in existing_users:
+        if row["author_id"] not in existing_user_ids:
             skipped_author += 1
             continue
         kept_ids.add(row["id"])
