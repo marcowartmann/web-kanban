@@ -290,7 +290,7 @@ class LaneOrder(BaseModel):
 class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    email: str
+    email: str | None
     display_name: str
     role: str
     is_active: bool
@@ -298,12 +298,20 @@ class UserRead(BaseModel):
     team_name: str | None = None
 
 
+class PersonOption(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    display_name: str
+
+
 class LoginRequest(BaseModel):
     email: str
     password: str
 
 
-def _password_fits_bcrypt(value: str) -> str:
+def _password_fits_bcrypt(value: str | None) -> str | None:
+    if value is None:
+        return value
     if len(value.encode()) > 72:
         raise ValueError("password must be at most 72 bytes (multi-byte characters count extra)")
     return value
@@ -317,9 +325,9 @@ class PasswordChange(BaseModel):
 
 
 class UserCreate(BaseModel):
-    email: str = Field(min_length=3, max_length=255)
+    email: str | None = Field(default=None, min_length=3, max_length=255)
     display_name: str = Field(min_length=1, max_length=120)
-    password: str = Field(min_length=8, max_length=72)
+    password: str | None = Field(default=None, min_length=8, max_length=72)
     role: Literal["admin", "member"] = "member"
     team_id: int | None = None
 

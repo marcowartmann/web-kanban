@@ -3,14 +3,12 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.audit import log_event
-from app.auth import hash_password, require_admin
+from app.auth import hash_password, require_admin, require_user
 from app.db import get_db
 from app.models import Team, User, UserSession
-from app.schemas import UserCreate, UserRead, UserUpdate
+from app.schemas import PersonOption, UserCreate, UserRead, UserUpdate
 
-router = APIRouter(
-    prefix="/api/v1/users", tags=["users"], dependencies=[Depends(require_admin)]
-)
+router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
 
 def _get_or_404(db: Session, user_id: int) -> User:
@@ -27,7 +25,14 @@ def _team_label(db: Session, team_id: int | None) -> str | None:
     return team.name if team else str(team_id)
 
 
-@router.get("", response_model=list[UserRead])
+@router.get("/options", response_model=list[PersonOption])
+def user_options(
+    db: Session = Depends(get_db), current: User = Depends(require_user)
+) -> list[User]:
+    return list(db.scalars(select(User).order_by(User.display_name)))
+
+
+@router.get("", response_model=list[UserRead], dependencies=[Depends(require_admin)])
 def list_users(db: Session = Depends(get_db)) -> list[User]:
     return list(db.scalars(select(User).order_by(User.display_name)))
 
@@ -38,15 +43,17 @@ def create_user(
     db: Session = Depends(get_db),
     current: User = Depends(require_admin),
 ) -> User:
-    email = payload.email.strip().lower()
-    if db.scalar(select(User).where(func.lower(User.email) == email)):
+    email = payload.email.strip().lower() if payload.email else None
+    if payload.password is not None and email is None:
+        raise HTTPException(status_code=422, detail="Password requires an email")
+    if email and db.scalar(select(User).where(func.lower(User.email) == email)):
         raise HTTPException(status_code=409, detail="Email already in use")
     if payload.team_id is not None and db.get(Team, payload.team_id) is None:
         raise HTTPException(status_code=422, detail="team_id does not exist")
     user = User(
         email=email,
         display_name=payload.display_name,
-        password_hash=hash_password(payload.password),
+        password_hash=hash_password(payload.password) if payload.password else None,
         role=payload.role,
         team_id=payload.team_id,
     )
@@ -58,7 +65,7 @@ def create_user(
         event_type="user.created",
         entity_type="user",
         entity_id=user.id,
-        entity_label=user.email,
+        entity_label=user.email or user.display_name,
     )
     db.commit()
     db.refresh(user)
@@ -82,14 +89,19 @@ def update_user(
     for key in ("email", "display_name", "role", "is_active", "team_id"):
         if key in changes:
             audited[key] = getattr(user, key)
-    email = changes.pop("email", None)
-    if email is not None:
-        email = email.strip().lower()
-        if db.scalar(
-            select(User).where(func.lower(User.email) == email, User.id != user.id)
-        ):
-            raise HTTPException(status_code=409, detail="Email already in use")
-        user.email = email
+    if "email" in changes:
+        email = changes.pop("email")
+        if email is None:
+            if user.password_hash is not None:
+                raise HTTPException(status_code=422, detail="Remove the password first")
+            user.email = None
+        else:
+            email = email.strip().lower()
+            if db.scalar(
+                select(User).where(func.lower(User.email) == email, User.id != user.id)
+            ):
+                raise HTTPException(status_code=409, detail="Email already in use")
+            user.email = email
     if "team_id" in changes:  # distinguishes "not sent" from explicit null
         team_id = changes.pop("team_id")
         if team_id is not None and db.get(Team, team_id) is None:
@@ -113,7 +125,7 @@ def update_user(
             event_type="user.updated",
             entity_type="user",
             entity_id=user.id,
-            entity_label=user.email,
+            entity_label=user.email or user.display_name,
             field=key,
             old_value=old_out,
             new_value=new_out,
@@ -125,7 +137,7 @@ def update_user(
             event_type="user.updated",
             entity_type="user",
             entity_id=user.id,
-            entity_label=user.email,
+            entity_label=user.email or user.display_name,
             field="password",
             old_value="***",
             new_value="***",
@@ -136,3 +148,47 @@ def update_user(
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.delete("/{user_id}", status_code=204)
+def delete_user(
+    user_id: int,
+    force: bool = False,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> None:
+    user = _get_or_404(db, user_id)
+    if user.id == current.id:
+        raise HTTPException(status_code=422, detail="Admins cannot delete themselves")
+    from app.models import Comment, Item
+
+    comments = db.scalar(
+        select(func.count()).select_from(Comment).where(Comment.author_id == user.id)
+    )
+    if comments:
+        raise HTTPException(
+            status_code=409,
+            detail=f"User '{user.display_name}' has {comments} comments — deactivate instead",
+        )
+    if not force:
+        # Task-1 transitional: Item.assignee_id doesn't exist until Task 2, so this
+        # guard checks the current string column. Task 2 swaps it to
+        # `Item.assignee_id == user.id`.
+        assigned = db.scalar(
+            select(func.count()).select_from(Item).where(Item.assignee == user.display_name)
+        )
+        if assigned:
+            raise HTTPException(
+                status_code=409,
+                detail=f"User '{user.display_name}' is assigned to {assigned} items",
+            )
+    log_event(
+        db,
+        actor=current,
+        event_type="user.deleted",
+        entity_type="user",
+        entity_id=user.id,
+        entity_label=user.email or user.display_name,
+    )
+    db.delete(user)
+    db.commit()

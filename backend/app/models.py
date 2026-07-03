@@ -189,7 +189,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True)  # stored lowercase
+    email: Mapped[str | None] = mapped_column(String(255), unique=True)  # lowercase; NULL = cannot log in
     display_name: Mapped[str] = mapped_column(String(120))
     password_hash: Mapped[str | None] = mapped_column(String(255))  # None for future IdP users
     role: Mapped[str] = mapped_column(String(16), default="member")  # 'admin' | 'member'
