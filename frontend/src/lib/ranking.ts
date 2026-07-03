@@ -30,6 +30,13 @@ export function byManual(features: Item[]): Item[] {
   );
 }
 
+/** Map each feature id to its 1-based position in the WSJF ordering. */
+export function wsjfRankMap(features: Item[]): Map<number, number> {
+  const m = new Map<number, number>();
+  byWsjf(features).forEach((f, i) => m.set(f.id, i + 1));
+  return m;
+}
+
 /** Given the current manual order and a drag from activeId onto overId,
  *  return the id that ends up immediately before the moved item (the reorder
  *  anchor), or null if it moves to the top. */

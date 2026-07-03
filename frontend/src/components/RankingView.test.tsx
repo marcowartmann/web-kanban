@@ -28,6 +28,38 @@ it("renders the WSJF list in descending score order", () => {
   expect(titles).toEqual(["Bravo", "Alpha", "Charlie"]);
 });
 
+it("shows the feature id in both lists", () => {
+  renderView();
+  expect(within(screen.getByTestId("wsjf-list")).getByText("#2")).toBeInTheDocument();
+  expect(within(screen.getByTestId("manual-list")).getByText("#2")).toBeInTheDocument();
+});
+
+it("shows WSJF rank and a colored delta per manual row", () => {
+  // manual_rank set so manual order differs from WSJF order.
+  const ranked: Item[] = [
+    feat(1, "Alpha", "Net", 10, 1), // wsjf #2 → manual #1 → up 1
+    feat(2, "Bravo", "Cloud", 20, 2), // wsjf #1 → manual #2 → down 1
+    feat(3, "Charlie", "Net", 5, 3), // wsjf #3 → manual #3 → none
+  ];
+  render(
+    <RankingView items={ranked} planningIntervals={[]} teams={["Net", "Cloud"]} containers={[]} user={user} onChanged={vi.fn()} />,
+  );
+  const rows = within(screen.getByTestId("manual-list")).getAllByTestId("manual-row");
+  const byTitle = Object.fromEntries(
+    rows.map((r) => [within(r).getByTestId("rank-title").textContent, r]),
+  );
+  const alphaDelta = within(byTitle["Alpha"]).getByTestId("delta");
+  expect(alphaDelta).toHaveAttribute("data-direction", "up");
+  expect(alphaDelta.textContent).toContain("1");
+  expect(within(byTitle["Alpha"]).getByTestId("wsjf-rank").textContent).toContain("2");
+
+  const bravoDelta = within(byTitle["Bravo"]).getByTestId("delta");
+  expect(bravoDelta).toHaveAttribute("data-direction", "down");
+  expect(bravoDelta.textContent).toContain("1");
+
+  expect(within(byTitle["Charlie"]).getByTestId("delta")).toHaveAttribute("data-direction", "none");
+});
+
 it("marks only own-team rows draggable in the manual list", () => {
   renderView();
   const manual = screen.getByTestId("manual-list");
