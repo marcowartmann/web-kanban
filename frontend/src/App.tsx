@@ -84,6 +84,10 @@ export default function App() {
     () => [...new Set(containers.map((c) => c.name))].sort(),
     [containers],
   );
+  const departmentNames = useMemo(
+    () => [...new Set(departments.map((d) => d.name))].sort(),
+    [departments],
+  );
 
   const selectBoard = (id: number) => {
     setActiveBoardId(id);
@@ -168,6 +172,7 @@ export default function App() {
             teams={teams}
             assignees={assignees}
             containerNames={containerNames}
+            departmentNames={departmentNames}
             kindOptions={activeBoard.kinds}
           />
           <BoardView

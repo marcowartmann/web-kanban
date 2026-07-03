@@ -7,6 +7,7 @@ export interface BoardFilters {
   leading_team?: string;
   assignee?: string;
   container?: string;
+  department?: string;
   kinds?: ItemKind[];
   q?: string;
 }
@@ -18,6 +19,7 @@ export default function Toolbar({
   teams,
   assignees,
   containerNames = [],
+  departmentNames = [],
   kindOptions,
 }: {
   filters: BoardFilters;
@@ -26,6 +28,7 @@ export default function Toolbar({
   teams: string[];
   assignees: string[];
   containerNames?: string[];
+  departmentNames?: string[];
   kindOptions: ItemKind[];
 }) {
   const [searchValue, setSearchValue] = useState(filters.q ?? "");
@@ -57,6 +60,7 @@ export default function Toolbar({
     !!filters.leading_team ||
     !!filters.assignee ||
     !!filters.container ||
+    !!filters.department ||
     !!filters.kinds?.length;
 
   return (
@@ -104,6 +108,12 @@ export default function Toolbar({
         value={filters.container}
         options={containerNames}
         onChange={(v) => set({ container: v })}
+      />
+      <FilterSelect
+        label="Department"
+        value={filters.department}
+        options={departmentNames}
+        onChange={(v) => set({ department: v })}
       />
 
       <div className="flex items-center gap-1.5">
