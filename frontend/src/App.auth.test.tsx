@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "./api/client";
 import App from "./App";
@@ -17,17 +18,20 @@ function mockAppData(role: "admin" | "member") {
   vi.spyOn(client, "getPersonOptions").mockResolvedValue([] as never);
   vi.spyOn(client, "getTeams").mockResolvedValue([] as never);
   vi.spyOn(client, "getContainers").mockResolvedValue([] as never);
+  vi.spyOn(client, "listUsers").mockResolvedValue([] as never);
 }
 
-it("admins see the Admin tab and Import", async () => {
+it("admins reach Import CSV inside the Admin section", async () => {
   mockAppData("admin");
   render(
     <AuthProvider>
       <App />
     </AuthProvider>,
   );
-  expect(await screen.findByRole("button", { name: "Admin" })).toBeInTheDocument();
-  expect(screen.getByText(/import csv/i)).toBeInTheDocument();
+  // Import is no longer in the board header; it lives in Admin.
+  expect(screen.queryByText(/import csv/i)).not.toBeInTheDocument();
+  await userEvent.click(await screen.findByRole("button", { name: "Admin" }));
+  expect(await screen.findByRole("button", { name: /import csv/i })).toBeInTheDocument();
 });
 
 it("members see neither the Admin tab nor Import", async () => {

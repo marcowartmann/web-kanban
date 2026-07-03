@@ -3,18 +3,20 @@ import { useAuth } from "../../auth/AuthContext";
 import AuditLogSection from "./AuditLogSection";
 import CapacitySection from "./CapacitySection";
 import ContainersSection from "./ContainersSection";
+import ImportSection from "./ImportSection";
 import PlanningIntervalsSection from "./PlanningIntervalsSection";
 import SnapshotsSection from "./SnapshotsSection";
 import TeamsSection from "./TeamsSection";
 import UsersSection from "./UsersSection";
 
-type AdminSection = "users" | "teams" | "intervals" | "containers" | "snapshots" | "audit";
+type AdminSection = "users" | "teams" | "intervals" | "containers" | "import" | "snapshots" | "audit";
 
 const SECTIONS: { id: AdminSection; label: string; icon: string }[] = [
   { id: "users", label: "Users", icon: "👤" },
   { id: "teams", label: "Teams & Capacity", icon: "👥" },
   { id: "intervals", label: "Planning Intervals", icon: "🗓️" },
   { id: "containers", label: "Containers", icon: "📦" },
+  { id: "import", label: "Import CSV", icon: "📥" },
   { id: "snapshots", label: "Snapshots", icon: "🗂️" },
   { id: "audit", label: "Audit Log", icon: "📜" },
 ];
@@ -77,6 +79,7 @@ export default function AdminView({
           {section === "containers" && (
             <ContainersSection planningIntervals={planningIntervals} />
           )}
+          {section === "import" && <ImportSection onImported={onChanged} />}
           {section === "snapshots" && <SnapshotsSection onChanged={onChanged} />}
           {section === "audit" && <AuditLogSection />}
         </div>

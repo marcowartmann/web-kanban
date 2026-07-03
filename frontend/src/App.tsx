@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import BoardTabs from "./components/BoardTabs";
 import BoardView from "./components/BoardView";
-import ImportButton from "./components/ImportButton";
 import ItemDrawer from "./components/ItemDrawer";
 import NewItemBar from "./components/NewItemBar";
 import StoryBoardModal from "./components/StoryBoardModal";
@@ -121,12 +120,7 @@ export default function App() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          {view === "board" && (
-            <>
-              {isAdmin && <ImportButton onImported={handleChanged} />}
-              <NewItemBar onCreated={handleChanged} />
-            </>
-          )}
+          {view === "board" && <NewItemBar onCreated={handleChanged} />}
           <UserMenu user={user} onLoggedOut={() => setUser(null)} />
         </div>
       </header>
