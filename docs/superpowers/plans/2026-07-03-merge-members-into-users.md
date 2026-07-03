@@ -22,7 +22,7 @@
 - Audit: item assignee changes log `field="assignee"` with old/new display names; `user.deleted` label = email or display_name; capacity label `f"{display_name} · {pi} · I{iteration}"`.
 - Item.assignee_id: FK users `ON DELETE SET NULL`, index `ix_items_assignee_id`; list endpoint uses `selectinload(Item.assignee_user)`.
 - `/api/v1/users/options` (require_user) declared BEFORE `/{user_id}` routes; all other users endpoints keep admin-only via per-endpoint deps.
-- Suite math: backend 202 → 209 (T1) → 215 (T2) → 210 (T3) → 210 (T4) → 212 (T5); frontend 192 → 194 (T6) → 195 (T7) → 195 (T8) → 197 (T9). T10 changes no counts.
+- Suite math: backend 202 → 211 (T1, 9 tests) → 217 (T2) → 212 (T3) → 212 (T4) → 214 (T5); frontend 192 → 194 (T6) → 195 (T7) → 195 (T8) → 197 (T9). T10 changes no counts.
 - Migration 0015 `down_revision = "0014"`: MUST dry-run upgrade + downgrade + re-upgrade against compose Postgres AND run the seeded rehearsal (Task 4) before acceptance. DB left at 0015.
 - ENV (backend tasks), from repo root — the container does NOT bind-mount code:
   ```bash
@@ -40,7 +40,7 @@
 
 **Files:**
 - Modify: `backend/app/models.py` (User.email), `backend/app/schemas.py` (UserRead/UserCreate/UserUpdate), `backend/app/routers/users.py`
-- Test: `backend/tests/test_users_people.py` (new, 8 tests)
+- Test: `backend/tests/test_users_people.py` (new, 9 tests in this task; a 10th appended by Task 2)
 
 **Interfaces:**
 - Produces: `GET /api/v1/users/options` → `[{id, display_name}]` (require_user); `DELETE /api/v1/users/{id}?force=` with guards; person-only `POST /users` (no email/password).
@@ -128,6 +128,33 @@ def test_delete_is_audited(client, db_session):
     assert row.entity_label == "Bye P"
 
 
+def test_whitespace_email_is_treated_as_absent(client):
+    resp = client.post(
+        "/api/v1/users", json={"display_name": "W", "email": "   ", "password": "secret123"}
+    )
+    assert resp.status_code == 422
+    assert "Password requires an email" in resp.text
+
+    full = client.post(
+        "/api/v1/users",
+        json={"display_name": "WL", "email": "wl@x.local", "password": "secret123"},
+    ).json()
+    resp = client.patch(f"/api/v1/users/{full['id']}", json={"email": "   "})
+    assert resp.status_code == 422
+    assert resp.json()["detail"] == "Remove the password first"
+
+
+def test_member_blocked_from_new_user_endpoints(client, member_client):
+    person = client.post("/api/v1/users", json={"display_name": "Guarded"}).json()
+    assert member_client.delete(f"/api/v1/users/{person['id']}").status_code == 403
+    assert (
+        member_client.patch(
+            f"/api/v1/users/{person['id']}", json={"display_name": "Nope"}
+        ).status_code
+        == 403
+    )
+
+
 def test_options_is_member_accessible(client, member_client):
     _person(client, "Zeta")
     _person(client, "Alpha")
@@ -140,7 +167,7 @@ def test_options_is_member_accessible(client, member_client):
 ```
 
 NOTE (binding): `test_delete_assigned_409_then_force_nulls` needs `Item.assignee_id`,
-which Task 2 adds — Task 1 ships the file WITHOUT it (7 tests, suite 209) plus a
+which Task 2 adds — Task 1 ships the file WITHOUT it (9 tests, suite 211) plus a
 `# Task 2 appends test_delete_assigned_409_then_force_nulls` marker comment; Task 2
 appends it verbatim. Task 1's `delete_user` uses the transitional string-column check
 described in Step 5 so the guard logic itself ships now.
@@ -203,7 +230,7 @@ class PersonOption(BaseModel):
   - `create_user`: email/password optionality:
 
 ```python
-    email = payload.email.strip().lower() if payload.email else None
+    email = (payload.email or "").strip().lower() or None  # whitespace-only -> None
     if payload.password is not None and email is None:
         raise HTTPException(status_code=422, detail="Password requires an email")
     if email and db.scalar(select(User).where(func.lower(User.email) == email)):
@@ -225,6 +252,8 @@ class PersonOption(BaseModel):
 ```python
     if "email" in changes:
         email = changes.pop("email")
+        if email is not None:
+            email = email.strip().lower() or None  # whitespace-only counts as clearing
         if email is None:
             if user.password_hash is not None:
                 raise HTTPException(status_code=422, detail="Remove the password first")
@@ -289,7 +318,7 @@ def delete_user(
     (the current string column); Task 2 swaps it to `Item.assignee_id == user.id`.
     Sessions cascade via the existing FK; capacities cascade arrives with Task 3.
 
-- [ ] **Step 6: Full backend suite — expect 209 passed** (202 + 7). Existing
+- [ ] **Step 6: Full backend suite — expect 211 passed** (202 + 9). Existing
   `test_api_users.py` must stay green (create payloads there include email+password —
   unaffected).
 - [ ] **Step 7: Commit** — `git add backend && git commit -m "feat(backend): users as people — nullable email, person creation, delete guards, options"`
@@ -516,7 +545,7 @@ def test_import_creates_login_less_users_and_links_assignees(client, db_session)
   `test_member_rename_propagates_assignee` and `test_member_rename_conflict_and_delete_guard` (−2).
 - [ ] **Step 8: test_schema_hygiene.py** — the asserted index set swaps
   `"ix_items_assignee"` for `"ix_items_assignee_id"`.
-- [ ] **Step 9: Full backend suite — expect 215 passed** (209 + 6 new + 1 import + 1 appended − 2 renames). Fixture fallout sweep: any test constructing `Item(assignee=...)` or PATCHing `{"assignee": ...}` must be re-keyed (report each).
+- [ ] **Step 9: Full backend suite — expect 217 passed** (211 + 6 new + 1 import + 1 appended − 2 renames). Fixture fallout sweep: any test constructing `Item(assignee=...)` or PATCHing `{"assignee": ...}` must be re-keyed (report each).
 - [ ] **Step 10: Commit** — `git add backend && git commit -m "feat(backend): items assignee becomes a user FK served as display name"`
 
 ---
@@ -575,7 +604,7 @@ def test_import_creates_login_less_users_and_links_assignees(client, db_session)
 - [ ] **Step 5: Import** — `_seed_teams_and_members` → `_seed_teams_and_users`: the
   member-creation half now upserts login-less `User` rows via the same
   `_resolve_people` helper (teams half unchanged); `replace_all` call site renamed.
-- [ ] **Step 6: Full backend suite — expect 210 passed** (215 − 5).
+- [ ] **Step 6: Full backend suite — expect 212 passed** (217 − 5).
 - [ ] **Step 7: Commit** — `git add backend && git commit -m "feat(backend): capacities re-key to users; team_members removed"`
 
 ---
@@ -786,7 +815,7 @@ def downgrade() -> None:
   `assignee`-string PATCHes, which now 422 in the drawer; reads are unaffected
   (`assignee` display names are still served). Note this in your report so the
   controller can tell the user.
-- [ ] **Step 3: Full backend suite — expect 210 passed** (no pytest change).
+- [ ] **Step 3: Full backend suite — expect 212 passed** (no pytest change).
 - [ ] **Step 4: Commit** — `git add backend && git commit -m "feat(backend): migration 0015 — merge members into users, assignee FK, capacity re-key"`
 
 ---
@@ -858,7 +887,7 @@ def test_restore_legacy_snapshot_warns_and_unassigns(client, db_session):
   (`existing_users` for comments already exists later — reuse one
   `existing_user_ids` set for both; `User` import already local to the function.
   `_revive` ignores unknown keys like legacy `"assignee"` by construction.)
-- [ ] **Step 3: Full backend suite — expect 212 passed** (210 + 2).
+- [ ] **Step 3: Full backend suite — expect 214 passed** (212 + 2).
 - [ ] **Step 4: Commit** — `git add backend && git commit -m "feat(backend): snapshot restore repairs dangling assignees"`
 
 ---
@@ -1137,7 +1166,7 @@ print({k: len(v) for k, v in payload.items()})
   volume is local).
 - [ ] **Step 2: Rebuild** — `docker compose up -d --build backend frontend` (alembic
   no-ops at 0015).
-- [ ] **Step 3: Suites at HEAD on new images** — backend copy-dance **212 passed**
+- [ ] **Step 3: Suites at HEAD on new images** — backend copy-dance **214 passed**
   (then `rm -rf /app/tests`); frontend **197 passed** + tsc clean.
 - [ ] **Step 4: Smoke (read-only + scratch-person only):**
 
