@@ -4,7 +4,6 @@ import {
   deleteTeam,
   renamePlanningInterval,
   renameTeam,
-  renameTeamMember,
 } from "./client";
 
 const ok = (body: unknown) =>
@@ -15,11 +14,9 @@ afterEach(() => vi.restoreAllMocks());
 it("rename fns PATCH the right URLs", async () => {
   const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok({ id: 1 }));
   await renameTeam(1, "Net");
-  await renameTeamMember(2, "Anna");
   await renamePlanningInterval(3, "PI2");
   expect(spy).toHaveBeenNthCalledWith(1, "/api/v1/teams/1", expect.objectContaining({ method: "PATCH" }));
-  expect(spy).toHaveBeenNthCalledWith(2, "/api/v1/team-members/2", expect.objectContaining({ method: "PATCH" }));
-  expect(spy).toHaveBeenNthCalledWith(3, "/api/v1/planning-intervals/3", expect.objectContaining({ method: "PATCH" }));
+  expect(spy).toHaveBeenNthCalledWith(2, "/api/v1/planning-intervals/3", expect.objectContaining({ method: "PATCH" }));
 });
 
 it("delete fns append force=true only when forced", async () => {

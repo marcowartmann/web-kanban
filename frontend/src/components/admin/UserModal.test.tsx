@@ -75,3 +75,33 @@ it("create: save disabled until valid, then sends everything", async () => {
     team_id: 1,
   });
 });
+
+it("create: name only posts null email and password (person, no login)", async () => {
+  const create = vi.spyOn(client, "createUser").mockResolvedValue(ben);
+  render(<UserModal mode="create" teams={teams} currentUserId={1} onSaved={() => {}} onClose={() => {}} />);
+  await userEvent.type(screen.getByLabelText(/display name/i), "Cleo");
+  const save = screen.getByRole("button", { name: /^save$/i });
+  expect(save).not.toBeDisabled();
+  await userEvent.click(save);
+  expect(create).toHaveBeenCalledWith({
+    email: null,
+    display_name: "Cleo",
+    password: null,
+    role: "member",
+    team_id: null,
+  });
+});
+
+it("edit: clearing the email of a passworded user surfaces the server detail", async () => {
+  const update = vi.spyOn(client, "updateUser").mockRejectedValue(
+    new Error('422 Unprocessable Entity: {"detail":"Remove the password first"}'),
+  );
+  render(
+    <UserModal mode="edit" user={ben} teams={teams} currentUserId={1} onSaved={() => {}} onClose={() => {}} />,
+  );
+  const email = screen.getByLabelText(/email/i);
+  await userEvent.clear(email);
+  await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
+  expect(await screen.findByText("Remove the password first")).toBeInTheDocument();
+  expect(update).toHaveBeenCalledWith(2, { email: null });
+});

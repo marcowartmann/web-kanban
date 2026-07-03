@@ -3,7 +3,6 @@ import AuditLogSection from "./AuditLogSection";
 import CapacitySection from "./CapacitySection";
 import PlanningIntervalsSection from "./PlanningIntervalsSection";
 import SnapshotsSection from "./SnapshotsSection";
-import TeamMembersSection from "./TeamMembersSection";
 import TeamsSection from "./TeamsSection";
 import UsersSection from "./UsersSection";
 
@@ -23,9 +22,8 @@ export default function AdminView({
           Manage teams, members, planning intervals, and capacity.
         </p>
       </header>
-      <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid items-start gap-4 md:grid-cols-2">
         <TeamsSection onChanged={onChanged} />
-        <TeamMembersSection onChanged={onChanged} />
         <PlanningIntervalsSection onChanged={onChanged} />
       </div>
       <div className="mt-4">

@@ -103,7 +103,7 @@ export default function CapacitySection({
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 text-left text-[11px] uppercase tracking-wide text-gray-400">
-              <th className="py-2 pr-3 font-semibold">Member</th>
+              <th className="py-2 pr-3 font-semibold">Person</th>
               {ITERATION_SLOTS.map((slot) => (
                 <th key={slot} className="px-2 py-2 text-center font-semibold">
                   {iterationLabel(slot)}
@@ -138,7 +138,7 @@ export default function CapacitySection({
             {people.length === 0 && (
               <tr>
                 <td colSpan={ITERATION_SLOTS.length + 1} className="py-4 text-center text-gray-400">
-                  No team members yet.
+                  No people yet.
                 </td>
               </tr>
             )}

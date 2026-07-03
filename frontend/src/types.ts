@@ -151,13 +151,6 @@ export interface Team {
   name: string;
 }
 
-export interface TeamMember {
-  id: number;
-  name: string;
-  team_id: number | null;
-  team_name: string | null;
-}
-
 export interface PersonOption {
   id: number;
   display_name: string;

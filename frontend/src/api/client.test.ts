@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createItem, createLink, createTeamMember, deleteLink, getBoards, getTeams, importCsv, listItems, listLinks, listSnapshots, previewImport, reorderLanes, restoreSnapshot, updateItem } from "./client";
+import { createItem, createLink, deleteLink, getBoards, getTeams, importCsv, listItems, listLinks, listSnapshots, previewImport, reorderLanes, restoreSnapshot, updateItem } from "./client";
 import { createPlanningInterval, deletePlanningInterval, getPlanningIntervals } from "./client";
 import { deleteUser, getPersonOptions } from "./client";
 
@@ -89,15 +89,6 @@ describe("api client", () => {
     const teams = await getTeams();
     expect(spy).toHaveBeenCalledWith("/api/v1/teams", undefined);
     expect(teams[0].name).toBe("Network");
-  });
-
-  it("createTeamMember posts name + team_id", async () => {
-    const spy = mockFetch(201, { id: 1, name: "Marco", team_id: 2, team_name: "Network" });
-    await createTeamMember({ name: "Marco", team_id: 2 });
-    const [url, init] = spy.mock.calls[0];
-    expect(url).toBe("/api/v1/team-members");
-    expect(init?.method).toBe("POST");
-    expect(JSON.parse(init?.body as string)).toEqual({ name: "Marco", team_id: 2 });
   });
 
   it("getBoards fetches /api/v1/boards", async () => {

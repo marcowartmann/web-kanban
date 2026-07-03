@@ -17,7 +17,6 @@ import type {
   RestoreResult,
   SnapshotInfo,
   Team,
-  TeamMember,
 } from "../types";
 
 /** Versioned API base. Breaking changes bump this (see the /api/v1 spec). */
@@ -155,25 +154,6 @@ export function deleteTeam(id: number, force = false): Promise<void> {
   return request<void>(`${API}/teams/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
-export function getTeamMembers(): Promise<TeamMember[]> {
-  return request<TeamMember[]>(`${API}/team-members`);
-}
-
-export function createTeamMember(body: {
-  name: string;
-  team_id?: number | null;
-}): Promise<TeamMember> {
-  return request<TeamMember>(`${API}/team-members`, json(body));
-}
-
-export function renameTeamMember(id: number, name: string): Promise<TeamMember> {
-  return request<TeamMember>(`${API}/team-members/${id}`, { ...json({ name }), method: "PATCH" });
-}
-
-export function deleteTeamMember(id: number, force = false): Promise<void> {
-  return request<void>(`${API}/team-members/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
-}
-
 export function getBoards(): Promise<Board[]> {
   return request<Board[]>(`${API}/boards`);
 }
@@ -251,9 +231,9 @@ export function listUsers(): Promise<AuthUser[]> {
 }
 
 export function createUser(payload: {
-  email: string;
+  email: string | null;
   display_name: string;
-  password: string;
+  password: string | null;
   role: "admin" | "member";
   team_id?: number | null;
 }): Promise<AuthUser> {
@@ -264,7 +244,7 @@ export function updateUser(
   id: number,
   payload: Partial<{
     display_name: string;
-    email: string;
+    email: string | null;
     role: "admin" | "member";
     is_active: boolean;
     password: string;

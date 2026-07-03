@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getTeams, listUsers } from "../../api/client";
+import { ConflictError, deleteUser, getTeams, listUsers } from "../../api/client";
 import type { AuthUser, Team } from "../../types";
 import UserModal from "./UserModal";
 
@@ -13,12 +13,38 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
   const [teams, setTeams] = useState<Team[]>([]);
   const [editing, setEditing] = useState<AuthUser | null>(null);
   const [adding, setAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const reload = () => {
     void listUsers().then(setUsers);
     void getTeams().then(setTeams);
   };
   useEffect(reload, []);
+
+  const remove = async (u: AuthUser) => {
+    setError(null);
+    try {
+      await deleteUser(u.id);
+    } catch (e) {
+      if (e instanceof ConflictError) {
+        if (!e.detail.includes("deactivate instead") && window.confirm(`${e.detail} Delete anyway?`)) {
+          try {
+            await deleteUser(u.id, true);
+          } catch (forced) {
+            setError(forced instanceof Error ? forced.message : "Could not delete the user.");
+            return;
+          }
+        } else {
+          if (e.detail.includes("deactivate instead")) setError(e.detail);
+          return;
+        }
+      } else {
+        setError(e instanceof Error ? e.message : "Could not delete the user.");
+        return;
+      }
+    }
+    reload();
+  };
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ring-1 ring-black/5">
@@ -37,9 +63,11 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
           onClick={() => setAdding(true)}
           className="ml-auto rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
         >
-          + Add user
+          + Add person
         </button>
       </header>
+
+      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
@@ -63,20 +91,31 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
                 >
                   {u.display_name}
                 </td>
-                <td className="px-2 py-2 text-gray-600">{u.email}</td>
+                <td className="px-2 py-2 text-gray-600">{u.email ?? "—"}</td>
                 <td className="px-2 py-2 text-gray-600">{u.team_name ?? "—"}</td>
                 <td className="px-2 py-2 text-gray-600">{u.role}</td>
                 <td className="px-2 py-2">
                   <span className={statusPill(u.is_active)}>{u.is_active ? "active" : "inactive"}</span>
                 </td>
                 <td className="px-2 py-2 text-right">
-                  <button
-                    aria-label={`edit user ${u.display_name}`}
-                    onClick={() => setEditing(u)}
-                    className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
-                  >
-                    Edit
-                  </button>
+                  <span className="inline-flex gap-1.5">
+                    <button
+                      aria-label={`edit user ${u.display_name}`}
+                      onClick={() => setEditing(u)}
+                      className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+                    >
+                      Edit
+                    </button>
+                    {u.id !== currentUserId && (
+                      <button
+                        aria-label={`delete user ${u.display_name}`}
+                        onClick={() => void remove(u)}
+                        className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </span>
                 </td>
               </tr>
             ))}

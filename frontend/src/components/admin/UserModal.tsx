@@ -34,10 +34,10 @@ export default function UserModal({
   const [busy, setBusy] = useState(false);
 
   const isSelf = mode === "edit" && user?.id === currentUserId;
-  const valid =
-    name.trim().length > 0 &&
-    email.trim().length >= 3 &&
-    (mode === "edit" ? password === "" || password.length >= 8 : password.length >= 8);
+  const emailOk = email.trim() === "" || email.trim().length >= 3;
+  const passwordOk =
+    password === "" ? true : password.length >= 8 && email.trim().length >= 3;
+  const valid = name.trim().length > 0 && emailOk && passwordOk;
 
   const save = async () => {
     if (!valid || busy) return;
@@ -46,16 +46,20 @@ export default function UserModal({
     try {
       if (mode === "create") {
         await createUser({
-          email: email.trim(),
+          email: email.trim() === "" ? null : email.trim(),
           display_name: name.trim(),
-          password,
+          password: password === "" ? null : password,
           role,
           team_id: teamId,
         });
       } else if (user) {
         const diff: Parameters<typeof updateUser>[1] = {};
         if (name.trim() !== user.display_name) diff.display_name = name.trim();
-        if (email.trim().toLowerCase() !== user.email) diff.email = email.trim();
+        const trimmedEmail = email.trim();
+        const currentEmail = user.email ?? "";
+        if (trimmedEmail.toLowerCase() !== currentEmail) {
+          diff.email = trimmedEmail === "" ? null : trimmedEmail;
+        }
         if ((user.team_id ?? null) !== teamId) diff.team_id = teamId;
         if (role !== user.role) diff.role = role;
         if (active !== user.is_active) diff.is_active = active;
@@ -94,7 +98,13 @@ export default function UserModal({
           </label>
           <label className="col-span-2 block">
             <span className={caption}>Email</span>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Optional — needed to log in"
+              className={field}
+            />
           </label>
           <label className="block">
             <span className={caption}>Team</span>
