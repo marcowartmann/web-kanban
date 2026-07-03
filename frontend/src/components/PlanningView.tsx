@@ -44,12 +44,14 @@ export default function PlanningView({
   items,
   links,
   planningIntervals,
+  departmentNames = [],
   onOpenCard,
   onChanged,
 }: {
   items: Item[];
   links: LinkRow[];
   planningIntervals: string[];
+  departmentNames?: string[];
   onOpenCard: (id: number) => void;
   onChanged: () => void | Promise<void>;
 }) {
@@ -59,6 +61,7 @@ export default function PlanningView({
   const [capacities, setCapacities] = useState<Capacity[]>([]);
   const [teamId, setTeamId] = useState<number | null>(null);
   const [assigneeName, setAssigneeName] = useState<string | null>(null);
+  const [department, setDepartment] = useState<string | null>(null);
   const [showCapacity, setShowCapacity] = useState(false);
   // On ⚠ hover: the card + its conflict partners stay lit; other cards dim.
   const [highlight, setHighlight] = useState<Set<number> | null>(null);
@@ -107,8 +110,9 @@ export default function PlanningView({
     if (!pi) return null;
     let scoped = team ? items.filter((i) => i.leading_team === team.name) : items;
     if (assigneeName) scoped = scoped.filter((i) => i.assignee === assigneeName);
+    if (department) scoped = scoped.filter((i) => i.department_name === department);
     return groupStoriesByIteration(scoped, pi);
-  }, [items, pi, team, assigneeName]);
+  }, [items, pi, team, assigneeName, department]);
 
   // Dependency badges + timeline conflicts, computed over the full (unfiltered)
   // item list so a blocker hidden by the team/assignee filter is still detected.
@@ -191,6 +195,14 @@ export default function PlanningView({
             value={assigneeName ?? undefined}
             options={assigneeOptions}
             onChange={(v) => setAssigneeName(v ?? null)}
+          />
+        </div>
+        <div>
+          <FilterSelect
+            label="Department"
+            value={department ?? undefined}
+            options={departmentNames}
+            onChange={(v) => setDepartment(v ?? null)}
           />
         </div>
 

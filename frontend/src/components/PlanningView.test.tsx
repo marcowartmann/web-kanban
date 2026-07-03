@@ -85,6 +85,28 @@ it("filters to an assignee and scopes capacity to them", async () => {
   expect(screen.getByText("3 / 5 SP")).toBeInTheDocument();
 });
 
+it("filters the stories by department", async () => {
+  const items = [
+    story({ id: 1, title: "FE Story", iteration: 2, department_name: "FE" }),
+    story({ id: 2, title: "BE Story", iteration: 2, department_name: "BE" }),
+  ];
+  render(
+    <PlanningView
+      items={items}
+      links={[]}
+      planningIntervals={["PI1-Q3"]}
+      departmentNames={["FE", "BE"]}
+      onOpenCard={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  expect(await screen.findByText("BE Story")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: /department/i }));
+  await userEvent.click(screen.getByRole("option", { name: "FE" }));
+  expect(screen.getByText("FE Story")).toBeInTheDocument();
+  expect(screen.queryByText("BE Story")).not.toBeInTheDocument();
+});
+
 it("assigns the iteration slot on drop, and null for the backlog", async () => {
   const update = vi.spyOn(client, "updateItem").mockResolvedValue({} as never);
   const reload = vi.fn().mockResolvedValue(undefined);

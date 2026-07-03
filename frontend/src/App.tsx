@@ -138,6 +138,7 @@ export default function App() {
           items={items}
           links={links}
           planningIntervals={planningIntervals}
+          departmentNames={departmentNames}
           onOpenCard={openItem}
           onChanged={handleChanged}
         />
@@ -146,6 +147,7 @@ export default function App() {
           items={items}
           links={links}
           planningIntervals={planningIntervals}
+          departmentNames={departmentNames}
           onOpenCard={openItem}
           onChanged={handleChanged}
         />
@@ -155,6 +157,7 @@ export default function App() {
           planningIntervals={planningIntervals}
           teams={teams}
           containers={containers}
+          departmentNames={departmentNames}
           user={user}
           onChanged={handleChanged}
         />

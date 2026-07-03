@@ -65,6 +65,29 @@ it("filters feature lanes by title or id via the search field", async () => {
   expect(screen.queryByText("Checkout")).not.toBeInTheDocument();
 });
 
+it("filters feature lanes by department", async () => {
+  const items = [
+    feature(1, { title: "Checkout", department_name: "FE" }),
+    story(11, 1, 1),
+    feature(2, { title: "Payments", department_name: "BE" }),
+    story(21, 2, 1),
+  ];
+  render(
+    <TimelineView
+      items={items}
+      links={[]}
+      planningIntervals={["PI1-Q3"]}
+      departmentNames={["FE", "BE"]}
+      onOpenCard={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  await userEvent.click(screen.getByRole("button", { name: /department/i }));
+  await userEvent.click(screen.getByRole("option", { name: "FE" }));
+  expect(screen.getByText("Checkout")).toBeInTheDocument();
+  expect(screen.queryByText("Payments")).not.toBeInTheDocument();
+});
+
 it("dependencies mode narrows to the selected item's transitive component", async () => {
   const items = [feature(1), story(11, 1, 1), story(12, 1, 2), story(13, 1, 3)];
   const links = [

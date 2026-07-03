@@ -75,6 +75,7 @@ export default function RankingView({
   planningIntervals,
   teams,
   containers,
+  departmentNames = [],
   user,
   onChanged,
 }: {
@@ -82,12 +83,14 @@ export default function RankingView({
   planningIntervals: string[];
   teams: string[];
   containers: Container[];
+  departmentNames?: string[];
   user: AuthUser;
   onChanged: () => void | Promise<void>;
 }) {
   const [pi, setPi] = useState<string | undefined>();
   const [team, setTeam] = useState<string | undefined>();
   const [container, setContainer] = useState<string | undefined>();
+  const [department, setDepartment] = useState<string | undefined>();
   const sensors = useSensors(useSensor(PointerSensor));
 
   const containerName = useMemo(() => {
@@ -102,9 +105,10 @@ export default function RankingView({
           it.kind === "feature" &&
           (pi === undefined || it.planning_interval === pi) &&
           (team === undefined || it.leading_team === team) &&
-          (container === undefined || containerName(it) === container),
+          (container === undefined || containerName(it) === container) &&
+          (department === undefined || it.department_name === department),
       ),
-    [items, pi, team, container, containerName],
+    [items, pi, team, container, department, containerName],
   );
 
   const wsjfOrder = useMemo(() => byWsjf(features), [features]);
@@ -126,6 +130,7 @@ export default function RankingView({
         <FilterSelect label="Interval" value={pi} options={planningIntervals} onChange={setPi} />
         <FilterSelect label="Team" value={team} options={teams} onChange={setTeam} />
         <FilterSelect label="Container" value={container} options={[...new Set(containers.map((c) => c.name))]} onChange={setContainer} />
+        <FilterSelect label="Department" value={department} options={departmentNames} onChange={setDepartment} />
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section>

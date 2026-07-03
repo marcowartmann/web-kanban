@@ -11,6 +11,7 @@ import { ITERATION_SLOTS, iterationLabel } from "../lib/iterations";
 import { computePlanningLinks } from "../lib/planningLinks";
 import { dependencyComponent, groupByFeature, layoutFlat, type FeatureLane } from "../lib/timeline";
 import type { Item, LinkRow } from "../types";
+import FilterSelect from "./FilterSelect";
 import TimelineLane, { type TimelineColumn } from "./TimelineLane";
 
 export async function handleTimelineDragEnd(
@@ -37,18 +38,21 @@ export default function TimelineView({
   items,
   links,
   planningIntervals,
+  departmentNames = [],
   onOpenCard,
   onChanged,
 }: {
   items: Item[];
   links: LinkRow[];
   planningIntervals: string[];
+  departmentNames?: string[];
   onOpenCard: (id: number) => void;
   onChanged: () => void | Promise<void>;
 }) {
   const [pi, setPi] = useState<string | null>(planningIntervals[0] ?? null);
   const [showAll, setShowAll] = useState(true);
   const [query, setQuery] = useState("");
+  const [department, setDepartment] = useState<string | null>(null);
   const [highlight, setHighlight] = useState<Set<number> | null>(null);
   const onHighlight = (ids: number[] | null) => setHighlight(ids ? new Set(ids) : null);
   const [mode, setMode] = useState<"feature" | "deps">("feature");
@@ -79,13 +83,17 @@ export default function TimelineView({
   // while a query is active.
   const filteredLanes = useMemo(() => {
     const q = query.trim().toLowerCase().replace(/^#/, "");
-    if (!q) return lanes;
-    return lanes.filter(
-      (lane) =>
-        lane.feature != null &&
-        (lane.feature.title.toLowerCase().includes(q) || String(lane.feature.id).includes(q)),
-    );
-  }, [lanes, query]);
+    return lanes.filter((lane) => {
+      if (department && lane.feature?.department_name !== department) return false;
+      if (q) {
+        return (
+          lane.feature != null &&
+          (lane.feature.title.toLowerCase().includes(q) || String(lane.feature.id).includes(q))
+        );
+      }
+      return true;
+    });
+  }, [lanes, query, department]);
   const depsLane: FeatureLane = useMemo(() => {
     let base: Item[] = [];
     if (pi) {
@@ -134,6 +142,14 @@ export default function TimelineView({
             <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Lanes</span>
             <button onClick={() => setShowAll(true)} className={pill(showAll)}>Show all</button>
             <button onClick={() => setShowAll(false)} className={pill(!showAll)}>Only planned</button>
+            <div className="ml-2">
+              <FilterSelect
+                label="Department"
+                value={department ?? undefined}
+                options={departmentNames}
+                onChange={(v) => setDepartment(v ?? null)}
+              />
+            </div>
           </>
         )}
       </div>
