@@ -86,6 +86,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
               <th className="px-2 py-2 font-semibold">Email</th>
               <th className="px-2 py-2 font-semibold">Team</th>
               <th className="px-2 py-2 font-semibold">Role</th>
+              <th className="px-2 py-2 font-semibold">Auth</th>
               <th className="px-2 py-2 font-semibold">Status</th>
               <th className="px-2 py-2" />
             </tr>
@@ -103,6 +104,19 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
                 <td className="px-2 py-2 text-gray-600">{u.email ?? "—"}</td>
                 <td className="px-2 py-2 text-gray-600">{u.team_name ?? "—"}</td>
                 <td className="px-2 py-2 text-gray-600">{u.role}</td>
+                <td className="px-2 py-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      u.auth_provider === "ldap"
+                        ? "bg-indigo-50 text-indigo-700"
+                        : u.auth_provider === "oidc"
+                          ? "bg-violet-50 text-violet-700"
+                          : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {u.auth_provider === "ldap" ? "LDAP" : u.auth_provider === "oidc" ? "OIDC" : "Local"}
+                  </span>
+                </td>
                 <td className="px-2 py-2">
                   <span className={statusPill(u.is_active)}>{u.is_active ? "active" : "inactive"}</span>
                 </td>
@@ -130,7 +144,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-4 text-center text-gray-400">
+                <td colSpan={7} className="py-4 text-center text-gray-400">
                   No users yet.
                 </td>
               </tr>

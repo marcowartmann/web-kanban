@@ -213,6 +213,7 @@ export interface AuthUser {
   display_name: string;
   role: "admin" | "member";
   is_active: boolean;
+  auth_provider?: "local" | "ldap" | "oidc";
   team_id?: number | null;
   team_name?: string | null;
 }

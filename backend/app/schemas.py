@@ -304,6 +304,7 @@ class UserRead(BaseModel):
     display_name: str
     role: str
     is_active: bool
+    auth_provider: str = "local"
     team_id: int | None = None
     team_name: str | None = None
 

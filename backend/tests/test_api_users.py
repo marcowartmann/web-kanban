@@ -293,3 +293,16 @@ def test_set_user_departments_unknown_422(anon_client, db_session):
     resp = anon_client.put(f"/api/v1/users/{member.id}/departments", json={"department_ids": [9999]})
     assert resp.status_code == 422
     app.dependency_overrides.clear()
+
+
+def test_user_read_includes_auth_provider(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    ldapu = _seed(db_session, "l@x.ch", username="ldapu")
+    ldapu.auth_provider = "ldap"
+    db_session.commit()
+    _as(admin)
+    body = anon_client.get("/api/v1/users").json()
+    providers = {u["username"]: u["auth_provider"] for u in body}
+    assert providers["admin"] == "local"
+    assert providers["ldapu"] == "ldap"
+    app.dependency_overrides.clear()
