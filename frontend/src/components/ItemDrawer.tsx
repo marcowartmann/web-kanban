@@ -10,7 +10,7 @@ import {
   listItems,
   updateItem,
 } from "../api/client";
-import type { Item, ItemKind, ItemUpdate, RelationOption } from "../types";
+import type { Item, ItemKind, ItemUpdate, PersonOption, RelationOption } from "../types";
 import Field from "./Field";
 import ItemActivity from "./ItemActivity";
 import ItemComments from "./ItemComments";
@@ -41,7 +41,7 @@ const withCurrent = (current: string | null, options: string[]): string[] =>
 
 export default function ItemDrawer({
   itemId,
-  assigneeOptions = [],
+  people = [],
   statusOptionsByKind = {},
   planningIntervalOptions = [],
   leadingTeamOptions = [],
@@ -54,7 +54,7 @@ export default function ItemDrawer({
   onLinksChanged,
 }: {
   itemId: number;
-  assigneeOptions?: string[];
+  people?: PersonOption[];
   statusOptionsByKind?: Partial<Record<ItemKind, string[]>>;
   planningIntervalOptions?: string[];
   leadingTeamOptions?: string[];
@@ -312,10 +312,18 @@ export default function ItemDrawer({
             </span>
             <SearchableSelect
               ariaLabel="Assignee"
-              value={(value("assignee") as string | null) || null}
-              options={assigneeOptions}
-              onChange={(v) => setDraft((d) => ({ ...d, assignee: v ?? "" }))}
-              placeholder="Search team member…"
+              value={
+                people.find((p) => p.id === (value("assignee_id") as number | null))
+                  ?.display_name ?? (item.assignee || null)
+              }
+              options={people.map((p) => p.display_name)}
+              onChange={(v) =>
+                setDraft((d) => ({
+                  ...d,
+                  assignee_id: v == null ? null : people.find((p) => p.display_name === v)?.id ?? null,
+                }))
+              }
+              placeholder="Search person…"
             />
           </label>
         </Section>

@@ -12,8 +12,9 @@ import TimelineView from "./components/TimelineView";
 import UserMenu from "./components/UserMenu";
 import { useAuth } from "./auth/AuthContext";
 import { useBoard } from "./hooks/useBoard";
-import { getTeamMembers, getTeams } from "./api/client";
+import { getPersonOptions, getTeams } from "./api/client";
 import { statusOptionsByKind } from "./lib/boardLanes";
+import type { PersonOption } from "./types";
 
 type View = "board" | "admin" | "planning" | "timeline";
 
@@ -48,7 +49,7 @@ export default function App() {
   const closePanels = () => setPanels([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<BoardFilters>({});
-  const [assigneeOptions, setAssigneeOptions] = useState<string[]>([]);
+  const [people, setPeople] = useState<PersonOption[]>([]);
   const [leadingTeamOptions, setLeadingTeamOptions] = useState<string[]>([]);
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function App() {
   }, [boards, activeBoardId]);
 
   useEffect(() => {
-    void getTeamMembers().then((ms) => setAssigneeOptions(ms.map((m) => m.name)));
+    void getPersonOptions().then(setPeople);
   }, [refreshKey]);
 
   useEffect(() => {
@@ -185,7 +186,7 @@ export default function App() {
             <ItemDrawer
               key={id}
               itemId={id}
-              assigneeOptions={assigneeOptions}
+              people={people}
               statusOptionsByKind={statusOptions}
               planningIntervalOptions={planningIntervals}
               leadingTeamOptions={leadingTeamOptions}

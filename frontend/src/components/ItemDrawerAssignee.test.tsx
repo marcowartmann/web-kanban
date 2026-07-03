@@ -17,20 +17,40 @@ const item = {
   definition_of_done: null, children: [],
 };
 
-it("assigns a team member from the strict dropdown and saves it", async () => {
+const people = [{ id: 7, display_name: "Worker" }];
+
+it("assigns a person from the strict dropdown and saves it by id", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue(item as never);
   const update = vi.spyOn(client, "updateItem").mockResolvedValue(item as never);
   render(
     <ItemDrawer
       itemId={5}
-      assigneeOptions={["Marco Wartmann", "Adrian Senn"]}
+      people={people}
       onClose={() => {}}
       onChanged={() => {}}
     />,
   );
   await screen.findByDisplayValue("F");
   fireEvent.focus(screen.getByRole("combobox", { name: "Assignee" }));
-  fireEvent.mouseDown(screen.getByText("Marco Wartmann"));
+  fireEvent.mouseDown(screen.getByText("Worker"));
   fireEvent.click(screen.getByRole("button", { name: /save/i }));
-  expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ assignee: "Marco Wartmann" }));
+  expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ assignee_id: 7 }));
+});
+
+it("clears the assignee and saves a null id", async () => {
+  const assigned = { ...item, assignee: "Worker", assignee_id: 7 };
+  vi.spyOn(client, "getItem").mockResolvedValue(assigned as never);
+  const update = vi.spyOn(client, "updateItem").mockResolvedValue(assigned as never);
+  render(
+    <ItemDrawer
+      itemId={5}
+      people={people}
+      onClose={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  await screen.findByDisplayValue("F");
+  fireEvent.click(screen.getByRole("button", { name: "Clear Assignee" }));
+  fireEvent.click(screen.getByRole("button", { name: /save/i }));
+  expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ assignee_id: null }));
 });

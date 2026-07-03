@@ -14,7 +14,7 @@ function mockAppData(role: "admin" | "member") {
   vi.spyOn(client, "listItems").mockResolvedValue([] as never);
   vi.spyOn(client, "listLinks").mockResolvedValue([] as never);
   vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([] as never);
-  vi.spyOn(client, "getTeamMembers").mockResolvedValue([] as never);
+  vi.spyOn(client, "getPersonOptions").mockResolvedValue([] as never);
   vi.spyOn(client, "getTeams").mockResolvedValue([] as never);
 }
 
