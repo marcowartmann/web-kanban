@@ -30,6 +30,17 @@ it("renders the table with email, team, and status", async () => {
   expect(screen.getByText("inactive")).toBeInTheDocument();
 });
 
+it("shows the auth provider (LDAP vs Local) per user", async () => {
+  vi.spyOn(client, "listUsers").mockResolvedValue([
+    { ...anna, auth_provider: "ldap" },
+    { ...ben, auth_provider: "local" },
+  ] as never);
+  vi.spyOn(client, "getTeams").mockResolvedValue([{ id: 1, name: "Network" }] as never);
+  render(<UsersSection currentUserId={1} />);
+  expect(await screen.findByText("LDAP")).toBeInTheDocument();
+  expect(screen.getByText("Local")).toBeInTheDocument();
+});
+
 it("opens the edit modal prefilled, and the add modal", async () => {
   mockData();
   render(<UsersSection currentUserId={1} />);
