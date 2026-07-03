@@ -18,7 +18,7 @@
 - `app/timeutil.py` `utcnow()` returns aware `datetime.now(timezone.utc)`. auth.py re-exports it (`from app.timeutil import utcnow`) — the comments router's `from app.auth import utcnow` must keep working. models.py imports from `app.timeutil` (never from app.auth — cycle).
 - Access log: logger name `app.access`; JSON keys EXACTLY `ts, level, logger, request_id, method, path, status, duration_ms` (+ `message`, `traceback` on ERROR); level values lowercase. Request-ID accept regex `^[A-Za-z0-9-]{1,64}$`, else `uuid.uuid4().hex`. Response header `X-Request-ID` always set. `/api/health` NEVER produces an access record.
 - Health: 200 `{"status":"ok"}` / 503 `{"status":"unavailable"}`; URL `/api/health` unversioned, unchanged.
-- Suite math: backend 190 → 194 (T1) → 201 (T2) → 203 (T3); frontend stays 192 (no FE changes; T4 runs it once for regression).
+- Suite math: backend 190 → 194 (T1) → 201 (T2) → 202 (T3; test_health.py pre-existed with test_health_ok — net +1); frontend stays 192 (no FE changes; T4 runs it once for regression).
 - ENV (backend tasks): the backend container does NOT bind-mount code. Before pytest (from repo root):
   ```bash
   docker compose exec -T backend sh -c 'rm -rf /app/app /app/alembic /app/tests'
@@ -534,7 +534,8 @@ and 401 responses.)
 
 **Files:**
 - Modify: `backend/app/main.py` (health endpoint), `backend/docker-entrypoint.sh`
-- Test: `backend/tests/test_health.py` (new, 2 tests)
+- Test: `backend/tests/test_health.py` (pre-existing file holding exactly `test_health_ok`;
+  gains the 503 test — net +1 collected test, not +2)
 
 **Interfaces:**
 - Consumes: `get_db` from app.db. Produces: `/api/health` 200/503 contract.
@@ -600,9 +601,10 @@ def health(db: Session = Depends(get_db)) -> JSONResponse:
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
-- [ ] **Step 5: Full backend suite in the container — expect 203 passed** (201 + 2).
-  Note the two existing health tests (`grep -rn "api/health" backend/tests`) must stay
-  green — they assert 200 + `{"status":"ok"}`, which still holds.
+- [ ] **Step 5: Full backend suite in the container — expect 202 passed** (201 + 1 net:
+  `test_health_ok` already existed in this file and is preserved byte-identically).
+  The other pre-existing health assertion elsewhere must also stay green — it asserts
+  200 + `{"status":"ok"}`, which still holds.
 - [ ] **Step 6: Commit** — `git add backend && git commit -m "feat(backend): deep DB-ping health + structured-only access log"`
 
 ---
@@ -614,7 +616,7 @@ exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log
 
 - [ ] **Step 1: Rebuild** — `docker compose up -d --build backend frontend` (entrypoint
   runs `alembic upgrade head` → 0014).
-- [ ] **Step 2: Suites at HEAD on the new images** — backend copy-dance: expect **203
+- [ ] **Step 2: Suites at HEAD on the new images** — backend copy-dance: expect **202
   passed** (then `docker compose exec -T backend sh -c 'rm -rf /app/tests'` to leave the
   container clean); frontend on host: `npx vitest run` expect **192 passed**, `npx tsc
   --noEmit` clean.
