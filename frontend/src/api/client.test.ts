@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createItem, createLink, createTeamMember, deleteLink, getBoards, getTeams, importCsv, listItems, listLinks, reorderLanes, updateItem } from "./client";
+import { createItem, createLink, createTeamMember, deleteLink, getBoards, getTeams, importCsv, listItems, listLinks, listSnapshots, previewImport, reorderLanes, restoreSnapshot, updateItem } from "./client";
 import { createPlanningInterval, deletePlanningInterval, getPlanningIntervals } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
@@ -30,12 +30,51 @@ describe("api client", () => {
     expect(spy.mock.calls[0][1]?.method).toBe("POST");
   });
 
-  it("importCsv posts multipart form data", async () => {
+  it("importCsv posts multipart form data with the preview guards", async () => {
     const spy = mockFetch(200, { features: 1, stories: 0, risks: 0, warnings: [] });
     const file = new File(["Title\nX"], "p.csv", { type: "text/csv" });
-    const result = await importCsv(file);
+    const result = await importCsv(file, "stamp123", "sha456");
     expect(result.features).toBe(1);
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/import");
+    const body = init?.body as FormData;
+    expect(body).toBeInstanceOf(FormData);
+    expect(body.get("state_stamp")).toBe("stamp123");
+    expect(body.get("file_sha256")).toBe("sha456");
+  });
+
+  it("previewImport posts the file to /api/v1/import/preview", async () => {
+    const spy = mockFetch(200, {
+      file_sha256: "s", state_stamp: "t",
+      incoming: { features: 1, stories: 2, risks: 0, warnings: [] },
+      current: { features: 0, stories: 0, risks: 0, comments: 0, links: 0 },
+      added_titles: [], removed_titles: [], added_more: 0, removed_more: 0,
+    });
+    const file = new File(["Title\nX"], "p.csv", { type: "text/csv" });
+    const preview = await previewImport(file);
+    expect(preview.state_stamp).toBe("t");
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/import/preview");
     expect(spy.mock.calls[0][1]?.body).toBeInstanceOf(FormData);
+  });
+
+  it("listSnapshots unwraps the snapshots array", async () => {
+    const spy = mockFetch(200, {
+      snapshots: [{ name: "import-snapshot-20260702T120000-000000Z.json", created_at: "c", actor: "a", items: 1, comments: 0, links: 0 }],
+    });
+    const list = await listSnapshots();
+    expect(spy).toHaveBeenCalledWith("/api/v1/import/snapshots", undefined);
+    expect(list).toHaveLength(1);
+    expect(list[0].items).toBe(1);
+  });
+
+  it("restoreSnapshot posts to the restore route", async () => {
+    const spy = mockFetch(200, { items: 3, comments: 2, links: 1, warnings: [] });
+    const result = await restoreSnapshot("import-snapshot-20260702T120000-000000Z.json");
+    expect(result.items).toBe(3);
+    expect(spy.mock.calls[0][0]).toBe(
+      "/api/v1/import/snapshots/import-snapshot-20260702T120000-000000Z.json/restore",
+    );
+    expect(spy.mock.calls[0][1]?.method).toBe("POST");
   });
 
   it("throws on non-ok responses", async () => {

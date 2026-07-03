@@ -17,7 +17,7 @@ it("imports the chosen file after confirm and reports counts", async () => {
   const file = new File(["Title\nX"], "plan.csv", { type: "text/csv" });
   await userEvent.upload(screen.getByLabelText(/import csv/i), file);
 
-  expect(importSpy).toHaveBeenCalledWith(file);
+  expect(importSpy).toHaveBeenCalledWith(file, "", "");
   expect(onImported).toHaveBeenCalled();
   expect(await screen.findByText(/40 features/i)).toBeInTheDocument();
   expect(screen.getByText(/1 warning/i)).toBeInTheDocument();

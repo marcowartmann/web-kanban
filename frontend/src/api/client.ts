@@ -4,6 +4,7 @@ import type {
   Board,
   Capacity,
   Comment,
+  ImportPreview,
   ImportResult,
   Item,
   ItemCreate,
@@ -12,6 +13,8 @@ import type {
   LinkRow,
   PlanningInterval,
   RelationOption,
+  RestoreResult,
+  SnapshotInfo,
   Team,
   TeamMember,
 } from "../types";
@@ -111,10 +114,28 @@ export function deleteLink(linkId: number): Promise<void> {
   return request<void>(`${API}/links/${linkId}`, { method: "DELETE" });
 }
 
-export function importCsv(file: File): Promise<ImportResult> {
+export function previewImport(file: File): Promise<ImportPreview> {
   const form = new FormData();
   form.append("file", file);
+  return request<ImportPreview>(`${API}/import/preview`, { method: "POST", body: form });
+}
+
+export function importCsv(file: File, stateStamp: string, fileSha256: string): Promise<ImportResult> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("state_stamp", stateStamp);
+  form.append("file_sha256", fileSha256);
   return request<ImportResult>(`${API}/import`, { method: "POST", body: form });
+}
+
+export function listSnapshots(): Promise<SnapshotInfo[]> {
+  return request<{ snapshots: SnapshotInfo[] }>(`${API}/import/snapshots`).then((r) => r.snapshots);
+}
+
+export function restoreSnapshot(name: string): Promise<RestoreResult> {
+  return request<RestoreResult>(`${API}/import/snapshots/${encodeURIComponent(name)}/restore`, {
+    method: "POST",
+  });
 }
 
 export function getTeams(): Promise<Team[]> {

@@ -18,7 +18,8 @@ export default function ImportButton({
       return;
     }
     try {
-      const result = await importCsv(file);
+      // Task 6 replaces this whole flow with the preview modal.
+      const result = await importCsv(file, "", "");
       setStatus(
         `Imported ${result.features} features, ${result.stories} stories, ` +
           `${result.risks} risks` +

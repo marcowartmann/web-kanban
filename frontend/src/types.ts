@@ -83,6 +83,33 @@ export interface ImportResult {
   warnings: string[];
 }
 
+export interface ImportPreview {
+  file_sha256: string;
+  state_stamp: string;
+  incoming: { features: number; stories: number; risks: number; warnings: string[] };
+  current: { features: number; stories: number; risks: number; comments: number; links: number };
+  added_titles: string[];
+  removed_titles: string[];
+  added_more: number;
+  removed_more: number;
+}
+
+export interface SnapshotInfo {
+  name: string;
+  created_at: string;
+  actor: string;
+  items: number;
+  comments: number;
+  links: number;
+}
+
+export interface RestoreResult {
+  items: number;
+  comments: number;
+  links: number;
+  warnings: string[];
+}
+
 export interface ItemCreate {
   kind: ItemKind;
   title: string;
