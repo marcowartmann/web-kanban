@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byManual, byWsjf, computeAfterId } from "./ranking";
+import { byManual, byWsjf, computeAfterId, wsjfRankMap } from "./ranking";
 import type { Item } from "../types";
 
 function f(id: number, wsjf: number | null, rank: number | null): Item {
@@ -17,6 +17,15 @@ describe("byManual", () => {
   it("ranked first (asc), then wsjf desc for unranked", () => {
     const out = byManual([f(1, 5, null), f(2, 20, 2), f(3, 1, 1), f(4, 8, null)]);
     expect(out.map((x) => x.id)).toEqual([3, 2, 4, 1]);
+  });
+});
+
+describe("wsjfRankMap", () => {
+  it("maps feature id to its 1-based WSJF position", () => {
+    const m = wsjfRankMap([f(1, 5, null), f(2, 20, null), f(3, 10, null)]);
+    expect(m.get(2)).toBe(1); // wsjf 20 → #1
+    expect(m.get(3)).toBe(2); // wsjf 10 → #2
+    expect(m.get(1)).toBe(3); // wsjf 5  → #3
   });
 });
 

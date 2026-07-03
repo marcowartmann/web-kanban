@@ -7,16 +7,43 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { reorderFeatureRanking } from "../api/client";
-import { byManual, byWsjf, computeAfterId } from "../lib/ranking";
+import { byManual, byWsjf, computeAfterId, wsjfRankMap } from "../lib/ranking";
 import type { AuthUser, Container, Item } from "../types";
 import FilterSelect from "./FilterSelect";
 
-function ManualRow({ feature, index, canMove }: { feature: Item; index: number; canMove: boolean }) {
+function DeltaBadge({ delta }: { delta: number }) {
+  const direction = delta > 0 ? "up" : delta < 0 ? "down" : "none";
+  const cls =
+    delta > 0 ? "text-green-600" : delta < 0 ? "text-red-600" : "text-gray-300";
+  const glyph = delta > 0 ? "▲" : delta < 0 ? "▼" : "–";
+  return (
+    <span
+      data-testid="delta"
+      data-direction={direction}
+      className={`w-10 text-right text-xs font-semibold tabular-nums ${cls}`}
+    >
+      {delta === 0 ? glyph : `${glyph}${Math.abs(delta)}`}
+    </span>
+  );
+}
+
+function ManualRow({
+  feature,
+  index,
+  canMove,
+  wsjfRank,
+}: {
+  feature: Item;
+  index: number;
+  canMove: boolean;
+  wsjfRank: number;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: feature.id,
     disabled: !canMove,
   });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const delta = wsjfRank - (index + 1); // >0 = promoted above its WSJF rank
   return (
     <div
       ref={setNodeRef}
@@ -30,10 +57,15 @@ function ManualRow({ feature, index, canMove }: { feature: Item; index: number; 
     >
       <span className="w-6 text-right tabular-nums text-gray-400">{index + 1}</span>
       <span className="w-4">{canMove ? "⠿" : "🔒"}</span>
+      <span className="tabular-nums text-xs text-gray-400">#{feature.id}</span>
       <span data-testid="rank-title" className="flex-1 truncate text-gray-900">
         {feature.title}
       </span>
       <span className="text-xs text-gray-500">{feature.leading_team ?? "—"}</span>
+      <span data-testid="wsjf-rank" className="w-16 text-right text-xs tabular-nums text-gray-500">
+        WSJF #{wsjfRank}
+      </span>
+      <DeltaBadge delta={delta} />
     </div>
   );
 }
@@ -77,6 +109,7 @@ export default function RankingView({
 
   const wsjfOrder = useMemo(() => byWsjf(features), [features]);
   const manualOrder = useMemo(() => byManual(features), [features]);
+  const wsjfRanks = useMemo(() => wsjfRankMap(features), [features]);
   const canMove = (f: Item) => !!user.team_name && f.leading_team === user.team_name;
 
   const onDragEnd = async (e: DragEndEvent) => {
@@ -101,6 +134,7 @@ export default function RankingView({
             {wsjfOrder.map((f, i) => (
               <div key={f.id} className="flex items-center gap-3 rounded-md border bg-white px-3 py-2 text-sm">
                 <span className="w-6 text-right tabular-nums text-gray-400">{i + 1}</span>
+                <span className="tabular-nums text-xs text-gray-400">#{f.id}</span>
                 <span data-testid="rank-title" className="flex-1 truncate text-gray-900">{f.title}</span>
                 <span className="tabular-nums text-gray-500">{f.wsjf_score ?? "—"}</span>
                 <span className="text-xs text-gray-500">{f.leading_team ?? "—"}</span>
@@ -114,7 +148,7 @@ export default function RankingView({
             <SortableContext items={manualOrder.map((f) => f.id)} strategy={verticalListSortingStrategy}>
               <div data-testid="manual-list" className="space-y-1">
                 {manualOrder.map((f, i) => (
-                  <ManualRow key={f.id} feature={f} index={i} canMove={canMove(f)} />
+                  <ManualRow key={f.id} feature={f} index={i} canMove={canMove(f)} wsjfRank={wsjfRanks.get(f.id) ?? i + 1} />
                 ))}
               </div>
             </SortableContext>
