@@ -7,7 +7,7 @@ afterEach(() => vi.restoreAllMocks());
 
 it("commits a capacity edit on blur", async () => {
   vi.spyOn(client, "getPersonOptions").mockResolvedValue([
-    { id: 1, display_name: "Marco" },
+    { id: 1, display_name: "Marco", team_id: null },
   ]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
   const up = vi.spyOn(client, "upsertCapacity").mockResolvedValue({

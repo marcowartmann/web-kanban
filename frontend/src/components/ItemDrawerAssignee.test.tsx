@@ -17,7 +17,7 @@ const item = {
   definition_of_done: null, children: [],
 };
 
-const people = [{ id: 7, display_name: "Worker" }];
+const people = [{ id: 7, display_name: "Worker", team_id: null }];
 
 it("assigns a person from the strict dropdown and saves it by id", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue(item as never);

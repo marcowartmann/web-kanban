@@ -286,6 +286,7 @@ class PersonOption(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     display_name: str
+    team_id: int | None
 
 
 class LoginRequest(BaseModel):

@@ -5,6 +5,7 @@ import { loadCapacityRows, loadCapacityTotals } from "./capacity";
 const person = (id: number, display_name: string): PersonOption => ({
   id,
   display_name,
+  team_id: null, // the lib itself never filters by team
 });
 const cap = (user_id: number, iteration: number, points: number, pi = "PI1-Q3"): Capacity => ({
   id: user_id * 100 + iteration,

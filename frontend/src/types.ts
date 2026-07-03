@@ -161,6 +161,7 @@ export interface TeamMember {
 export interface PersonOption {
   id: number;
   display_name: string;
+  team_id: number | null;
 }
 
 export interface Capacity {

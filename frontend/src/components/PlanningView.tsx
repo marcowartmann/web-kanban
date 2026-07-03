@@ -117,20 +117,23 @@ export default function PlanningView({
     [items, links, pi],
   );
 
-  // PersonOption has no team_id (unlike the retired member records), so team
-  // selection can no longer narrow which people's capacity counts here — only the
-  // assignee filter can. Team scoping of the *load* side is unaffected: teamStories
-  // below still restricts stories to the selected team.
   const caps = useMemo(() => {
     if (!pi) return null;
-    const personIds = assigneeName
-      ? new Set(people.filter((p) => p.display_name === assigneeName).map((p) => p.id))
-      : null;
+    let personIds: Set<number> | null = null;
+    if (assigneeName) {
+      personIds = new Set(people.filter((p) => p.display_name === assigneeName).map((p) => p.id));
+    } else if (teamId != null) {
+      personIds = new Set(people.filter((p) => p.team_id === teamId).map((p) => p.id));
+    }
     return capacityBySlot(capacities, pi, personIds);
-  }, [capacities, pi, assigneeName, people]);
+  }, [capacities, pi, teamId, assigneeName, people]);
 
-  // Per-person load/capacity rows for the grid. Stories are scoped to the selected
-  // team (all when "All teams"); the people list is org-wide (see note above).
+  // Per-person load/capacity rows for the grid, scoped to the selected team (all
+  // when "All teams"), independent of the assignee filter.
+  const teamPeople = useMemo(
+    () => (teamId != null ? people.filter((p) => p.team_id === teamId) : people),
+    [people, teamId],
+  );
   const teamStories = useMemo(
     () =>
       (team ? items.filter((i) => i.leading_team === team.name) : items).filter(
@@ -139,8 +142,8 @@ export default function PlanningView({
     [items, team, pi],
   );
   const capacityRows = useMemo(
-    () => (pi ? loadCapacityRows(people, capacities, teamStories, pi) : []),
-    [people, capacities, teamStories, pi],
+    () => (pi ? loadCapacityRows(teamPeople, capacities, teamStories, pi) : []),
+    [teamPeople, capacities, teamStories, pi],
   );
 
   if (!planningIntervals.length) {

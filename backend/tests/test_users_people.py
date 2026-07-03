@@ -112,5 +112,5 @@ def test_options_is_member_accessible(client, member_client):
     assert resp.status_code == 200
     names = [o["display_name"] for o in resp.json()]
     assert names == sorted(names)
-    assert set(resp.json()[0]) == {"id", "display_name"}
+    assert set(resp.json()[0]) == {"id", "display_name", "team_id"}
     assert member_client.get("/api/v1/users").status_code == 403

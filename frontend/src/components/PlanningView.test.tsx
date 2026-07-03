@@ -28,7 +28,7 @@ beforeEach(() => {
     { id: 2, name: "Platform" },
   ]);
   vi.spyOn(client, "getPersonOptions").mockResolvedValue([
-    { id: 1, display_name: "Marco" },
+    { id: 1, display_name: "Marco", team_id: 1 },
   ]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([
     { id: 1, user_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5 },
@@ -107,4 +107,31 @@ it("Capacity toggle reveals the per-member capacity grid", async () => {
 
   await userEvent.click(screen.getByRole("button", { name: /capacity/i }));
   expect(screen.getByText("Marco")).toBeInTheDocument();
+});
+
+it("scopes the capacity grid rows to the selected team's people", async () => {
+  vi.spyOn(client, "getPersonOptions").mockResolvedValue([
+    { id: 1, display_name: "Marco", team_id: 1 },
+    { id: 2, display_name: "Petra", team_id: 2 },
+  ]);
+  vi.spyOn(client, "getCapacities").mockResolvedValue([
+    { id: 1, user_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5 },
+    { id: 2, user_id: 2, planning_interval: "PI1-Q3", iteration: 2, points: 8 },
+  ]);
+  const items = [story({ id: 1, title: "S", iteration: 2, story_points: 3 })];
+  render(
+    <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
+  );
+  // All teams: both people's capacity counts toward the Iteration 2 header (5+8)…
+  expect(await screen.findByText("3 / 13 SP")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: /capacity/i }));
+  // …and both have a capacity grid row.
+  expect(screen.getByText("Marco")).toBeInTheDocument();
+  expect(screen.getByText("Petra")).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: "Network" }));
+  // Network selected: Petra (Platform) drops out of the rows and the header capacity.
+  expect(screen.getByText("Marco")).toBeInTheDocument();
+  expect(screen.queryByText("Petra")).not.toBeInTheDocument();
+  expect(screen.getByText("3 / 5 SP")).toBeInTheDocument();
 });
