@@ -310,8 +310,9 @@ class PersonOption(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
+    method: Literal["local", "ldap"] = "ldap"
 
 
 def _password_fits_bcrypt(value: str | None) -> str | None:
