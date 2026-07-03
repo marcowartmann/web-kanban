@@ -95,8 +95,9 @@ Specifics:
   everywhere already).
 - Snapshots: `_jsonable` isoformat now carries the offset; `_revive`'s
   `fromisoformat` parses it. Old snapshot files with naive-UTC ISO stay restorable —
-  psycopg sends naive values, which a UTC-session Postgres interprets as UTC
-  (documented, not tested).
+  the timeutil `DateTime` decorator's `process_bind_param` tags naive values as UTC
+  before psycopg binds them, so restore correctness is independent of the Postgres
+  session timezone (documented, not tested).
 
 ## Part B — Observability (chosen scope: request-ID logs + deep health only)
 

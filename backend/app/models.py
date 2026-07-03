@@ -5,6 +5,8 @@ from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, Integer, Numeri
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+# DateTime is app.timeutil's tz-normalizing TypeDecorator — never import DateTime
+# from sqlalchemy for a column, or SQLite reads it back naive.
 from app.timeutil import DateTime, utcnow
 
 
