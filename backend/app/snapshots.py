@@ -124,9 +124,10 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
     Explicit child-first deletes (no FK-cascade reliance — SQLite tests run
     without FK enforcement); original ids preserved via core inserts.
     """
-    from sqlalchemy import DateTime, insert, text, update
+    from sqlalchemy import insert, text, update
 
     from app.models import User
+    from app.timeutil import DateTime
 
     def _revive(model, row: dict) -> dict:
         out = {}

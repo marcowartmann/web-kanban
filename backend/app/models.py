@@ -5,6 +5,7 @@ from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, Integer, Numeri
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+from app.timeutil import DateTime, utcnow
 
 
 class ItemKind(str, enum.Enum):
@@ -49,9 +50,11 @@ class Item(Base):
     job_size: Mapped[float | None] = mapped_column(Numeric)
     definition_of_done: Mapped[str | None] = mapped_column(Text)
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
     )
 
     __mapper_args__ = {"version_id_col": version}
@@ -79,7 +82,9 @@ class ItemLink(Base):
         ForeignKey("items.id", ondelete="CASCADE"), index=True
     )
     relation: Mapped[str] = mapped_column(String(32))
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
 
 class Team(Base):
@@ -87,7 +92,9 @@ class Team(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(128), unique=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
     members: Mapped[list["TeamMember"]] = relationship(back_populates="team")
 
@@ -100,7 +107,9 @@ class TeamMember(Base):
     team_id: Mapped[int | None] = mapped_column(
         ForeignKey("teams.id", ondelete="SET NULL")
     )
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
     team: Mapped["Team | None"] = relationship(back_populates="members")
 
@@ -135,7 +144,9 @@ class Board(Base):
     name: Mapped[str] = mapped_column(String(128), unique=True)
     kinds: Mapped[str] = mapped_column(String(128))  # CSV, e.g. "feature,story"
     position: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
     lanes: Mapped[list["Lane"]] = relationship(
         back_populates="board",
@@ -154,7 +165,9 @@ class Lane(Base):
     )
     name: Mapped[str] = mapped_column(String(128))
     position: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
     board: Mapped["Board"] = relationship(back_populates="lanes")
 
@@ -165,7 +178,9 @@ class PlanningInterval(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(64), unique=True)
     position: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
 
 class User(Base):
@@ -181,7 +196,9 @@ class User(Base):
     team_id: Mapped[int | None] = mapped_column(
         ForeignKey("teams.id", ondelete="SET NULL"), index=True
     )
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
 
     # No back_populates: Team.members already pairs with TeamMember.team.
     team: Mapped["Team | None"] = relationship()
@@ -197,8 +214,10 @@ class UserSession(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)  # sha256 hex
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    expires_at: Mapped[datetime] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class AuditEvent(Base):
@@ -208,7 +227,9 @@ class AuditEvent(Base):
     __tablename__ = "audit_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now(), index=True
+    )
     actor_id: Mapped[int | None] = mapped_column(Integer)
     actor_name: Mapped[str | None] = mapped_column(String(120))
     event_type: Mapped[str] = mapped_column(String(40), index=True)
@@ -234,8 +255,10 @@ class Comment(Base):
     )
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     body: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime | None] = mapped_column()  # set on edit
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # set on edit
 
     author: Mapped["User"] = relationship()
     replies: Mapped[list["Comment"]] = relationship(

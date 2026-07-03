@@ -1,6 +1,6 @@
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 import bcrypt
 from fastapi import Depends, HTTPException, Request
@@ -10,16 +10,13 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.db import get_db
 from app.models import User, UserSession
+from app.timeutil import utcnow
 
 SESSION_COOKIE = "kanban_session"
 
 
 def session_ttl() -> timedelta:
     return timedelta(days=settings.session_ttl_days)
-
-
-def utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def hash_password(password: str) -> str:
