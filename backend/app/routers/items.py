@@ -7,7 +7,7 @@ from app.audit import ITEM_TRACKED_FIELDS, diff_item_changes, log_event
 from app.auth import require_user
 from app.db import get_db
 from app.links import RELATIONS
-from app.models import AuditEvent, Container, Item, ItemKind, ItemLink, User
+from app.models import AuditEvent, Container, Item, ItemKind, ItemLink, TeamDepartment, User
 from app.schemas import AuditEventRead, ItemCreate, ItemDetail, ItemPage, ItemRead, ItemUpdate, ItemRef, LinkedItem
 from app.wsjf import recompute
 
@@ -66,6 +66,31 @@ def _container_name(db: Session, container_id: int | None) -> str | None:
         return None
     container = db.get(Container, container_id)
     return container.name if container else None
+
+
+def _check_department(
+    db: Session, department_id: int, *, kind: ItemKind, leading_team: str | None
+) -> TeamDepartment:
+    dep = db.get(TeamDepartment, department_id)
+    if dep is None:
+        raise HTTPException(status_code=422, detail="department_id does not exist")
+    if kind not in (ItemKind.FEATURE, ItemKind.STORY):
+        raise HTTPException(status_code=422, detail="Department applies to features and stories only")
+    if leading_team is None or dep.team.name != leading_team:
+        raise HTTPException(status_code=422, detail="Department must belong to the item's leading team")
+    return dep
+
+
+def _department_matches(db: Session, department_id: int, *, leading_team: str | None) -> bool:
+    dep = db.get(TeamDepartment, department_id)
+    return dep is not None and dep.team.name == leading_team
+
+
+def _department_name(db: Session, department_id: int | None) -> str | None:
+    if department_id is None:
+        return None
+    dep = db.get(TeamDepartment, department_id)
+    return dep.name if dep else None
 
 
 def _resolve_links(db: Session, item_id: int) -> list[LinkedItem]:
@@ -171,6 +196,11 @@ def create_item(
             planning_interval=payload.planning_interval,
             leading_team=payload.leading_team,
         )
+    if payload.department_id is not None:
+        _check_department(
+            db, payload.department_id,
+            kind=payload.kind, leading_team=payload.leading_team,
+        )
     item = Item(**payload.model_dump())
     recompute(item)
     db.add(item)
@@ -221,11 +251,23 @@ def update_item(
     ):
         # The patch moved the item out of its container's (PI, team) scope.
         changes["container_id"] = None
+    if changes.get("department_id") is not None:
+        _check_department(db, changes["department_id"], kind=item.kind, leading_team=new_team)
+    elif (
+        "department_id" not in changes
+        and item.department_id is not None
+        and "leading_team" in changes
+        and not _department_matches(db, item.department_id, leading_team=new_team)
+    ):
+        # The patch moved the item out of its department's team scope.
+        changes["department_id"] = None
     before = {f: getattr(item, f) for f in changes if f in ITEM_TRACKED_FIELDS}
     if "assignee_id" in changes:
         before["assignee"] = item.assignee
     if "container_id" in changes:
         before["container"] = _container_name(db, item.container_id)
+    if "department_id" in changes:
+        before["department"] = _department_name(db, item.department_id)
     for key, value in changes.items():
         setattr(item, key, value)
     if _WSJF_FIELDS & changes.keys():
@@ -248,6 +290,11 @@ def update_item(
         changes = dict(changes)
         changes["container"] = _container_name(db, changes["container_id"])
         changes.pop("container_id")
+    if "department_id" in changes:
+        # Audit the department by name (ids mean nothing in the log).
+        changes = dict(changes)
+        changes["department"] = _department_name(db, changes["department_id"])
+        changes.pop("department_id")
     for field, old, new in diff_item_changes(before, changes):
         log_event(
             db,
