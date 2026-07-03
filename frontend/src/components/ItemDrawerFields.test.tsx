@@ -11,6 +11,7 @@ const feature = {
   job_size: null, parent_id: null, position: 0, description: null, planning_interval: "PI1-Q3",
   iteration: null, leading_team: "Network", story_points: null, tshirt_size: null, kategorie: null,
   art: null, sdi_prio: null, supporting_team: null, externer_partner: null, assignee: null,
+  assignee_id: null,
   akzeptanzkriterien: null, bo_stakeholder: null, definition_of_done: null,
   children: [], links: [],
 };

@@ -5,7 +5,7 @@ import type { Item } from "../types";
 import type { CardLinkInfo } from "../lib/planningLinks";
 import StoryPlanCard from "./StoryPlanCard";
 
-const story = { id: 1, kind: "story", title: "S", assignee: null, story_points: null,
+const story = { id: 1, kind: "story", title: "S", assignee: null, assignee_id: null, story_points: null,
   parent_id: null } as unknown as Item;
 
 const renderCard = (info?: CardLinkInfo) =>

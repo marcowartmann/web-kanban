@@ -22,6 +22,7 @@ export interface Item {
   supporting_team: string | null;
   externer_partner: string | null;
   assignee: string | null;
+  assignee_id: number | null;
   akzeptanzkriterien: string | null;
   bo_stakeholder: string | null;
   business_value: number | null;
@@ -131,7 +132,7 @@ export interface ItemUpdate {
   leading_team?: string | null;
   supporting_team?: string | null;
   externer_partner?: string | null;
-  assignee?: string | null;
+  assignee_id?: number | null;
   kategorie?: string | null;
   sdi_prio?: string | null;
   akzeptanzkriterien?: string | null;
@@ -157,9 +158,14 @@ export interface TeamMember {
   team_name: string | null;
 }
 
+export interface PersonOption {
+  id: number;
+  display_name: string;
+}
+
 export interface Capacity {
   id: number;
-  member_id: number;
+  user_id: number;
   planning_interval: string;
   iteration: number;
   points: number;
@@ -187,7 +193,7 @@ export interface PlanningInterval {
 
 export interface AuthUser {
   id: number;
-  email: string;
+  email: string | null;
   display_name: string;
   role: "admin" | "member";
   is_active: boolean;

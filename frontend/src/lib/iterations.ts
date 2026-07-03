@@ -48,7 +48,7 @@ export function capacityBySlot(
   const out: Record<IterationSlot, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
   for (const c of capacities) {
     if (c.planning_interval !== pi) continue;
-    if (memberIds && !memberIds.has(c.member_id)) continue;
+    if (memberIds && !memberIds.has(c.user_id)) continue;
     if (c.iteration >= 1 && c.iteration <= 6) {
       out[c.iteration as IterationSlot] += c.points;
     }

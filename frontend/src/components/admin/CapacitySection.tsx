@@ -30,7 +30,7 @@ export default function CapacitySection({
     if (!pi) return;
     const next: Record<string, string> = {};
     for (const c of capacities) {
-      if (c.planning_interval === pi) next[`${c.member_id}:${c.iteration}`] = String(c.points);
+      if (c.planning_interval === pi) next[`${c.user_id}:${c.iteration}`] = String(c.points);
     }
     setValues(next);
   }, [pi, capacities]);
@@ -40,7 +40,7 @@ export default function CapacitySection({
     const points = raw === "" ? 0 : Number(raw);
     if (Number.isNaN(points) || points < 0) return;
     const saved = await upsertCapacity({
-      member_id: memberId,
+      user_id: memberId,
       planning_interval: pi,
       iteration: slot,
       points,

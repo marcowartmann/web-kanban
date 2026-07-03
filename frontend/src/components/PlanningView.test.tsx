@@ -17,6 +17,7 @@ const story = (over: Partial<Item>): Item =>
     story_points: null,
     parent_id: null,
     assignee: null,
+    assignee_id: null,
     leading_team: "Network",
     ...over,
   }) as Item;
@@ -30,7 +31,7 @@ beforeEach(() => {
     { id: 1, name: "Marco", team_id: 1, team_name: "Network" },
   ]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([
-    { id: 1, member_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5 },
+    { id: 1, user_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5 },
   ]);
 });
 
@@ -65,8 +66,8 @@ it("scopes the stories to the selected team", async () => {
 
 it("filters to an assignee and scopes capacity to them", async () => {
   const items = [
-    story({ id: 1, title: "Marco Story", iteration: 2, story_points: 3, assignee: "Marco" }),
-    story({ id: 2, title: "Manuela Story", iteration: 2, story_points: 2, assignee: "Manuela" }),
+    story({ id: 1, title: "Marco Story", iteration: 2, story_points: 3, assignee: "Marco", assignee_id: 1 }),
+    story({ id: 2, title: "Manuela Story", iteration: 2, story_points: 2, assignee: "Manuela", assignee_id: 2 }),
   ];
   render(
     <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,

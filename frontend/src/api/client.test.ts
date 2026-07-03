@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createItem, createLink, createTeamMember, deleteLink, getBoards, getTeams, importCsv, listItems, listLinks, listSnapshots, previewImport, reorderLanes, restoreSnapshot, updateItem } from "./client";
 import { createPlanningInterval, deletePlanningInterval, getPlanningIntervals } from "./client";
+import { deleteUser, getPersonOptions } from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -178,5 +179,19 @@ describe("api client", () => {
     await updateItem(7, { status: "New", version: 3 });
     const body = JSON.parse((spy.mock.calls[0][1] as RequestInit).body as string);
     expect(body).toEqual({ status: "New", version: 3 });
+  });
+
+  it("getPersonOptions fetches /api/v1/users/options", async () => {
+    const spy = mockFetch(200, [{ id: 1, display_name: "P" }]);
+    const people = await getPersonOptions();
+    expect(spy).toHaveBeenCalledWith("/api/v1/users/options", undefined);
+    expect(people[0].display_name).toBe("P");
+  });
+
+  it("deleteUser hits DELETE with optional force", async () => {
+    const spy = mockFetch(204, null);
+    await deleteUser(7, true);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/users/7?force=true");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 });

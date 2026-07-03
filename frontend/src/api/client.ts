@@ -11,6 +11,7 @@ import type {
   ItemUpdate,
   Lane,
   LinkRow,
+  PersonOption,
   PlanningInterval,
   RelationOption,
   RestoreResult,
@@ -201,7 +202,7 @@ export function getCapacities(): Promise<Capacity[]> {
 }
 
 export function upsertCapacity(body: {
-  member_id: number;
+  user_id: number;
   planning_interval: string;
   iteration: number;
   points: number;
@@ -271,6 +272,14 @@ export function updateUser(
   }>,
 ): Promise<AuthUser> {
   return request<AuthUser>(`${API}/users/${id}`, { ...json(payload), method: "PATCH" });
+}
+
+export function deleteUser(id: number, force = false): Promise<void> {
+  return request<void>(`${API}/users/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
+}
+
+export function getPersonOptions(): Promise<PersonOption[]> {
+  return request<PersonOption[]>(`${API}/users/options`);
 }
 
 export function getItemEvents(itemId: number): Promise<AuditEvent[]> {

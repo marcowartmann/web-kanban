@@ -55,7 +55,7 @@ export function loadCapacityRows(
     const slots = emptySlots();
     if (member) {
       for (const c of capacities) {
-        if (c.member_id !== member.id || c.planning_interval !== pi) continue;
+        if (c.user_id !== member.id || c.planning_interval !== pi) continue;
         if (c.iteration >= 1 && c.iteration <= 6) slots[c.iteration as IterationSlot].capacity += c.points;
       }
     }

@@ -11,7 +11,7 @@ it("commits a capacity edit on blur", async () => {
   ]);
   vi.spyOn(client, "getCapacities").mockResolvedValue([]);
   const up = vi.spyOn(client, "upsertCapacity").mockResolvedValue({
-    id: 1, member_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5,
+    id: 1, user_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5,
   });
 
   render(<CapacitySection planningIntervals={["PI1-Q3"]} />);
@@ -21,7 +21,7 @@ it("commits a capacity edit on blur", async () => {
 
   await waitFor(() =>
     expect(up).toHaveBeenCalledWith({
-      member_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5,
+      user_id: 1, planning_interval: "PI1-Q3", iteration: 2, points: 5,
     }),
   );
 });

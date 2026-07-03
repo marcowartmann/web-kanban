@@ -13,6 +13,7 @@ const feature = {
   position: 0, description: null, iteration: null, leading_team: null,
   story_points: null, tshirt_size: null, kategorie: null, art: null,
   sdi_prio: null, supporting_team: null, externer_partner: null, assignee: null,
+  assignee_id: null,
   akzeptanzkriterien: null, bo_stakeholder: null,
   definition_of_done: null,
   children: [{ id: 6, kind: "story", title: "Existing Story", parent_id: 5 }],

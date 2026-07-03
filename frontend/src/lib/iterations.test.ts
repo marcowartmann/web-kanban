@@ -8,7 +8,7 @@ import {
 } from "./iterations";
 
 const cap = (over: Partial<Capacity>): Capacity =>
-  ({ id: 1, member_id: 1, planning_interval: "PI1-Q3", iteration: 1, points: 0, ...over }) as Capacity;
+  ({ id: 1, user_id: 1, planning_interval: "PI1-Q3", iteration: 1, points: 0, ...over }) as Capacity;
 
 const story = (over: Partial<Item>): Item =>
   ({
@@ -48,10 +48,10 @@ it("sums story points and trims float noise", () => {
 
 it("sums capacity per slot for a PI, honoring the member filter", () => {
   const caps = [
-    cap({ member_id: 1, iteration: 1, points: 8 }),
-    cap({ member_id: 2, iteration: 1, points: 5 }),
-    cap({ member_id: 1, iteration: 6, points: 2 }),
-    cap({ member_id: 1, iteration: 1, points: 3, planning_interval: "PI2-Q4" }), // other PI
+    cap({ user_id: 1, iteration: 1, points: 8 }),
+    cap({ user_id: 2, iteration: 1, points: 5 }),
+    cap({ user_id: 1, iteration: 6, points: 2 }),
+    cap({ user_id: 1, iteration: 1, points: 3, planning_interval: "PI2-Q4" }), // other PI
   ];
   const all = capacityBySlot(caps, "PI1-Q3", null);
   expect(all[1]).toBe(13);

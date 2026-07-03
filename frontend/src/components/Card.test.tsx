@@ -12,6 +12,7 @@ function card(overrides: Partial<BoardCard>): BoardCard {
     art: null, sdi_prio: null, tshirt_size: null, wsjf_score: null,
     story_points: null, planning_interval: null, iteration: null, leading_team: null,
     supporting_team: null, externer_partner: null, assignee: null,
+    assignee_id: null,
     akzeptanzkriterien: null, bo_stakeholder: null,
     business_value: null, time_criticality: null, risk_reduction: null,
     cost_of_delay: null, job_size: null, definition_of_done: null,
@@ -59,7 +60,7 @@ it("shows the globally-unique number as #<id>", () => {
 
 it("shows the assignee when set", () => {
   renderCard({
-    card: card({ assignee: "Marco Wartmann" }),
+    card: card({ assignee: "Marco Wartmann", assignee_id: 1 }),
     onOpen: vi.fn(),
     onOpenStories: vi.fn(),
   });
