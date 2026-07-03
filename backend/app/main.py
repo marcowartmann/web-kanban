@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth import ensure_initial_admin, require_user
 from app.config import settings
 from app.db import SessionLocal
+from app.request_logging import RequestLoggingMiddleware, configure_access_logging
 
 
 @asynccontextmanager
@@ -29,6 +30,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+configure_access_logging()
+app.add_middleware(RequestLoggingMiddleware)
 
 from app.routers import auth, imports, items, boards, teams, team_members, capacities, links, planning_intervals, users, audit, comments
 
