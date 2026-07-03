@@ -22,7 +22,7 @@
 - Audit: item assignee changes log `field="assignee"` with old/new display names; `user.deleted` label = email or display_name; capacity label `f"{display_name} · {pi} · I{iteration}"`.
 - Item.assignee_id: FK users `ON DELETE SET NULL`, index `ix_items_assignee_id`; list endpoint uses `selectinload(Item.assignee_user)`.
 - `/api/v1/users/options` (require_user) declared BEFORE `/{user_id}` routes; all other users endpoints keep admin-only via per-endpoint deps.
-- Suite math: backend 202 → 211 (T1, 9 tests) → 217 (T2) → 212 (T3) → 212 (T4) → 214 (T5); frontend 192 → 194 (T6) → 195 (T7) → 195 (T8) → 197 (T9). T10 changes no counts.
+- Suite math: backend 202 → 211 (T1, 9 tests) → 218 (T2) → 213 (T3) → 213 (T4) → 215 (T5); frontend 192 → 194 (T6) → 195 (T7) → 195 (T8) → 197 (T9). T10 changes no counts.
 - Migration 0015 `down_revision = "0014"`: MUST dry-run upgrade + downgrade + re-upgrade against compose Postgres AND run the seeded rehearsal (Task 4) before acceptance. DB left at 0015.
 - ENV (backend tasks), from repo root — the container does NOT bind-mount code:
   ```bash
@@ -329,7 +329,7 @@ def delete_user(
 
 **Files:**
 - Modify: `backend/app/models.py` (Item), `backend/app/schemas.py` (ItemBase/ItemUpdate/ItemRead), `backend/app/routers/items.py`, `backend/app/audit.py`, `backend/app/csv_import.py`, `backend/app/routers/team_members.py` (strip propagation + guard), `backend/tests/test_users_people.py` (append the 8th test), `backend/tests/test_api_renames.py` (drop 2 member tests), `backend/tests/test_schema_hygiene.py` (index name), `backend/tests/test_import_endpoint.py` (+1 test)
-- Test: `backend/tests/test_item_assignee.py` (new, 6 tests)
+- Test: `backend/tests/test_item_assignee.py` (new, 7 tests)
 
 **Interfaces:**
 - Consumes: Task 1's login-less users. Produces: `Item.assignee_id` + `Item.assignee` property; `ItemCreate/ItemUpdate.assignee_id`; list filter `assignee_id`; import resolves names → users.
@@ -408,6 +408,26 @@ def test_assignee_audit_logs_names(client, db_session):
     assert rows == [("Alice", "Bob"), ("Bob", None)]
 
 
+def test_assignee_race_is_caught_by_version_predicate(client, db_session):
+    from sqlalchemy import update as core_update
+
+    p = _person(client, "Racer")
+    item = client.post("/api/v1/items", json={"kind": "feature", "title": "R"}).json()
+    # Hold a strong reference so the identity map keeps the stale instance
+    # (weak-ref lesson from the P3 delete-race test).
+    stale = db_session.get(Item, item["id"])
+    assert stale.version == 1
+    db_session.execute(
+        core_update(Item).where(Item.id == item["id"]).values(version=99)
+        .execution_options(synchronize_session=False)
+    )
+    resp = client.patch(
+        f"/api/v1/items/{item['id']}", json={"assignee_id": p["id"], "version": 1}
+    )
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == "Item was modified by someone else — reload and retry"
+
+
 def test_old_string_assignee_patch_is_rejected(client):
     # ItemUpdate is extra="forbid"; the removed string field must 422 on PATCH.
     # (ItemCreate is not forbid — unknown keys there are ignored, existing behavior.)
@@ -452,6 +472,11 @@ def test_old_string_assignee_patch_is_rejected(client):
     where-clause `Item.assignee == assignee` → `Item.assignee_id == assignee_id`; add
     `.options(selectinload(Item.assignee_user))` to the rows select (import
     `selectinload` from sqlalchemy.orm).
+  - get_item: eager-load the detail path so children's assignees don't N+1 —
+    `_get_or_404` gains `*, eager: bool = False` and, when eager,
+    `db.get(Item, item_id, options=[selectinload(Item.assignee_user), selectinload(Item.children).selectinload(Item.assignee_user)])`;
+    only `get_item` passes `eager=True` (create/update responses keep lazy loads —
+    accepted, noted for the final review).
   - Shared validator used by create and update:
 
 ```python
@@ -477,7 +502,14 @@ def _check_assignee(db: Session, assignee_id: int | None) -> None:
     if _WSJF_FIELDS & changes.keys():
         recompute(item)
     if "assignee_id" in changes:
-        db.flush()
+        try:
+            db.flush()  # emits the versioned UPDATE — the race can surface HERE
+        except StaleDataError:
+            db.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail="Item was modified by someone else — reload and retry",
+            )
         db.refresh(item, ["assignee_user"])
         changes = dict(changes)
         changes["assignee"] = item.assignee
@@ -545,7 +577,7 @@ def test_import_creates_login_less_users_and_links_assignees(client, db_session)
   `test_member_rename_propagates_assignee` and `test_member_rename_conflict_and_delete_guard` (−2).
 - [ ] **Step 8: test_schema_hygiene.py** — the asserted index set swaps
   `"ix_items_assignee"` for `"ix_items_assignee_id"`.
-- [ ] **Step 9: Full backend suite — expect 217 passed** (211 + 6 new + 1 import + 1 appended − 2 renames). Fixture fallout sweep: any test constructing `Item(assignee=...)` or PATCHing `{"assignee": ...}` must be re-keyed (report each).
+- [ ] **Step 9: Full backend suite — expect 218 passed** (211 + 7 new + 1 import + 1 appended − 2 renames). Fixture fallout sweep: any test constructing `Item(assignee=...)` or PATCHing `{"assignee": ...}` must be re-keyed (report each).
 - [ ] **Step 10: Commit** — `git add backend && git commit -m "feat(backend): items assignee becomes a user FK served as display name"`
 
 ---
@@ -604,7 +636,7 @@ def test_import_creates_login_less_users_and_links_assignees(client, db_session)
 - [ ] **Step 5: Import** — `_seed_teams_and_members` → `_seed_teams_and_users`: the
   member-creation half now upserts login-less `User` rows via the same
   `_resolve_people` helper (teams half unchanged); `replace_all` call site renamed.
-- [ ] **Step 6: Full backend suite — expect 212 passed** (217 − 5).
+- [ ] **Step 6: Full backend suite — expect 213 passed** (218 − 5).
 - [ ] **Step 7: Commit** — `git add backend && git commit -m "feat(backend): capacities re-key to users; team_members removed"`
 
 ---
@@ -815,7 +847,7 @@ def downgrade() -> None:
   `assignee`-string PATCHes, which now 422 in the drawer; reads are unaffected
   (`assignee` display names are still served). Note this in your report so the
   controller can tell the user.
-- [ ] **Step 3: Full backend suite — expect 212 passed** (no pytest change).
+- [ ] **Step 3: Full backend suite — expect 213 passed** (no pytest change).
 - [ ] **Step 4: Commit** — `git add backend && git commit -m "feat(backend): migration 0015 — merge members into users, assignee FK, capacity re-key"`
 
 ---
@@ -887,7 +919,7 @@ def test_restore_legacy_snapshot_warns_and_unassigns(client, db_session):
   (`existing_users` for comments already exists later — reuse one
   `existing_user_ids` set for both; `User` import already local to the function.
   `_revive` ignores unknown keys like legacy `"assignee"` by construction.)
-- [ ] **Step 3: Full backend suite — expect 214 passed** (212 + 2).
+- [ ] **Step 3: Full backend suite — expect 215 passed** (213 + 2).
 - [ ] **Step 4: Commit** — `git add backend && git commit -m "feat(backend): snapshot restore repairs dangling assignees"`
 
 ---
@@ -1166,7 +1198,7 @@ print({k: len(v) for k, v in payload.items()})
   volume is local).
 - [ ] **Step 2: Rebuild** — `docker compose up -d --build backend frontend` (alembic
   no-ops at 0015).
-- [ ] **Step 3: Suites at HEAD on new images** — backend copy-dance **214 passed**
+- [ ] **Step 3: Suites at HEAD on new images** — backend copy-dance **215 passed**
   (then `rm -rf /app/tests`); frontend **197 passed** + tsc clean.
 - [ ] **Step 4: Smoke (read-only + scratch-person only):**
 
