@@ -22,7 +22,7 @@ class ItemBase(BaseModel):
     leading_team: str | None = None
     supporting_team: str | None = None
     externer_partner: str | None = None
-    assignee: str | None = None
+    assignee_id: int | None = None
     akzeptanzkriterien: str | None = None
     bo_stakeholder: str | None = None
     business_value: int | None = None
@@ -53,7 +53,7 @@ class ItemUpdate(BaseModel):
     leading_team: str | None = None
     supporting_team: str | None = None
     externer_partner: str | None = None
-    assignee: str | None = None
+    assignee_id: int | None = None
     kategorie: str | None = None
     sdi_prio: str | None = None
     akzeptanzkriterien: str | None = None
@@ -74,6 +74,7 @@ class ItemRead(ItemBase):
     parent_id: int | None
     position: int
     version: int
+    assignee: str | None = None
     created_at: datetime
     updated_at: datetime
 

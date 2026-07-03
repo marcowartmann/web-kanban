@@ -55,7 +55,18 @@ def test_delete_with_comments_409_no_force(client, db_session):
         assert resp.json()["detail"] == "User 'Author P' has 1 comments — deactivate instead"
 
 
-# Task 2 appends test_delete_assigned_409_then_force_nulls
+def test_delete_assigned_409_then_force_nulls(client, db_session):
+    person = _person(client, "Assigned P")
+    item = Item(kind=ItemKind.FEATURE, title="A", position=0, assignee_id=person["id"])
+    db_session.add(item)
+    db_session.commit()
+    resp = client.delete(f"/api/v1/users/{person['id']}")
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == "User 'Assigned P' is assigned to 1 items"
+    assert client.delete(f"/api/v1/users/{person['id']}?force=true").status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Item, item.id).assignee_id is None
+    assert db_session.get(User, person["id"]) is None
 
 
 def test_delete_is_audited(client, db_session):

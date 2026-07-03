@@ -19,7 +19,7 @@ def test_items_filter_columns_are_indexed(db_session):
         "ix_items_status",
         "ix_items_planning_interval",
         "ix_items_leading_team",
-        "ix_items_assignee",
+        "ix_items_assignee_id",
     } <= names
 
 

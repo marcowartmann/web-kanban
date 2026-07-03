@@ -154,18 +154,61 @@ def parse_items(rows: list[dict[str, str]]) -> ParsedImport:
     return result
 
 
-def _insert_item(db, parsed_item, parent_id, position):
+def _insert_item(db, parsed_item, parent_id, position, assignee_ids):
     from app.models import Item
 
+    data = dict(parsed_item.data)
+    raw = data.pop("assignee", None)
+    name = str(raw).strip() if raw and str(raw).strip() else None
     item = Item(
         kind=parsed_item.kind,
         parent_id=parent_id,
         position=position,
-        **parsed_item.data,
+        assignee_id=assignee_ids.get(name) if name else None,
+        **data,
     )
     db.add(item)
     db.flush()  # assign id for child linkage
     return item
+
+
+def _resolve_people(db, parsed) -> dict[str, int]:
+    """Resolve every stripped assignee name in the import to a user id,
+    creating a login-less user when no exact display_name match exists.
+    Shared merge rule (also used by migration 0015): exact display_name
+    match, ties broken by lowest user id."""
+    from app.models import User
+
+    all_data = []
+    for feature in parsed.features:
+        all_data.append(feature.data)
+        all_data.extend(story.data for story in feature.stories)
+    all_data.extend(risk.data for risk in parsed.risks)
+
+    names: set[str] = set()
+    for data in all_data:
+        raw = data.get("assignee")
+        if raw and str(raw).strip():
+            names.add(str(raw).strip())
+
+    assignee_ids: dict[str, int] = {}
+    for name in sorted(names):
+        user = db.scalar(
+            select(User).where(User.display_name == name).order_by(User.id).limit(1)
+        )
+        if user is None:
+            user = User(
+                email=None,
+                display_name=name,
+                password_hash=None,
+                role="member",
+                is_active=True,
+                auth_provider="local",
+            )
+            db.add(user)
+            db.flush()
+        assignee_ids[name] = user.id
+    return assignee_ids
 
 
 def _seed_teams_and_members(db, parsed) -> None:
@@ -226,13 +269,14 @@ def replace_all(db, parsed):
 
     stories = 0
     db.query(Item).delete()
+    assignee_ids = _resolve_people(db, parsed)
     for f_index, feature in enumerate(parsed.features):
-        feature_row = _insert_item(db, feature, None, f_index)
+        feature_row = _insert_item(db, feature, None, f_index, assignee_ids)
         for s_index, story in enumerate(feature.stories):
-            _insert_item(db, story, feature_row.id, s_index)
+            _insert_item(db, story, feature_row.id, s_index, assignee_ids)
             stories += 1
     for r_index, risk in enumerate(parsed.risks):
-        _insert_item(db, risk, None, r_index)
+        _insert_item(db, risk, None, r_index, assignee_ids)
     _seed_teams_and_members(db, parsed)
     _seed_planning_intervals(db, parsed)
     db.commit()

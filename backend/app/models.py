@@ -41,8 +41,10 @@ class Item(Base):
     iteration: Mapped[int | None] = mapped_column(Integer)
     leading_team: Mapped[str | None] = mapped_column(String(128), index=True)
     supporting_team: Mapped[str | None] = mapped_column(String(128))
+    assignee_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
     externer_partner: Mapped[str | None] = mapped_column(String(128))
-    assignee: Mapped[str | None] = mapped_column(String(128), index=True)
     akzeptanzkriterien: Mapped[str | None] = mapped_column(Text)
     bo_stakeholder: Mapped[str | None] = mapped_column(String(256))
     business_value: Mapped[int | None] = mapped_column(Integer)
@@ -68,6 +70,12 @@ class Item(Base):
     comments: Mapped[list["Comment"]] = relationship(
         cascade="all, delete-orphan",
     )
+
+    assignee_user: Mapped["User | None"] = relationship(foreign_keys=[assignee_id])
+
+    @property
+    def assignee(self) -> str | None:
+        return self.assignee_user.display_name if self.assignee_user else None
 
 
 class ItemLink(Base):

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.audit import log_event
@@ -172,17 +172,19 @@ def delete_user(
             detail=f"User '{user.display_name}' has {comments} comments — deactivate instead",
         )
     if not force:
-        # Task-1 transitional: Item.assignee_id doesn't exist until Task 2, so this
-        # guard checks the current string column. Task 2 swaps it to
-        # `Item.assignee_id == user.id`.
         assigned = db.scalar(
-            select(func.count()).select_from(Item).where(Item.assignee == user.display_name)
+            select(func.count()).select_from(Item).where(Item.assignee_id == user.id)
         )
         if assigned:
             raise HTTPException(
                 status_code=409,
                 detail=f"User '{user.display_name}' is assigned to {assigned} items",
             )
+    # The FK's ondelete="SET NULL" only fires on real Postgres — SQLite (the
+    # test harness) never enforces FK actions without a per-connection PRAGMA,
+    # so nulling happens explicitly here, same as every other cross-entity
+    # cleanup in this codebase (never relying on the DB to cascade for us).
+    db.execute(update(Item).where(Item.assignee_id == user.id).values(assignee_id=None))
     log_event(
         db,
         actor=current,

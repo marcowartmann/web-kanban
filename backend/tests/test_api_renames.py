@@ -74,33 +74,6 @@ def test_team_delete_without_usage_needs_no_force(client):
     assert client.delete(f"/api/v1/teams/{team['id']}").status_code == 204
 
 
-def test_member_rename_propagates_assignee(client, db_session):
-    m = client.post("/api/v1/team-members", json={"name": "Anna"}).json()
-    mine = _mk_item(client, assignee="Anna")
-    other = _mk_item(client, assignee="Ben")
-
-    resp = client.patch(f"/api/v1/team-members/{m['id']}", json={"name": "Anna B."})
-    assert resp.status_code == 200
-    assert client.get(f"/api/v1/items/{mine}").json()["assignee"] == "Anna B."
-    assert client.get(f"/api/v1/items/{other}").json()["assignee"] == "Ben"
-    events = _events(db_session, "team_member.renamed")
-    assert len(events) == 1 and events[0].old_value == "Anna"
-
-
-def test_member_rename_conflict_and_delete_guard(client, db_session):
-    a = client.post("/api/v1/team-members", json={"name": "A"}).json()
-    client.post("/api/v1/team-members", json={"name": "B"})
-    dup = client.patch(f"/api/v1/team-members/{a['id']}", json={"name": "B"})
-    assert dup.status_code == 409
-    assert dup.json()["detail"] == "Member already exists"
-
-    _mk_item(client, assignee="A")
-    blocked = client.delete(f"/api/v1/team-members/{a['id']}")
-    assert blocked.status_code == 409
-    assert blocked.json()["detail"] == "Member 'A' is assigned to 1 items"
-    assert client.delete(f"/api/v1/team-members/{a['id']}?force=true").status_code == 204
-
-
 def test_pi_rename_propagates_items_and_capacities(client, db_session):
     pi = client.post("/api/v1/planning-intervals", json={"name": "PI1"}).json()
     member = client.post("/api/v1/team-members", json={"name": "Cap"}).json()

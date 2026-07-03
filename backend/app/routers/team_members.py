@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.audit import log_event
 from app.auth import require_admin
 from app.db import get_db
-from app.models import Item, Team, TeamMember, User
+from app.models import Team, TeamMember, User
 from app.schemas import TeamMemberCreate, TeamMemberRead, TeamMemberUpdate
 
 router = APIRouter(prefix="/api/v1/team-members", tags=["team-members"])
@@ -62,12 +62,6 @@ def rename_member(
         raise HTTPException(status_code=409, detail="Member already exists")
     old = member.name
     member.name = payload.name
-    db.execute(
-        update(Item)
-        .where(Item.assignee == old)
-        .values(assignee=payload.name)
-        .execution_options(synchronize_session=False)
-    )
     log_event(db, actor=current, event_type="team_member.renamed", entity_type="team_member",
               entity_id=member.id, entity_label=member.name,
               field="name", old_value=old, new_value=member.name)
@@ -86,15 +80,6 @@ def delete_member(
     member = db.get(TeamMember, member_id)
     if member is None:
         raise HTTPException(status_code=404, detail="Member not found")
-    if not force:
-        used = db.scalar(
-            select(func.count()).select_from(Item).where(Item.assignee == member.name)
-        )
-        if used:
-            raise HTTPException(
-                status_code=409,
-                detail=f"Member '{member.name}' is assigned to {used} items",
-            )
     log_event(db, actor=current, event_type="team_member.deleted", entity_type="team_member",
               entity_id=member.id, entity_label=member.name)
     db.delete(member)

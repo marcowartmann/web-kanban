@@ -66,3 +66,13 @@ def test_import_seeds_planning_intervals(client):
         assert post_import(client, f.read(), "p.csv").status_code == 200
     names = [p["name"] for p in client.get("/api/v1/planning-intervals").json()]
     assert "PI1-Q3" in names
+
+
+def test_import_creates_login_less_users_and_links_assignees(client, db_session):
+    from app.models import Item, User
+
+    with FIXTURE.open("rb") as fh:
+        assert post_import(client, fh.read()).status_code == 200
+    marco = db_session.query(User).filter_by(display_name="Marco Wartmann").one()
+    assert marco.email is None and marco.password_hash is None
+    assert db_session.query(Item).filter_by(assignee_id=marco.id).count() > 0

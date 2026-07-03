@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete, func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.orm.exc import StaleDataError
 
 from app.audit import ITEM_TRACKED_FIELDS, diff_item_changes, log_event
@@ -21,6 +21,11 @@ def _get_or_404(db: Session, item_id: int) -> Item:
     if item is None:
         raise HTTPException(status_code=404, detail="Item not found")
     return item
+
+
+def _check_assignee(db: Session, assignee_id: int | None) -> None:
+    if assignee_id is not None and db.get(User, assignee_id) is None:
+        raise HTTPException(status_code=422, detail="assignee_id does not exist")
 
 
 def _resolve_links(db: Session, item_id: int) -> list[LinkedItem]:
@@ -59,7 +64,7 @@ def list_items(
     status: str | None = None,
     planning_interval: str | None = None,
     leading_team: str | None = None,
-    assignee: str | None = None,
+    assignee_id: int | None = None,
     q: str | None = None,
     limit: int = 200,
     offset: int = 0,
@@ -74,14 +79,19 @@ def list_items(
         stmt = stmt.where(Item.planning_interval == planning_interval)
     if leading_team is not None:
         stmt = stmt.where(Item.leading_team == leading_team)
-    if assignee is not None:
-        stmt = stmt.where(Item.assignee == assignee)
+    if assignee_id is not None:
+        stmt = stmt.where(Item.assignee_id == assignee_id)
     if q:
         stmt = stmt.where(Item.title.ilike(f"%{q}%"))
     total = db.scalar(select(func.count()).select_from(stmt.subquery()))
     limit = max(1, min(limit, 1000))
     offset = max(0, offset)
-    rows = db.scalars(stmt.order_by(Item.position).offset(offset).limit(limit))
+    rows = db.scalars(
+        stmt.order_by(Item.position)
+        .offset(offset)
+        .limit(limit)
+        .options(selectinload(Item.assignee_user))
+    )
     return ItemPage(items=[ItemRead.model_validate(r) for r in rows], total=total or 0)
 
 
@@ -114,6 +124,7 @@ def create_item(
 ) -> Item:
     if payload.parent_id is not None and db.get(Item, payload.parent_id) is None:
         raise HTTPException(status_code=422, detail="parent_id does not exist")
+    _check_assignee(db, payload.assignee_id)
     item = Item(**payload.model_dump())
     recompute(item)
     db.add(item)
@@ -146,11 +157,21 @@ def update_item(
         )
     changes = payload.model_dump(exclude_unset=True)
     changes.pop("version", None)
+    if "assignee_id" in changes:
+        _check_assignee(db, changes["assignee_id"])
     before = {f: getattr(item, f) for f in changes if f in ITEM_TRACKED_FIELDS}
+    if "assignee_id" in changes:
+        before["assignee"] = item.assignee
     for key, value in changes.items():
         setattr(item, key, value)
     if _WSJF_FIELDS & changes.keys():
         recompute(item)
+    if "assignee_id" in changes:
+        db.flush()
+        db.refresh(item, ["assignee_user"])
+        changes = dict(changes)
+        changes["assignee"] = item.assignee
+        changes.pop("assignee_id")
     for field, old, new in diff_item_changes(before, changes):
         log_event(
             db,
