@@ -11,6 +11,30 @@ import { byManual, byWsjf, computeAfterId, wsjfRankMap } from "../lib/ranking";
 import type { AuthUser, Container, Item } from "../types";
 import FilterSelect from "./FilterSelect";
 
+function InfoButton({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label="Feature detail"
+      title="Feature detail"
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen();
+      }}
+      className="shrink-0 rounded-md p-1 text-gray-300 transition hover:bg-blue-50 hover:text-blue-600"
+    >
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
+        <path
+          fillRule="evenodd"
+          d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zM9 9a1 1 0 012 0v4a1 1 0 11-2 0V9zm1-4a1 1 0 100 2 1 1 0 000-2z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </button>
+  );
+}
+
 function DeltaBadge({ delta }: { delta: number }) {
   const direction = delta > 0 ? "up" : delta < 0 ? "down" : "none";
   const cls =
@@ -32,11 +56,13 @@ function ManualRow({
   index,
   canMove,
   wsjfRank,
+  onOpen,
 }: {
   feature: Item;
   index: number;
   canMove: boolean;
   wsjfRank: number;
+  onOpen: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: feature.id,
@@ -66,6 +92,7 @@ function ManualRow({
         WSJF #{wsjfRank}
       </span>
       <DeltaBadge delta={delta} />
+      <InfoButton onOpen={onOpen} />
     </div>
   );
 }
@@ -77,6 +104,7 @@ export default function RankingView({
   containers,
   departmentNames = [],
   user,
+  onOpenCard,
   onChanged,
 }: {
   items: Item[];
@@ -85,6 +113,7 @@ export default function RankingView({
   containers: Container[];
   departmentNames?: string[];
   user: AuthUser;
+  onOpenCard?: (id: number) => void;
   onChanged: () => void | Promise<void>;
 }) {
   const [pi, setPi] = useState<string | undefined>();
@@ -143,6 +172,7 @@ export default function RankingView({
                 <span data-testid="rank-title" className="flex-1 truncate text-gray-900">{f.title}</span>
                 <span className="tabular-nums text-gray-500">{f.wsjf_score ?? "—"}</span>
                 <span className="text-xs text-gray-500">{f.leading_team ?? "—"}</span>
+                <InfoButton onOpen={() => onOpenCard?.(f.id)} />
               </div>
             ))}
           </div>
@@ -153,7 +183,7 @@ export default function RankingView({
             <SortableContext items={manualOrder.map((f) => f.id)} strategy={verticalListSortingStrategy}>
               <div data-testid="manual-list" className="space-y-1">
                 {manualOrder.map((f, i) => (
-                  <ManualRow key={f.id} feature={f} index={i} canMove={canMove(f)} wsjfRank={wsjfRanks.get(f.id) ?? i + 1} />
+                  <ManualRow key={f.id} feature={f} index={i} canMove={canMove(f)} wsjfRank={wsjfRanks.get(f.id) ?? i + 1} onOpen={() => onOpenCard?.(f.id)} />
                 ))}
               </div>
             </SortableContext>
