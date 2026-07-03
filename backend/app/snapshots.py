@@ -91,6 +91,25 @@ def snapshot_path(name: str) -> Path | None:
     return path if path.is_file() else None
 
 
+def newest_snapshot_name() -> str | None:
+    directory = _snapshot_dir()
+    if not directory.is_dir():
+        return None
+    names = sorted(
+        (p.name for p in directory.iterdir() if FILENAME_RE.match(p.name)),
+        reverse=True,
+    )
+    return names[0] if names else None
+
+
+def delete_snapshot(name: str) -> bool:
+    path = snapshot_path(name)
+    if path is None:
+        return False
+    path.unlink()
+    return True
+
+
 def list_snapshots() -> list[dict]:
     directory = _snapshot_dir()
     if not directory.is_dir():

@@ -22,7 +22,9 @@ from app.schemas import (
 )
 from app.snapshots import (
     compute_state_stamp,
+    delete_snapshot,
     list_snapshots,
+    newest_snapshot_name,
     restore_from_snapshot,
     snapshot_path,
     write_snapshot,
@@ -147,6 +149,26 @@ def create_snapshot_endpoint(
     db.commit()
     info = next(s for s in list_snapshots() if s["name"] == name)
     return SnapshotInfo(**info)
+
+
+@router.delete("/import/snapshots/{name}", status_code=204)
+def delete_snapshot_endpoint(
+    name: str,
+    force: bool = False,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> None:
+    if snapshot_path(name) is None:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    if not force and name == newest_snapshot_name():
+        raise HTTPException(
+            status_code=409,
+            detail="This is the most recent snapshot (your latest restore point)",
+        )
+    delete_snapshot(name)
+    log_event(db, actor=current, event_type="snapshot.deleted",
+              entity_type="import", entity_id=None, entity_label=name)
+    db.commit()
 
 
 @router.get("/import/snapshots/{name}/download")

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API, createSnapshot, listSnapshots, restoreSnapshot } from "../../api/client";
+import { API, createSnapshot, deleteSnapshot, listSnapshots, restoreSnapshot } from "../../api/client";
 import type { SnapshotInfo } from "../../types";
 import ConfirmDialog from "../ConfirmDialog";
 import { btnPrimary } from "../ui";
@@ -11,7 +11,9 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
   const [error, setError] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [confirmRestore, setConfirmRestore] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<SnapshotInfo | null>(null);
 
   const reload = () => void listSnapshots().then(setSnapshots);
   useEffect(reload, []);
@@ -28,6 +30,21 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
       setError(e instanceof Error ? e.message : "Could not create the snapshot.");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const remove = async (name: string, force: boolean) => {
+    setError(null);
+    setStatus(null);
+    setDeleting(true);
+    try {
+      await deleteSnapshot(name, force);
+      setStatus("Snapshot deleted");
+      reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not delete the snapshot.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -107,6 +124,14 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
                       >
                         Restore
                       </button>
+                      <button
+                        onClick={() => setConfirmDelete(s)}
+                        aria-label={`delete snapshot ${s.name}`}
+                        disabled={deleting}
+                        className="text-xs font-semibold text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
                     </span>
                   </td>
                 </tr>
@@ -128,6 +153,26 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
           onClose={() => setConfirmRestore(null)}
         />
       )}
+      {confirmDelete && (() => {
+        const isNewest = snapshots[0]?.name === confirmDelete.name;
+        return (
+          <ConfirmDialog
+            title="Delete snapshot?"
+            message={
+              isNewest
+                ? `${confirmDelete.name}\nThis is your most recent snapshot — your latest restore point. It will be permanently deleted and cannot be undone.`
+                : `${confirmDelete.name}\nThis snapshot will be permanently deleted and cannot be undone.`
+            }
+            confirmLabel="Delete"
+            onConfirm={() => {
+              const name = confirmDelete.name;
+              setConfirmDelete(null);
+              void remove(name, isNewest);
+            }}
+            onClose={() => setConfirmDelete(null)}
+          />
+        );
+      })()}
     </AdminCard>
   );
 }

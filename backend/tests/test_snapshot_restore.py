@@ -65,9 +65,47 @@ def test_create_snapshot_manually(client, db_session):
     assert row.entity_label == body["name"]
 
 
+def test_delete_non_newest_snapshot(client, db_session):
+    _seed_rich(db_session)
+    older = write_snapshot(db_session, actor="a@x.local")
+    newer = write_snapshot(db_session, actor="a@x.local")
+    assert client.delete(f"/api/v1/import/snapshots/{older}").status_code == 204
+    names = [s["name"] for s in client.get("/api/v1/import/snapshots").json()["snapshots"]]
+    assert names == [newer]
+    row = db_session.query(AuditEvent).filter_by(event_type="snapshot.deleted").one()
+    assert row.entity_type == "import"
+    assert row.entity_label == older
+
+
+def test_delete_newest_snapshot_guarded_then_forced(client, db_session):
+    _seed_rich(db_session)
+    write_snapshot(db_session, actor="a@x.local")
+    newest = write_snapshot(db_session, actor="a@x.local")
+    resp = client.delete(f"/api/v1/import/snapshots/{newest}")
+    assert resp.status_code == 409
+    assert "most recent" in resp.json()["detail"]
+    assert client.delete(f"/api/v1/import/snapshots/{newest}?force=true").status_code == 204
+
+
+def test_delete_unknown_snapshot_404(client):
+    assert client.delete("/api/v1/import/snapshots/nope.json").status_code == 404
+    assert (
+        client.delete(
+            "/api/v1/import/snapshots/import-snapshot-20990101T000000-000000Z.json"
+        ).status_code
+        == 404
+    )
+
+
 def test_snapshot_endpoints_require_admin(member_client):
     assert member_client.get("/api/v1/import/snapshots").status_code == 403
     assert member_client.post("/api/v1/import/snapshots").status_code == 403
+    assert (
+        member_client.delete(
+            "/api/v1/import/snapshots/import-snapshot-20260101T000000-000000Z.json"
+        ).status_code
+        == 403
+    )
     assert (
         member_client.get(
             "/api/v1/import/snapshots/import-snapshot-20260101T000000-000000Z.json/download"

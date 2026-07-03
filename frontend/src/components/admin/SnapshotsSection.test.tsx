@@ -62,6 +62,43 @@ it("cancelling the dialog does not restore", async () => {
   expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 });
 
+const OLDER: SnapshotInfo = {
+  name: "import-snapshot-20260701T120000-000000Z.json",
+  created_at: "2026-07-01T12:00:00+00:00",
+  actor: "admin@example.com",
+  items: 100,
+  comments: 4,
+  links: 2,
+};
+
+it("deletes a non-newest snapshot without force and reloads", async () => {
+  // Newest-first list: SNAP is newest, OLDER is not.
+  const listSpy = vi
+    .spyOn(client, "listSnapshots")
+    .mockResolvedValueOnce([SNAP, OLDER])
+    .mockResolvedValueOnce([SNAP]);
+  const delSpy = vi.spyOn(client, "deleteSnapshot").mockResolvedValue(undefined);
+  render(<SnapshotsSection onChanged={() => {}} />);
+  await userEvent.click(await screen.findByRole("button", { name: `delete snapshot ${OLDER.name}` }));
+  const dialog = screen.getByRole("alertdialog", { name: "Delete snapshot?" });
+  expect(dialog).not.toHaveTextContent(/most recent/i);
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+  expect(delSpy).toHaveBeenCalledWith(OLDER.name, false);
+  expect(await screen.findByText("Snapshot deleted")).toBeInTheDocument();
+  await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
+});
+
+it("guards the newest snapshot: dialog warns and delete forces", async () => {
+  vi.spyOn(client, "listSnapshots").mockResolvedValue([SNAP, OLDER]);
+  const delSpy = vi.spyOn(client, "deleteSnapshot").mockResolvedValue(undefined);
+  render(<SnapshotsSection onChanged={() => {}} />);
+  await userEvent.click(await screen.findByRole("button", { name: `delete snapshot ${SNAP.name}` }));
+  const dialog = screen.getByRole("alertdialog", { name: "Delete snapshot?" });
+  expect(dialog).toHaveTextContent(/most recent snapshot/i);
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+  expect(delSpy).toHaveBeenCalledWith(SNAP.name, true);
+});
+
 it("confirmed restore reports counts and reloads the list", async () => {
   const listSpy = vi.spyOn(client, "listSnapshots").mockResolvedValue([SNAP]);
   vi.spyOn(client, "restoreSnapshot").mockResolvedValue({

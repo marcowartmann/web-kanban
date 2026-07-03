@@ -137,6 +137,13 @@ export function createSnapshot(): Promise<SnapshotInfo> {
   return request<SnapshotInfo>(`${API}/import/snapshots`, { method: "POST" });
 }
 
+export function deleteSnapshot(name: string, force = false): Promise<void> {
+  return request<void>(
+    `${API}/import/snapshots/${encodeURIComponent(name)}${force ? "?force=true" : ""}`,
+    { method: "DELETE" },
+  );
+}
+
 export function restoreSnapshot(name: string): Promise<RestoreResult> {
   return request<RestoreResult>(`${API}/import/snapshots/${encodeURIComponent(name)}/restore`, {
     method: "POST",
