@@ -39,6 +39,7 @@ describe("api client", () => {
     expect(url).toBe("/api/v1/import");
     const body = init?.body as FormData;
     expect(body).toBeInstanceOf(FormData);
+    expect(body.get("file")).toBe(file);
     expect(body.get("state_stamp")).toBe("stamp123");
     expect(body.get("file_sha256")).toBe("sha456");
   });
