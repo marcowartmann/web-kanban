@@ -12,9 +12,9 @@ import TimelineView from "./components/TimelineView";
 import UserMenu from "./components/UserMenu";
 import { useAuth } from "./auth/AuthContext";
 import { useBoard } from "./hooks/useBoard";
-import { getContainers, getPersonOptions, getTeams } from "./api/client";
+import { getContainers, getDepartments, getPersonOptions, getTeams } from "./api/client";
 import { statusOptionsByKind } from "./lib/boardLanes";
-import type { Container, PersonOption, Team } from "./types";
+import type { Container, Department, PersonOption, Team } from "./types";
 
 type View = "board" | "admin" | "planning" | "timeline" | "ranking";
 
@@ -52,6 +52,7 @@ export default function App() {
   const [people, setPeople] = useState<PersonOption[]>([]);
   const [teamOptions, setTeamOptions] = useState<Team[]>([]);
   const [containers, setContainers] = useState<Container[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   useEffect(() => {
     if (activeBoardId == null && boards.length) setActiveBoardId(boards[0].id);
@@ -64,6 +65,7 @@ export default function App() {
   useEffect(() => {
     void getTeams().then(setTeamOptions);
     void getContainers().then(setContainers);
+    void getDepartments().then(setDepartments);
   }, [refreshKey]);
 
   const statusOptions = useMemo(() => statusOptionsByKind(boards), [boards]);
@@ -206,6 +208,7 @@ export default function App() {
               planningIntervalOptions={planningIntervals}
               leadingTeamOptions={teamOptions.map((t) => t.name)}
               containers={containers}
+              departments={departments}
               teams={teamOptions}
               openIds={panels}
               onClose={() => closePanel(id)}
