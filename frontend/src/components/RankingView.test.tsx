@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import RankingView from "./RankingView";
 import type { AuthUser, Item } from "../types";
@@ -20,6 +21,21 @@ function renderView() {
     <RankingView items={items} planningIntervals={[]} teams={["Net", "Cloud"]} containers={[]} user={user} onChanged={vi.fn()} />,
   );
 }
+
+it("filters features by department", async () => {
+  const withDept: Item[] = [
+    { id: 1, kind: "feature", title: "Alpha", leading_team: "Net", wsjf_score: 10, manual_rank: null, department_name: "FE" } as Item,
+    { id: 2, kind: "feature", title: "Bravo", leading_team: "Net", wsjf_score: 20, manual_rank: null, department_name: "BE" } as Item,
+  ];
+  render(
+    <RankingView items={withDept} planningIntervals={[]} teams={["Net"]} containers={[]} departmentNames={["FE", "BE"]} user={user} onChanged={vi.fn()} />,
+  );
+  await userEvent.click(screen.getByRole("button", { name: /department/i }));
+  await userEvent.click(screen.getByRole("option", { name: "FE" }));
+  const wsjf = screen.getByTestId("wsjf-list");
+  expect(within(wsjf).getByText("Alpha")).toBeInTheDocument();
+  expect(within(wsjf).queryByText("Bravo")).toBeNull();
+});
 
 it("renders the WSJF list in descending score order", () => {
   renderView();
