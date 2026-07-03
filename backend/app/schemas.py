@@ -317,6 +317,11 @@ class LoginRequest(BaseModel):
     method: Literal["local", "ldap"] = "ldap"
 
 
+class FeatureReorderRequest(BaseModel):
+    feature_id: int
+    after_id: int | None = None
+
+
 def _password_fits_bcrypt(value: str | None) -> str | None:
     if value is None:
         return value
