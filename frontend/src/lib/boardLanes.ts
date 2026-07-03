@@ -19,10 +19,12 @@ export function buildBoardCards(items: Item[], links: LinkRow[] = []): BoardCard
 
   return items.map((it) => {
     const kids = childrenByParent.get(it.id) ?? [];
+    const points = kids.reduce((sum, c) => sum + (c.story_points ?? 0), 0);
     return {
       ...it,
       children_count: kids.length,
-      children_points: kids.reduce((sum, c) => sum + (c.story_points ?? 0), 0),
+      // Trim float noise from summed Numerics (e.g. 2.4000000000000004).
+      children_points: Math.round(points * 100) / 100,
       blocked_by_count: counts.blockedBy.get(it.id) ?? 0,
       blocks_count: counts.blocks.get(it.id) ?? 0,
       related_count: counts.related.get(it.id) ?? 0,

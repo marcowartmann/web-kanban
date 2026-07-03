@@ -27,6 +27,16 @@ describe("buildBoardCards", () => {
     expect(feature.children_count).toBe(2);
     expect(feature.children_points).toBe(2);
   });
+
+  it("trims float noise from children_points (0.8 × 3 is 2.4, not 2.4000000000000004)", () => {
+    const cards = buildBoardCards([
+      item({ id: 1, kind: "feature", title: "F" }),
+      item({ id: 2, kind: "story", parent_id: 1, story_points: 0.8 }),
+      item({ id: 3, kind: "story", parent_id: 1, story_points: 0.8 }),
+      item({ id: 4, kind: "story", parent_id: 1, story_points: 0.8 }),
+    ]);
+    expect(cards.find((c) => c.id === 1)!.children_points).toBe(2.4);
+  });
 });
 
 it("buildBoardCards counts blocks/blocked_by from links", () => {
