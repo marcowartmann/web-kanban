@@ -63,7 +63,7 @@ export default function AuditLogSection() {
             aria-label="Entity type"
             value={entityType}
             onChange={(e) => setEntityType(e.target.value)}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
           >
             <option value="">All types</option>
             {ENTITY_TYPES.map((t) => (

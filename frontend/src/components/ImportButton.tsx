@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ConflictError, importCsv, previewImport } from "../api/client";
 import type { ImportPreview, ImportResult } from "../types";
+import { btnDanger, btnGhost, btnSecondary, modalPanelClass, overlayClass } from "./ui";
 
 export default function ImportButton({
   onImported,
@@ -65,7 +66,9 @@ export default function ImportButton({
 
   return (
     <div className="flex items-center gap-3">
-      <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700">
+      <label
+        className={`${btnSecondary} cursor-pointer focus-within:ring-2 focus-within:ring-blue-100`}
+      >
         Import CSV
         <input
           ref={inputRef}
@@ -79,11 +82,15 @@ export default function ImportButton({
       {status && <span className="text-xs text-gray-500">{status}</span>}
       {preview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+          className={`${overlayClass} z-50`}
           role="dialog"
           aria-label="Import preview"
+          onClick={() => !busy && close()}
         >
-          <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+          <div
+            className={`${modalPanelClass} max-h-[80vh] max-w-lg overflow-y-auto`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-base font-semibold text-gray-900">Replace all data from CSV?</h2>
             <p className="mt-3 text-sm text-gray-700">
               {`Will be deleted: ${preview.current.features} features, ${preview.current.stories} stories, ` +
@@ -118,18 +125,10 @@ export default function ImportButton({
             </p>
             {modalError && <p className="mt-2 text-xs font-medium text-amber-700">{modalError}</p>}
             <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={close}
-                disabled={busy}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
+              <button onClick={close} disabled={busy} className={`${btnGhost} disabled:opacity-60`}>
                 Cancel
               </button>
-              <button
-                onClick={confirm}
-                disabled={busy}
-                className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
-              >
+              <button onClick={confirm} disabled={busy} className={btnDanger}>
                 Replace all data
               </button>
             </div>

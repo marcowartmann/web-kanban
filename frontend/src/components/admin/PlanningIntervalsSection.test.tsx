@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../../api/client";
@@ -20,6 +20,22 @@ it("lists, adds, and removes planning intervals", async () => {
 
   await userEvent.click(screen.getByRole("button", { name: /remove planning interval 1/i }));
   expect(del).toHaveBeenCalledWith(1);
+});
+
+it("confirms in a dialog and forces the delete when the server reports usage", async () => {
+  vi.spyOn(client, "getPlanningIntervals").mockResolvedValue([{ id: 1, name: "PI1-Q3", position: 0 }] as never);
+  const del = vi
+    .spyOn(client, "deletePlanningInterval")
+    .mockRejectedValueOnce(new client.ConflictError("Planning interval 'PI1-Q3' is used by 4 items"))
+    .mockResolvedValueOnce(undefined as never);
+
+  render(<PlanningIntervalsSection onChanged={() => {}} />);
+  await userEvent.click(await screen.findByRole("button", { name: /remove planning interval 1/i }));
+  const dialog = await screen.findByRole("alertdialog", { name: "Delete planning interval?" });
+  expect(dialog).toHaveTextContent("Planning interval 'PI1-Q3' is used by 4 items");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete anyway" }));
+  expect(del).toHaveBeenNthCalledWith(1, 1);
+  expect(del).toHaveBeenNthCalledWith(2, 1, true);
 });
 
 it("renames a planning interval inline", async () => {

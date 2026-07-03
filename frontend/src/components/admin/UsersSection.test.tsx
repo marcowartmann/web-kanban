@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../../api/client";
@@ -41,30 +41,30 @@ it("opens the edit modal prefilled, and the add modal", async () => {
   expect(screen.getByText("Add user")).toBeInTheDocument();
 });
 
-it("guarded delete: confirms and forces when the server reports an assignment conflict", async () => {
+it("guarded delete: confirms in a dialog and forces when the server reports an assignment conflict", async () => {
   mockData();
   const del = vi
     .spyOn(client, "deleteUser")
     .mockRejectedValueOnce(new client.ConflictError("User 'Ben' is assigned to 2 items"))
     .mockResolvedValueOnce(undefined as never);
-  const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
 
   render(<UsersSection currentUserId={1} />);
   await userEvent.click(await screen.findByRole("button", { name: /delete user ben/i }));
+  const dialog = await screen.findByRole("alertdialog", { name: "Delete user?" });
+  expect(dialog).toHaveTextContent("User 'Ben' is assigned to 2 items");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete anyway" }));
   await waitFor(() => expect(del).toHaveBeenNthCalledWith(2, 2, true));
-  expect(confirm).toHaveBeenCalledWith("User 'Ben' is assigned to 2 items Delete anyway?");
   expect(del).toHaveBeenNthCalledWith(1, 2);
 });
 
-it("delete blocked by comments shows the detail line and never confirms", async () => {
+it("delete blocked by comments shows the detail line and never offers force", async () => {
   mockData();
   vi.spyOn(client, "deleteUser").mockRejectedValue(
     new client.ConflictError("User 'Ben' has 4 comments — deactivate instead"),
   );
-  const confirm = vi.spyOn(window, "confirm");
 
   render(<UsersSection currentUserId={1} />);
   await userEvent.click(await screen.findByRole("button", { name: /delete user ben/i }));
   expect(await screen.findByText("User 'Ben' has 4 comments — deactivate instead")).toBeInTheDocument();
-  expect(confirm).not.toHaveBeenCalled();
+  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 });

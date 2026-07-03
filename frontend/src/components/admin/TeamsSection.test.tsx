@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../../api/client";
@@ -31,29 +31,32 @@ it("shows the error line when a rename conflicts", async () => {
   expect(await screen.findByText("Team already exists")).toBeInTheDocument();
 });
 
-it("confirms and forces the delete when the server reports usage", async () => {
+it("confirms in a dialog and forces the delete when the server reports usage", async () => {
   vi.spyOn(client, "getTeams").mockResolvedValue([team] as never);
   const del = vi
     .spyOn(client, "deleteTeam")
     .mockRejectedValueOnce(new client.ConflictError("Team 'Network' is referenced by 3 items"))
     .mockResolvedValueOnce(undefined as never);
-  const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
 
   render(<TeamsSection onChanged={() => {}} />);
   await userEvent.click(await screen.findByRole("button", { name: /remove team 1/i }));
-  expect(confirm).toHaveBeenCalledWith("Team 'Network' is referenced by 3 items Delete anyway?");
+  const dialog = await screen.findByRole("alertdialog", { name: "Delete team?" });
+  expect(dialog).toHaveTextContent("Team 'Network' is referenced by 3 items");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete anyway" }));
   expect(del).toHaveBeenNthCalledWith(1, 1);
   expect(del).toHaveBeenNthCalledWith(2, 1, true);
 });
 
-it("declining the confirm leaves the team alone", async () => {
+it("cancelling the dialog leaves the team alone", async () => {
   vi.spyOn(client, "getTeams").mockResolvedValue([team] as never);
   const del = vi
     .spyOn(client, "deleteTeam")
     .mockRejectedValue(new client.ConflictError("Team 'Network' is referenced by 3 items"));
-  vi.spyOn(window, "confirm").mockReturnValue(false);
 
   render(<TeamsSection onChanged={() => {}} />);
   await userEvent.click(await screen.findByRole("button", { name: /remove team 1/i }));
+  const dialog = await screen.findByRole("alertdialog", { name: "Delete team?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
   expect(del).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 });

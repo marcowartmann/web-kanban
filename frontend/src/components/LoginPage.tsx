@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { login } from "../api/client";
 import type { AuthUser } from "../types";
+import { captionClass, inputClass } from "./ui";
 
 export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser) => void }) {
   const [email, setEmail] = useState("");
@@ -30,29 +31,25 @@ export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser)
         <h1 className="text-lg font-semibold text-gray-900">SAFe Kanban</h1>
         <p className="mb-6 mt-0.5 text-sm text-gray-500">Sign in to your workspace.</p>
         <label className="mb-3 block">
-          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-            Email
-          </span>
+          <span className={`mb-1 block ${captionClass}`}>Email</span>
           <input
             type="email"
             autoComplete="username"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className={`w-full ${inputClass}`}
           />
         </label>
         <label className="mb-5 block">
-          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-            Password
-          </span>
+          <span className={`mb-1 block ${captionClass}`}>Password</span>
           <input
             type="password"
             autoComplete="current-password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className={`w-full ${inputClass}`}
           />
         </label>
         {error && <p className="mb-3 text-sm text-red-600">{error}</p>}

@@ -12,6 +12,7 @@ import {
 } from "../api/client";
 import type { Item, ItemKind, ItemUpdate, PersonOption, RelationOption } from "../types";
 import Avatar from "./Avatar";
+import ConfirmDialog from "./ConfirmDialog";
 import Field from "./Field";
 import InlineAddInput from "./InlineAddInput";
 import ItemActivity from "./ItemActivity";
@@ -85,6 +86,7 @@ export default function ItemDrawer({
   const [pickRelation, setPickRelation] = useState<RelationOption | null>(null);
   const [tab, setTab] = useState<"comments" | "activity">("comments");
   const [activityVisited, setActivityVisited] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     void getLinkRelations().then(setRelations).catch(() => undefined);
@@ -197,7 +199,6 @@ export default function ItemDrawer({
   };
 
   const remove = async () => {
-    if (!window.confirm(`Delete "${item.title}" and any child stories?`)) return;
     await deleteItem(item.id);
     onChanged();
   };
@@ -535,7 +536,7 @@ export default function ItemDrawer({
             Save
           </button>
           <button
-            onClick={remove}
+            onClick={() => setConfirmingDelete(true)}
             className="rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
           >
             Delete
@@ -605,6 +606,16 @@ export default function ItemDrawer({
           )}
         </div>
       </div>
+
+      {confirmingDelete && (
+        <ConfirmDialog
+          title="Delete item?"
+          message={`“${item.title}” and any child stories will be permanently deleted.`}
+          confirmLabel="Delete"
+          onConfirm={remove}
+          onClose={() => setConfirmingDelete(false)}
+        />
+      )}
 
       {compact ? (
         <div className="space-y-6 p-5">

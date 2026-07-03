@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api/client";
@@ -75,14 +75,21 @@ it("hides Edit/Delete on others' comments for members, shows them for admins", a
   expect((await screen.findAllByRole("button", { name: /^edit$/i })).length).toBe(1);
 });
 
-it("confirms before deleting a comment that has replies", async () => {
+it("confirms in a dialog before deleting a comment that has replies", async () => {
   const del = vi.spyOn(client, "deleteComment").mockResolvedValue(undefined as never);
-  const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
   renderAs(anna, [comment(), comment({ id: 2, parent_id: 1, author_id: 1, body: "r" })]);
   await screen.findByText("First!");
   await userEvent.click(screen.getAllByRole("button", { name: /^delete$/i })[0]);
-  expect(confirm).toHaveBeenCalledWith("Delete this comment and its replies?");
+  // Cancel keeps the comment.
+  let dialog = screen.getByRole("alertdialog", { name: "Delete comment?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
   expect(del).not.toHaveBeenCalled();
+  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  // Confirming deletes the thread root.
+  await userEvent.click(screen.getAllByRole("button", { name: /^delete$/i })[0]);
+  dialog = screen.getByRole("alertdialog", { name: "Delete comment?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+  expect(del).toHaveBeenCalledWith(1);
 });
 
 it("shows an inline error and keeps the draft when posting a comment fails", async () => {

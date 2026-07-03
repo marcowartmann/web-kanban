@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ConflictError, deleteUser, getTeams, listUsers } from "../../api/client";
 import type { AuthUser, Team } from "../../types";
+import ConfirmDialog from "../ConfirmDialog";
 import UserModal from "./UserModal";
 
 const statusPill = (active: boolean) =>
@@ -14,6 +15,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
   const [editing, setEditing] = useState<AuthUser | null>(null);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [forceDelete, setForceDelete] = useState<{ user: AuthUser; detail: string } | null>(null);
 
   const reload = () => {
     void listUsers().then(setUsers);
@@ -27,21 +29,26 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
       await deleteUser(u.id);
     } catch (e) {
       if (e instanceof ConflictError) {
-        if (!e.detail.includes("deactivate instead") && window.confirm(`${e.detail} Delete anyway?`)) {
-          try {
-            await deleteUser(u.id, true);
-          } catch (forced) {
-            setError(forced instanceof Error ? forced.message : "Could not delete the user.");
-            return;
-          }
-        } else {
-          if (e.detail.includes("deactivate instead")) setError(e.detail);
-          return;
-        }
+        // Comment-guarded deletes are never forceable; everything else asks.
+        if (e.detail.includes("deactivate instead")) setError(e.detail);
+        else setForceDelete({ user: u, detail: e.detail });
       } else {
         setError(e instanceof Error ? e.message : "Could not delete the user.");
-        return;
       }
+      return;
+    }
+    reload();
+  };
+
+  const forceRemove = async () => {
+    if (!forceDelete) return;
+    const { user } = forceDelete;
+    setForceDelete(null);
+    try {
+      await deleteUser(user.id, true);
+    } catch (forced) {
+      setError(forced instanceof Error ? forced.message : "Could not delete the user.");
+      return;
     }
     reload();
   };
@@ -147,6 +154,15 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
           currentUserId={currentUserId}
           onSaved={reload}
           onClose={() => setEditing(null)}
+        />
+      )}
+      {forceDelete && (
+        <ConfirmDialog
+          title="Delete user?"
+          message={forceDelete.detail}
+          confirmLabel="Delete anyway"
+          onConfirm={() => void forceRemove()}
+          onClose={() => setForceDelete(null)}
         />
       )}
     </section>

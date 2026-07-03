@@ -88,11 +88,12 @@ export default function App() {
     void reload();
   };
 
+  // Segmented control, matching the drawer's Comments|Activity tabs.
   const navButton = (target: View, label: string) => (
     <button
       onClick={() => setView(target)}
-      className={`rounded px-3 py-1 text-sm font-medium ${
-        view === target ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"
+      className={`rounded-md px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-100 ${
+        view === target ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
       }`}
     >
       {label}
@@ -104,7 +105,7 @@ export default function App() {
       <header className="flex items-center justify-between border-b bg-white px-6 py-4">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold text-gray-900">SAFe Kanban</h1>
-          <nav className="flex gap-1">
+          <nav className="flex gap-0.5 rounded-lg bg-gray-100 p-0.5">
             {navButton("board", "Board")}
             {navButton("planning", "Planning")}
             {navButton("timeline", "Timeline")}

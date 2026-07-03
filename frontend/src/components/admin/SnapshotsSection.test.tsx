@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../../api/client";
@@ -36,24 +36,28 @@ it("shows the empty state", async () => {
   ).toBeInTheDocument();
 });
 
-it("declined confirm does not restore", async () => {
+it("cancelling the dialog does not restore", async () => {
   vi.spyOn(client, "listSnapshots").mockResolvedValue([SNAP]);
-  vi.spyOn(window, "confirm").mockReturnValue(false);
   const restoreSpy = vi.spyOn(client, "restoreSnapshot");
   render(<SnapshotsSection onChanged={() => {}} />);
   await userEvent.click(await screen.findByRole("button", { name: /restore snapshot/i }));
+  const dialog = screen.getByRole("alertdialog", { name: "Restore snapshot?" });
+  expect(dialog).toHaveTextContent(SNAP.name);
+  await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
   expect(restoreSpy).not.toHaveBeenCalled();
+  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 });
 
 it("confirmed restore reports counts and reloads the list", async () => {
   const listSpy = vi.spyOn(client, "listSnapshots").mockResolvedValue([SNAP]);
-  vi.spyOn(window, "confirm").mockReturnValue(true);
   vi.spyOn(client, "restoreSnapshot").mockResolvedValue({
     items: 131, comments: 12, links: 5, warnings: ["one"],
   });
   const onChanged = vi.fn();
   render(<SnapshotsSection onChanged={onChanged} />);
   await userEvent.click(await screen.findByRole("button", { name: /restore snapshot/i }));
+  const dialog = screen.getByRole("alertdialog", { name: "Restore snapshot?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Restore" }));
   expect(
     await screen.findByText("Restored 131 items, 12 comments, 5 links — 1 warning(s)"),
   ).toBeInTheDocument();

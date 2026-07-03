@@ -12,6 +12,7 @@ import type { Board, BoardCard, Item, LinkRow } from "../types";
 import type { BoardFilters } from "./Toolbar";
 import Column from "./Column";
 import LaneEditor from "./LaneEditor";
+import { btnSecondary } from "./ui";
 
 export async function handleCardDragEnd(
   event: DragEndEvent,
@@ -83,10 +84,7 @@ export default function BoardView({
     <div>
       {canEditLanes && (
         <div className="flex justify-end px-6 pt-3">
-          <button
-            onClick={() => setEditing((v) => !v)}
-            className="rounded border border-gray-300 px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
-          >
+          <button onClick={() => setEditing((v) => !v)} className={btnSecondary}>
             {editing ? "Done" : "Edit lanes"}
           </button>
         </div>

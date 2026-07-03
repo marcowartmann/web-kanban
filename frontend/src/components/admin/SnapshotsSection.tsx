@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { API, listSnapshots, restoreSnapshot } from "../../api/client";
 import type { SnapshotInfo } from "../../types";
+import ConfirmDialog from "../ConfirmDialog";
 import AdminCard, { adminEmptyClass } from "./AdminCard";
 
 export default function SnapshotsSection({ onChanged }: { onChanged: () => void }) {
@@ -8,14 +9,12 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [confirmRestore, setConfirmRestore] = useState<string | null>(null);
 
   const reload = () => void listSnapshots().then(setSnapshots);
   useEffect(reload, []);
 
   const restore = async (name: string) => {
-    if (!window.confirm(`Restore snapshot ${name}? Current data is snapshotted first, then replaced.`)) {
-      return;
-    }
     setError(null);
     setStatus(null);
     setRestoring(true);
@@ -78,7 +77,7 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
                         Download
                       </a>
                       <button
-                        onClick={() => restore(s.name)}
+                        onClick={() => setConfirmRestore(s.name)}
                         aria-label={`restore snapshot ${s.name}`}
                         disabled={restoring}
                         className="text-xs font-semibold text-red-600 hover:underline"
@@ -92,6 +91,19 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
             </tbody>
           </table>
         </div>
+      )}
+      {confirmRestore && (
+        <ConfirmDialog
+          title="Restore snapshot?"
+          message={`${confirmRestore}\nCurrent data is snapshotted first, then replaced.`}
+          confirmLabel="Restore"
+          onConfirm={() => {
+            const name = confirmRestore;
+            setConfirmRestore(null);
+            void restore(name);
+          }}
+          onClose={() => setConfirmRestore(null)}
+        />
       )}
     </AdminCard>
   );

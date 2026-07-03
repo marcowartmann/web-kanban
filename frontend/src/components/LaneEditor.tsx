@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { addLane, deleteLane, renameLane, reorderLanes } from "../api/client";
 import type { Board } from "../types";
+import { btnPrimary } from "./ui";
 
 export async function handleLaneDragEnd(
   event: DragEndEvent,
@@ -43,21 +44,21 @@ function LaneChip({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+      className="flex items-center gap-1.5 rounded-lg bg-white px-2 py-1 text-sm shadow-sm ring-1 ring-gray-200"
     >
       <span {...attributes} {...listeners} className="cursor-grab text-gray-400">⠿</span>
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={() => value.trim() && value !== name && onRename(id, value.trim())}
-        className="w-24 rounded border border-transparent px-1 hover:border-gray-200"
+        className="w-24 rounded-md border border-transparent px-1.5 py-0.5 text-sm transition hover:border-gray-200 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
       />
       <button
         aria-label={`delete lane ${id}`}
         onClick={() => onDelete(id)}
-        className="text-gray-400 hover:text-red-600"
+        className="rounded p-0.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
       >
-        ×
+        ✕
       </button>
     </div>
   );
@@ -107,17 +108,14 @@ export default function LaneEditor({
           </div>
         </SortableContext>
       </DndContext>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="New lane"
-          className="rounded border border-gray-300 px-2 py-1 text-sm"
+          className="w-40 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
         />
-        <button
-          onClick={onAdd}
-          className="rounded bg-blue-600 px-3 py-1 text-sm text-white"
-        >
+        <button onClick={onAdd} className={btnPrimary}>
           Add lane
         </button>
       </div>

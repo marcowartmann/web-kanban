@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ConflictError, createUser, updateUser } from "../../api/client";
 import type { AuthUser, Team } from "../../types";
+import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass } from "../ui";
 
 /** Extracts the server's `detail` message from a thrown request error. */
 function errorDetail(e: unknown): string {
@@ -75,19 +76,12 @@ export default function UserModal({
     }
   };
 
-  const field =
-    "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100";
-  const caption = "mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400";
+  const field = `w-full ${inputClass}`;
+  const caption = `mb-1 block ${captionClass}`;
 
   return (
-    <div
-      className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className={`${overlayClass} z-30`} onClick={onClose}>
+      <div className={`${modalPanelClass} max-w-md`} onClick={(e) => e.stopPropagation()}>
         <h2 className="mb-4 text-sm font-semibold text-gray-900">
           {mode === "create" ? "Add user" : `Edit ${user?.display_name}`}
         </h2>
@@ -158,16 +152,13 @@ export default function UserModal({
         </div>
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="rounded-lg px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100"
-          >
+          <button onClick={onClose} className={btnGhost}>
             Cancel
           </button>
           <button
             onClick={() => void save()}
             disabled={!valid || busy}
-            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
           >
             Save
           </button>

@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
+import { inputClass } from "../ui";
 
 /** Shared modern styling tokens for the Admin sections, so the cards, inputs,
  *  and buttons stay visually consistent across Teams / Members / Planning
- *  Intervals / Capacity. */
+ *  Intervals / Capacity. App-wide tokens live in components/ui.ts; the admin
+ *  variants below are deliberate size/layout departures from those. */
 export const adminCardClass =
   "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ring-1 ring-black/5";
 
-export const adminInputClass =
-  "rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100";
+export const adminInputClass = inputClass;
 
 export const adminAddButtonClass =
   "shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200";
@@ -16,7 +17,7 @@ export const adminRowClass =
   "group flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2 text-sm text-gray-700 transition hover:border-gray-200 hover:bg-gray-50";
 
 export const adminRemoveButtonClass =
-  "shrink-0 rounded-md p-1 text-lg leading-none text-gray-300 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-100";
+  "shrink-0 rounded-md p-1 text-sm leading-none text-gray-300 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-100";
 
 export const adminEmptyClass = "px-3 py-6 text-center text-sm text-gray-400";
 

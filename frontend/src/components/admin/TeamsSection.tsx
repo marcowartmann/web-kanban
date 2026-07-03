@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ConflictError, createTeam, deleteTeam, getTeams, renameTeam } from "../../api/client";
 import type { Team } from "../../types";
+import ConfirmDialog from "../ConfirmDialog";
 import AdminCard, {
   adminAddButtonClass,
   adminEmptyClass,
@@ -15,6 +16,7 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [forceDelete, setForceDelete] = useState<{ id: number; detail: string } | null>(null);
 
   const reload = () => void getTeams().then(setTeams);
   useEffect(reload, []);
@@ -56,18 +58,23 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
     try {
       await deleteTeam(id);
     } catch (e) {
-      if (e instanceof ConflictError) {
-        if (!window.confirm(`${e.detail} Delete anyway?`)) return;
-        try {
-          await deleteTeam(id, true);
-        } catch (forced) {
-          setError(forced instanceof Error ? forced.message : "Could not delete the team.");
-          return;
-        }
-      } else {
-        setError(e instanceof Error ? e.message : "Could not delete the team.");
-        return;
-      }
+      if (e instanceof ConflictError) setForceDelete({ id, detail: e.detail });
+      else setError(e instanceof Error ? e.message : "Could not delete the team.");
+      return;
+    }
+    reload();
+    onChanged();
+  };
+
+  const forceRemove = async () => {
+    if (!forceDelete) return;
+    const { id } = forceDelete;
+    setForceDelete(null);
+    try {
+      await deleteTeam(id, true);
+    } catch (forced) {
+      setError(forced instanceof Error ? forced.message : "Could not delete the team.");
+      return;
     }
     reload();
     onChanged();
@@ -129,7 +136,7 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
                     onClick={() => remove(t.id)}
                     className={adminRemoveButtonClass}
                   >
-                    ×
+                    ✕
                   </button>
                 </span>
               </>
@@ -138,6 +145,15 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
         ))}
         {teams.length === 0 && <li className={adminEmptyClass}>No teams yet.</li>}
       </ul>
+      {forceDelete && (
+        <ConfirmDialog
+          title="Delete team?"
+          message={forceDelete.detail}
+          confirmLabel="Delete anyway"
+          onConfirm={() => void forceRemove()}
+          onClose={() => setForceDelete(null)}
+        />
+      )}
     </AdminCard>
   );
 }

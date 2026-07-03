@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { createComment, deleteComment, getComments, updateComment } from "../api/client";
 import { useOptionalAuth } from "../auth/AuthContext";
 import type { AuthUser, Comment } from "../types";
+import ConfirmDialog from "./ConfirmDialog";
+import { btnPrimary, inputClass } from "./ui";
 
-const box =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100";
+const box = `w-full ${inputClass}`;
 const action =
   "text-xs font-medium text-gray-400 transition hover:text-gray-700";
 
@@ -32,6 +33,7 @@ export default function ItemComments({ itemId }: { itemId: number }) {
   const [editDraft, setEditDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Comment | null>(null);
 
   const reload = () =>
     getComments(itemId)
@@ -99,9 +101,7 @@ export default function ItemComments({ itemId }: { itemId: number }) {
     }
   };
 
-  const remove = async (comment: Comment, replyCount: number) => {
-    if (busy) return;
-    if (replyCount > 0 && !window.confirm("Delete this comment and its replies?")) return;
+  const doRemove = async (comment: Comment) => {
     setError(null);
     setBusy(true);
     try {
@@ -112,6 +112,12 @@ export default function ItemComments({ itemId }: { itemId: number }) {
     } finally {
       setBusy(false);
     }
+  };
+
+  const remove = (comment: Comment, replyCount: number) => {
+    if (busy) return;
+    if (replyCount > 0) setConfirmDelete(comment);
+    else void doRemove(comment);
   };
 
   const topLevel = comments.filter((c) => c.parent_id === null);
@@ -164,7 +170,7 @@ export default function ItemComments({ itemId }: { itemId: number }) {
             Edit
           </button>
           <button
-            onClick={() => void remove(comment, isReply ? 0 : repliesOf(comment.id).length)}
+            onClick={() => remove(comment, isReply ? 0 : repliesOf(comment.id).length)}
             disabled={busy}
             className={`${action} hover:text-red-600`}
           >
@@ -190,11 +196,25 @@ export default function ItemComments({ itemId }: { itemId: number }) {
           <button
             onClick={() => void post()}
             disabled={!draft.trim() || busy}
-            className="self-end rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+            className={`self-end ${btnPrimary}`}
           >
             Post
           </button>
         </div>
+      )}
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete comment?"
+          message="This comment and its replies will be permanently deleted."
+          confirmLabel="Delete"
+          onConfirm={() => {
+            const target = confirmDelete;
+            setConfirmDelete(null);
+            void doRemove(target);
+          }}
+          onClose={() => setConfirmDelete(null)}
+        />
       )}
 
       {topLevel.length === 0 && <p className="text-xs text-gray-400">No comments yet.</p>}

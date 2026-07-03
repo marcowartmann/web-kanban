@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api/client";
@@ -106,16 +106,30 @@ it("closes via the × button", async () => {
   expect(onClose).toHaveBeenCalled();
 });
 
-it("deletes via deleteItem after confirm", async () => {
+it("deletes via deleteItem after confirming in the dialog", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue(item as never);
   const del = vi.spyOn(client, "deleteItem").mockResolvedValue();
-  vi.spyOn(window, "confirm").mockReturnValue(true);
   const onChanged = vi.fn();
   render(<ItemDrawer itemId={5} onClose={() => {}} onChanged={onChanged} />);
   await screen.findByDisplayValue("Teton Isolierung");
   await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+  expect(del).not.toHaveBeenCalled(); // nothing happens until the dialog confirms
+  const dialog = screen.getByRole("alertdialog", { name: "Delete item?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
   expect(del).toHaveBeenCalledWith(5);
   expect(onChanged).toHaveBeenCalled();
+});
+
+it("cancelling the delete dialog keeps the item", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  const del = vi.spyOn(client, "deleteItem").mockResolvedValue();
+  render(<ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} />);
+  await screen.findByDisplayValue("Teton Isolierung");
+  await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+  const dialog = screen.getByRole("alertdialog", { name: "Delete item?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+  expect(del).not.toHaveBeenCalled();
+  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 });
 
 it("shows the conflict notice and reloads on 409", async () => {
