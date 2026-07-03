@@ -79,9 +79,12 @@ Module-level constant + helper (imported by the teams and PI routers):
 ```python
 DEFAULT_CONTAINER_NAMES = ("Operations", "Local Items", "Strategic Items")
 
-def add_default_containers(db: Session, *, teams: list[Team],
+def add_default_containers(db: Session, *, actor: User, teams: list[Team],
                            planning_intervals: list[str]) -> None:
-    """db.add() one container per (team, PI, default name). No commit."""
+    """db.add() + flush one container per (team, PI, default name), and
+    log_event a `container.created` audit row for each (same entity_label
+    format as the POST endpoint, actor = the admin whose team/PI creation
+    triggered it). No commit."""
 ```
 
 Endpoints:
@@ -123,13 +126,16 @@ class ContainerUpdate(BaseModel):
 
 ## 3. Backend integration points
 
-**Auto-create defaults** (ordinary rows afterwards; not individually audited —
-the `team.created` / `planning_interval.created` event covers the action):
+**Auto-create defaults** (ordinary rows afterwards; each auto-created
+container is individually audited as `container.created`, alongside the
+`team.created` / `planning_interval.created` event):
 
 - `POST /teams` (`routers/teams.py`): after `db.flush()`, call
-  `add_default_containers(db, teams=[team], planning_intervals=<all PI names>)`.
+  `add_default_containers(db, actor=current, teams=[team],
+  planning_intervals=<all PI names>)`.
 - `POST /planning-intervals` (`routers/planning_intervals.py`): after flush,
-  `add_default_containers(db, teams=<all teams>, planning_intervals=[pi.name])`.
+  `add_default_containers(db, actor=current, teams=<all teams>,
+  planning_intervals=[pi.name])`.
 
 **PI rename** (`routers/planning_intervals.py`): add a third bulk `update`
 propagating the name to `Container.planning_interval` (alongside Item and
@@ -276,7 +282,9 @@ from `getTeams` instead of only names).
   count → force clears `container_id` and deletes; admin-only writes (403 as
   member).
 - Auto-create: `POST /teams` creates 3 defaults per existing PI;
-  `POST /planning-intervals` creates 3 defaults per existing team.
+  `POST /planning-intervals` creates 3 defaults per existing team; each
+  auto-created container emits a `container.created` audit event attributed
+  to the acting admin.
 - PI rename propagates to containers; PI delete removes its containers and
   clears `container_id` on affected items without force; team delete does the
   same for its containers.
