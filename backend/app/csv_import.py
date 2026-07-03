@@ -211,7 +211,9 @@ def _resolve_people(db, parsed) -> dict[str, int]:
     return assignee_ids
 
 
-def _seed_teams_and_users(db, parsed) -> None:
+def _seed_teams(db, parsed) -> None:
+    # People are seeded by replace_all's earlier _resolve_people call (the
+    # item-assignee resolution) — no separate person-seeding pass is needed.
     from app.models import Team
 
     all_data = []
@@ -232,11 +234,6 @@ def _seed_teams_and_users(db, parsed) -> None:
     existing_teams = {t.name for t in db.scalars(select(Team))}
     for name in team_names - existing_teams:
         db.add(Team(name=name))
-
-    # Login-less people are upserted by the same helper `replace_all` already
-    # calls for item-assignee resolution — exact display_name match, else
-    # create. Idempotent: re-running never duplicates a person.
-    _resolve_people(db, parsed)
 
 
 def _seed_planning_intervals(db, parsed) -> None:
@@ -273,7 +270,7 @@ def replace_all(db, parsed):
             stories += 1
     for r_index, risk in enumerate(parsed.risks):
         _insert_item(db, risk, None, r_index, assignee_ids)
-    _seed_teams_and_users(db, parsed)
+    _seed_teams(db, parsed)
     _seed_planning_intervals(db, parsed)
     db.commit()
     return ImportResult(

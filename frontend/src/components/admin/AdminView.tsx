@@ -19,7 +19,7 @@ export default function AdminView({
       <header className="mb-6">
         <h1 className="text-xl font-semibold text-gray-900">Administration</h1>
         <p className="mt-0.5 text-sm text-gray-500">
-          Manage teams, members, planning intervals, and capacity.
+          Manage teams, people, planning intervals, and capacity.
         </p>
       </header>
       <div className="grid items-start gap-4 md:grid-cols-2">
