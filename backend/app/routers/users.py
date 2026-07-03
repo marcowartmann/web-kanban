@@ -44,14 +44,18 @@ def create_user(
     current: User = Depends(require_admin),
 ) -> User:
     email = (payload.email or "").strip().lower() or None  # whitespace-only -> None
-    if payload.password is not None and email is None:
-        raise HTTPException(status_code=422, detail="Password requires an email")
+    username = (payload.username or "").strip() or None
+    if payload.password is not None and username is None:
+        raise HTTPException(status_code=422, detail="Password requires a username")
     if email and db.scalar(select(User).where(func.lower(User.email) == email)):
         raise HTTPException(status_code=409, detail="Email already in use")
+    if username and db.scalar(select(User).where(User.username == username)):
+        raise HTTPException(status_code=409, detail="Username already in use")
     if payload.team_id is not None and db.get(Team, payload.team_id) is None:
         raise HTTPException(status_code=422, detail="team_id does not exist")
     user = User(
         email=email,
+        username=username,
         display_name=payload.display_name,
         password_hash=hash_password(payload.password) if payload.password else None,
         role=payload.role,
@@ -86,7 +90,7 @@ def update_user(
     ):
         raise HTTPException(status_code=422, detail="Admins cannot demote or deactivate themselves")
     audited = {}
-    for key in ("email", "display_name", "role", "is_active", "team_id"):
+    for key in ("email", "username", "display_name", "role", "is_active", "team_id"):
         if key in changes:
             audited[key] = getattr(user, key)
     if "email" in changes:
@@ -94,21 +98,34 @@ def update_user(
         if email is not None:
             email = email.strip().lower() or None  # whitespace-only counts as clearing
         if email is None:
-            if user.password_hash is not None:
-                raise HTTPException(status_code=422, detail="Remove the password first")
-            user.email = None
+            user.email = None  # email is optional and independent of the password
         else:
             if db.scalar(
                 select(User).where(func.lower(User.email) == email, User.id != user.id)
             ):
                 raise HTTPException(status_code=409, detail="Email already in use")
             user.email = email
+    if "username" in changes:
+        raw = changes.get("username")
+        norm = (raw.strip() if raw else "") or None
+        changes["username"] = norm
+        if norm and db.scalar(
+            select(User).where(User.username == norm, User.id != user.id)
+        ):
+            raise HTTPException(status_code=409, detail="Username already in use")
     if "team_id" in changes:  # distinguishes "not sent" from explicit null
         team_id = changes.pop("team_id")
         if team_id is not None and db.get(Team, team_id) is None:
             raise HTTPException(status_code=422, detail="team_id does not exist")
         user.team_id = team_id
     password = changes.pop("password", None)
+    # A password-bearing account must keep a username. Only enforce when the
+    # request actually touches the username or the password, so unrelated edits
+    # (deactivate, team, role) on any legacy row are untouched.
+    if "username" in changes or password is not None:
+        final_username = changes["username"] if "username" in changes else user.username
+        if (user.password_hash is not None or password is not None) and final_username is None:
+            raise HTTPException(status_code=422, detail="Password requires a username")
     for key, value in changes.items():
         setattr(user, key, value)
     if password is not None:

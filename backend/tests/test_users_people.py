@@ -15,12 +15,12 @@ def test_person_only_creation(client):
     assert any(u["display_name"] == "No Login" and u["email"] is None for u in listed)
 
 
-def test_password_requires_email(client):
+def test_password_requires_username(client):
     resp = client.post(
         "/api/v1/users", json={"display_name": "P", "password": "secret123"}
     )
     assert resp.status_code == 422
-    assert "Password requires an email" in resp.text
+    assert "Password requires a username" in resp.text
 
 
 def test_email_clear_rules(client):
@@ -29,10 +29,11 @@ def test_email_clear_rules(client):
     assert resp.status_code == 200
     assert resp.json()["email"] is None
 
-    full = _person(client, "Locked", email="locked@x.local", password="secret123")
+    # A passworded account keeps its login via username, so email clears freely.
+    full = _person(client, "Locked", username="locked", email="locked@x.local", password="secret123")
     resp = client.patch(f"/api/v1/users/{full['id']}", json={"email": None})
-    assert resp.status_code == 422
-    assert resp.json()["detail"] == "Remove the password first"
+    assert resp.status_code == 200
+    assert resp.json()["email"] is None
 
 
 def test_delete_self_is_422(client):
@@ -78,20 +79,20 @@ def test_delete_is_audited(client, db_session):
     assert row.entity_label == "Bye P"
 
 
-def test_whitespace_email_is_treated_as_absent(client):
+def test_whitespace_username_is_treated_as_absent(client):
     resp = client.post(
-        "/api/v1/users", json={"display_name": "W", "email": "   ", "password": "secret123"}
+        "/api/v1/users", json={"display_name": "W", "username": "   ", "password": "secret123"}
     )
     assert resp.status_code == 422
-    assert "Password requires an email" in resp.text
+    assert "Password requires a username" in resp.text
 
     full = client.post(
         "/api/v1/users",
-        json={"display_name": "WL", "email": "wl@x.local", "password": "secret123"},
+        json={"display_name": "WL", "username": "wl", "password": "secret123"},
     ).json()
-    resp = client.patch(f"/api/v1/users/{full['id']}", json={"email": "   "})
+    resp = client.patch(f"/api/v1/users/{full['id']}", json={"username": "   "})
     assert resp.status_code == 422
-    assert resp.json()["detail"] == "Remove the password first"
+    assert resp.json()["detail"] == "Password requires a username"
 
 
 def test_member_blocked_from_new_user_endpoints(client, member_client):

@@ -62,7 +62,7 @@ def test_user_created_and_updated_events(anon_client, db_session):
 
     created = anon_client.post(
         "/api/v1/users",
-        json={"email": "new@x.ch", "display_name": "New", "password": "longenough1", "role": "member"},
+        json={"email": "new@x.ch", "username": "new", "display_name": "New", "password": "longenough1", "role": "member"},
     )
     assert created.status_code == 201
     target_id = created.json()["id"]
