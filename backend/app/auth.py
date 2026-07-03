@@ -104,6 +104,7 @@ def ensure_initial_admin(db: Session) -> None:
     db.add(
         User(
             email=settings.initial_admin_email.strip().lower(),
+            username=settings.initial_admin_username.strip(),
             display_name=settings.initial_admin_name,
             password_hash=hash_password(settings.initial_admin_password),
             role="admin",

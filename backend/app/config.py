@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     initial_admin_email: str = "admin@example.com"
     initial_admin_password: str = "admin"
     initial_admin_name: str = "Admin"
+    initial_admin_username: str = "admin"
 
 
 settings = Settings()

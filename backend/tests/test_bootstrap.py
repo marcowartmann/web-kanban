@@ -16,6 +16,15 @@ def test_seeds_admin_once_into_empty_db(db_session):
     assert db_session.query(User).count() == 1
 
 
+def test_bootstrap_admin_gets_username(db_session, monkeypatch):
+    from sqlalchemy import select
+
+    monkeypatch.setattr(settings, "initial_admin_username", "root")
+    ensure_initial_admin(db_session)
+    admin = db_session.scalar(select(User))
+    assert admin.username == "root"
+
+
 def test_noop_when_users_exist(db_session):
     db_session.add(User(email="x@x.ch", display_name="X", password_hash=None))
     db_session.commit()
