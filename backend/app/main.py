@@ -37,7 +37,7 @@ app.add_middleware(
 configure_access_logging()
 app.add_middleware(RequestLoggingMiddleware)
 
-from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking
+from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments
 
 app.include_router(auth.router)
 for protected in (
@@ -53,6 +53,7 @@ for protected in (
     audit.router,
     comments.router,
     features_ranking.router,
+    departments.router,
 ):
     app.include_router(protected, dependencies=[Depends(require_user)])
 

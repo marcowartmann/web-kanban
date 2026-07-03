@@ -322,6 +322,28 @@ class FeatureReorderRequest(BaseModel):
     after_id: int | None = None
 
 
+class DepartmentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    team_id: int
+    team_name: str
+    member_ids: list[int]
+
+
+class DepartmentCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    team_id: int
+
+
+class DepartmentRename(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+
+
+class DepartmentMembers(BaseModel):
+    user_ids: list[int]
+
+
 def _password_fits_bcrypt(value: str | None) -> str | None:
     if value is None:
         return value
