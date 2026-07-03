@@ -25,3 +25,6 @@ dist/
 
 # Playwright MCP artifacts
 .playwright-mcp/
+
+# Local agent definitions (not part of the app)
+.github/agents/
