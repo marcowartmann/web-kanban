@@ -50,6 +50,20 @@ it("Create snapshot posts, reports counts, and reloads the list", async () => {
   expect(await screen.findByText("admin@example.com")).toBeInTheDocument();
 });
 
+it("uploading a snapshot file posts it and reloads", async () => {
+  const listSpy = vi
+    .spyOn(client, "listSnapshots")
+    .mockResolvedValueOnce([])
+    .mockResolvedValueOnce([SNAP]);
+  const uploadSpy = vi.spyOn(client, "uploadSnapshot").mockResolvedValue(SNAP);
+  render(<SnapshotsSection onChanged={() => {}} />);
+  const file = new File(["{}"], SNAP.name, { type: "application/json" });
+  await userEvent.upload(await screen.findByLabelText(/upload snapshot/i), file);
+  await waitFor(() => expect(uploadSpy).toHaveBeenCalledWith(file));
+  expect(await screen.findByText(/uploaded/i)).toBeInTheDocument();
+  await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
+});
+
 it("cancelling the dialog does not restore", async () => {
   vi.spyOn(client, "listSnapshots").mockResolvedValue([SNAP]);
   const restoreSpy = vi.spyOn(client, "restoreSnapshot");

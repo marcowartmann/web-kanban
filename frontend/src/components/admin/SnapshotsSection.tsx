@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { API, createSnapshot, deleteSnapshot, listSnapshots, restoreSnapshot } from "../../api/client";
+import { API, createSnapshot, deleteSnapshot, listSnapshots, restoreSnapshot, uploadSnapshot } from "../../api/client";
 import type { SnapshotInfo } from "../../types";
 import ConfirmDialog from "../ConfirmDialog";
-import { btnPrimary } from "../ui";
+import { btnPrimary, btnSecondary } from "../ui";
 import AdminCard, { adminEmptyClass } from "./AdminCard";
 
 export default function SnapshotsSection({ onChanged }: { onChanged: () => void }) {
@@ -11,6 +11,7 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
   const [error, setError] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmRestore, setConfirmRestore] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<SnapshotInfo | null>(null);
@@ -30,6 +31,24 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
       setError(e instanceof Error ? e.message : "Could not create the snapshot.");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(null);
+    setStatus(null);
+    setUploading(true);
+    try {
+      const s = await uploadSnapshot(file);
+      setStatus(`Snapshot uploaded — ${s.items} items, ${s.comments} comments, ${s.links} links`);
+      reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not upload the snapshot.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -74,10 +93,20 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
       accent="bg-emerald-50 text-emerald-600"
       count={snapshots.length}
     >
-      <div className="mb-3">
+      <div className="mb-3 flex items-center gap-2">
         <button onClick={create} disabled={creating} className={btnPrimary}>
           Create snapshot
         </button>
+        <label className={`${btnSecondary} cursor-pointer ${uploading ? "opacity-60" : ""}`}>
+          Upload snapshot
+          <input
+            type="file"
+            accept=".json,application/json"
+            aria-label="Upload snapshot"
+            onChange={(e) => void upload(e)}
+            className="hidden"
+          />
+        </label>
       </div>
       {status && <p className="mb-2 text-xs text-emerald-700">{status}</p>}
       {error && <p className="mb-2 text-xs text-red-600">{error}</p>}

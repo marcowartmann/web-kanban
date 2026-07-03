@@ -166,6 +166,12 @@ export function createSnapshot(): Promise<SnapshotInfo> {
   return request<SnapshotInfo>(`${API}/import/snapshots`, { method: "POST" });
 }
 
+export function uploadSnapshot(file: File): Promise<SnapshotInfo> {
+  const form = new FormData();
+  form.append("file", file);
+  return request<SnapshotInfo>(`${API}/import/snapshots/upload`, { method: "POST", body: form });
+}
+
 export function deleteSnapshot(name: string, force = false): Promise<void> {
   return request<void>(
     `${API}/import/snapshots/${encodeURIComponent(name)}${force ? "?force=true" : ""}`,

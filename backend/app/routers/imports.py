@@ -26,6 +26,7 @@ from app.snapshots import (
     list_snapshots,
     newest_snapshot_name,
     restore_from_snapshot,
+    save_uploaded_snapshot,
     snapshot_path,
     write_snapshot,
 )
@@ -148,6 +149,25 @@ def create_snapshot_endpoint(
               entity_type="import", entity_id=None, entity_label=name)
     db.commit()
     info = next(s for s in list_snapshots() if s["name"] == name)
+    return SnapshotInfo(**info)
+
+
+@router.post("/import/snapshots/upload", response_model=SnapshotInfo, status_code=201)
+async def upload_snapshot_endpoint(
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> SnapshotInfo:
+    content = await file.read()
+    try:
+        info = save_uploaded_snapshot(content)
+    except FileExistsError:
+        raise HTTPException(status_code=409, detail="This snapshot is already stored")
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    log_event(db, actor=current, event_type="snapshot.uploaded",
+              entity_type="import", entity_id=None, entity_label=info["name"])
+    db.commit()
     return SnapshotInfo(**info)
 
 

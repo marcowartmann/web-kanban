@@ -111,3 +111,81 @@ def test_list_snapshots_skips_unreadable_files(db_session):
     (d / "import-snapshot-20260101T000000-000000Z.json").write_text("{corrupt")
     listed = list_snapshots()
     assert [s["name"] for s in listed] == [good]
+
+
+# --- upload ---
+import pytest
+from app.snapshots import save_uploaded_snapshot
+
+
+def test_save_uploaded_snapshot_roundtrip(db_session):
+    _seed(db_session)
+    name = write_snapshot(db_session, actor="admin@x.local")
+    content = (_dir() / name).read_bytes()
+    (_dir() / name).unlink()  # simulate a deleted/pruned snapshot
+    info = save_uploaded_snapshot(content)
+    assert info["name"] == name
+    assert (_dir() / name).is_file()
+    assert any(s["name"] == name for s in list_snapshots())
+
+
+def test_save_uploaded_snapshot_invalid_json():
+    with pytest.raises(ValueError):
+        save_uploaded_snapshot(b"not json{{")
+
+
+def test_save_uploaded_snapshot_missing_keys():
+    with pytest.raises(ValueError):
+        save_uploaded_snapshot(
+            json.dumps({"created_at": "2026-01-01T00:00:00", "items": "x"}).encode()
+        )
+
+
+def test_save_uploaded_snapshot_duplicate(db_session):
+    _seed(db_session)
+    name = write_snapshot(db_session, actor="admin@x.local")
+    content = (_dir() / name).read_bytes()
+    with pytest.raises(FileExistsError):
+        save_uploaded_snapshot(content)  # already on disk
+
+
+def test_upload_endpoint_roundtrip(client, db_session):
+    _seed(db_session)
+    name = client.post("/api/v1/import/snapshots").json()["name"]
+    content = client.get(f"/api/v1/import/snapshots/{name}/download").content
+    assert client.delete(f"/api/v1/import/snapshots/{name}?force=true").status_code == 204
+    resp = client.post(
+        "/api/v1/import/snapshots/upload",
+        files={"file": (name, content, "application/json")},
+    )
+    assert resp.status_code == 201
+    assert resp.json()["name"] == name
+    names = [s["name"] for s in client.get("/api/v1/import/snapshots").json()["snapshots"]]
+    assert name in names
+
+
+def test_upload_endpoint_invalid_422(client):
+    resp = client.post(
+        "/api/v1/import/snapshots/upload",
+        files={"file": ("x.json", b"nope", "application/json")},
+    )
+    assert resp.status_code == 422
+
+
+def test_upload_endpoint_duplicate_409(client, db_session):
+    _seed(db_session)
+    name = client.post("/api/v1/import/snapshots").json()["name"]
+    content = client.get(f"/api/v1/import/snapshots/{name}/download").content
+    resp = client.post(
+        "/api/v1/import/snapshots/upload",
+        files={"file": (name, content, "application/json")},
+    )
+    assert resp.status_code == 409
+
+
+def test_upload_endpoint_requires_admin(member_client):
+    resp = member_client.post(
+        "/api/v1/import/snapshots/upload",
+        files={"file": ("x.json", b"{}", "application/json")},
+    )
+    assert resp.status_code == 403

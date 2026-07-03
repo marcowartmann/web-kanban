@@ -91,6 +91,42 @@ def snapshot_path(name: str) -> Path | None:
     return path if path.is_file() else None
 
 
+def _canonical_name(created_at: object) -> str:
+    """Reconstruct a snapshot's on-disk filename from its payload created_at,
+    so an unmodified downloaded file maps back to its original name/order."""
+    if not isinstance(created_at, str):
+        raise ValueError("Not a valid snapshot file")
+    dt = datetime.fromisoformat(created_at)
+    return f"import-snapshot-{dt:%Y%m%dT%H%M%S}-{dt.microsecond:06d}Z.json"
+
+
+def save_uploaded_snapshot(content: bytes) -> dict:
+    """Validate an uploaded snapshot file and store it in the snapshot dir.
+
+    Raises ValueError for a non-snapshot payload and FileExistsError if a
+    snapshot with the same canonical name is already stored. Uploads are added
+    deliberately, so they are not pruned.
+    """
+    try:
+        data = json.loads(content)
+    except (ValueError, TypeError) as e:
+        raise ValueError("Not valid JSON") from e
+    if not isinstance(data, dict) or not all(
+        isinstance(data.get(key), list) for key in ("items", "comments", "links")
+    ):
+        raise ValueError("Not a valid snapshot file")
+    name = _canonical_name(data.get("created_at"))
+    if not FILENAME_RE.match(name):
+        raise ValueError("Not a valid snapshot file")
+    directory = _snapshot_dir()
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / name
+    if path.is_file():
+        raise FileExistsError("Snapshot already exists")
+    path.write_text(json.dumps(data))
+    return next(s for s in list_snapshots() if s["name"] == name)
+
+
 def newest_snapshot_name() -> str | None:
     directory = _snapshot_dir()
     if not directory.is_dir():
