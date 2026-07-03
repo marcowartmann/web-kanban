@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { getCapacities, getPersonOptions, upsertCapacity } from "../../api/client";
+import { getCapacities, getPersonOptions, getTeams, upsertCapacity } from "../../api/client";
 import { ITERATION_SLOTS, iterationLabel } from "../../lib/iterations";
-import type { Capacity, PersonOption } from "../../types";
+import type { Capacity, PersonOption, Team } from "../../types";
+import FilterSelect from "../FilterSelect";
 import { adminCardClass } from "./AdminCard";
 
 export default function CapacitySection({
@@ -10,14 +11,26 @@ export default function CapacitySection({
   planningIntervals: string[];
 }) {
   const [people, setPeople] = useState<PersonOption[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [capacities, setCapacities] = useState<Capacity[]>([]);
   const [pi, setPi] = useState<string | null>(planningIntervals[0] ?? null);
+  const [teamFilter, setTeamFilter] = useState<string | undefined>();
   const [values, setValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
     void getPersonOptions().then(setPeople);
+    void getTeams().then(setTeams);
     void getCapacities().then(setCapacities);
   }, []);
+
+  // Filter by team name (FilterSelect's string API); an unknown name — e.g. the
+  // team was deleted mid-session — matches nobody rather than the team-less.
+  const selectedTeam = teams.find((t) => t.name === teamFilter);
+  const visiblePeople = teamFilter
+    ? selectedTeam
+      ? people.filter((p) => p.team_id === selectedTeam.id)
+      : []
+    : people;
 
   useEffect(() => {
     if ((pi == null || !planningIntervals.includes(pi)) && planningIntervals.length) {
@@ -79,23 +92,31 @@ export default function CapacitySection({
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
           SP
         </span>
-        <span className="ml-auto text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          Planning Interval
-        </span>
-        <div className="flex flex-wrap gap-1.5">
-          {planningIntervals.map((p) => (
-            <button
-              key={p}
-              onClick={() => setPi(p)}
-              className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
-                p === pi
-                  ? "border-blue-600 bg-blue-600 text-white shadow-sm"
-                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
+        <div className="ml-auto flex flex-wrap items-center gap-2.5">
+          <FilterSelect
+            label="Team"
+            value={teamFilter}
+            options={teams.map((t) => t.name)}
+            onChange={setTeamFilter}
+          />
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            Planning Interval
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {planningIntervals.map((p) => (
+              <button
+                key={p}
+                onClick={() => setPi(p)}
+                className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
+                  p === pi
+                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -112,7 +133,7 @@ export default function CapacitySection({
             </tr>
           </thead>
           <tbody>
-            {people.map((p) => (
+            {visiblePeople.map((p) => (
               <tr key={p.id} className="border-b border-gray-100 last:border-0">
                 <td className="whitespace-nowrap py-1.5 pr-3 font-medium text-gray-800">
                   {p.display_name}
@@ -135,10 +156,10 @@ export default function CapacitySection({
                 })}
               </tr>
             ))}
-            {people.length === 0 && (
+            {visiblePeople.length === 0 && (
               <tr>
                 <td colSpan={ITERATION_SLOTS.length + 1} className="py-4 text-center text-gray-400">
-                  No people yet.
+                  {teamFilter ? "No people in this team yet." : "No people yet."}
                 </td>
               </tr>
             )}
