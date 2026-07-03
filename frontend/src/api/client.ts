@@ -5,6 +5,7 @@ import type {
   Capacity,
   Comment,
   Container,
+  Department,
   ImportPreview,
   ImportResult,
   Item,
@@ -97,6 +98,30 @@ export function deleteItem(id: number): Promise<void> {
 
 export function reorderFeatureRanking(featureId: number, afterId: number | null): Promise<void> {
   return request<void>(`${API}/features/ranking/reorder`, json({ feature_id: featureId, after_id: afterId }));
+}
+
+export function getDepartments(): Promise<Department[]> {
+  return request<Department[]>(`${API}/departments`);
+}
+
+export function createDepartment(name: string, teamId: number): Promise<Department> {
+  return request<Department>(`${API}/departments`, json({ name, team_id: teamId }));
+}
+
+export function renameDepartment(id: number, name: string): Promise<Department> {
+  return request<Department>(`${API}/departments/${id}`, { ...json({ name }), method: "PATCH" });
+}
+
+export function deleteDepartment(id: number): Promise<void> {
+  return request<void>(`${API}/departments/${id}`, { method: "DELETE" });
+}
+
+export function setDepartmentMembers(id: number, userIds: number[]): Promise<Department> {
+  return request<Department>(`${API}/departments/${id}/members`, { ...json({ user_ids: userIds }), method: "PUT" });
+}
+
+export function setUserDepartments(userId: number, departmentIds: number[]): Promise<AuthUser> {
+  return request<AuthUser>(`${API}/users/${userId}/departments`, { ...json({ department_ids: departmentIds }), method: "PUT" });
 }
 
 export function getLinkRelations(): Promise<RelationOption[]> {
