@@ -5,4 +5,4 @@ set -e
 # condition: service_healthy), so no extra wait loop is needed.
 alembic upgrade head
 
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log

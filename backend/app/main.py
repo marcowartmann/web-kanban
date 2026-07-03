@@ -3,10 +3,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.auth import ensure_initial_admin, require_user
 from app.config import settings
-from app.db import SessionLocal
+from app.db import SessionLocal, get_db
 from app.request_logging import RequestLoggingMiddleware, configure_access_logging
 
 
@@ -54,5 +57,9 @@ for protected in (
 
 
 @app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health(db: Session = Depends(get_db)) -> JSONResponse:
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        return JSONResponse(status_code=503, content={"status": "unavailable"})
+    return JSONResponse(content={"status": "ok"})
