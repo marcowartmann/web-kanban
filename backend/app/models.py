@@ -44,6 +44,9 @@ class Item(Base):
     assignee_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), index=True
     )
+    container_id: Mapped[int | None] = mapped_column(
+        ForeignKey("containers.id", ondelete="SET NULL"), index=True
+    )
     externer_partner: Mapped[str | None] = mapped_column(String(128))
     akzeptanzkriterien: Mapped[str | None] = mapped_column(Text)
     bo_stakeholder: Mapped[str | None] = mapped_column(String(256))
@@ -105,6 +108,31 @@ class Team(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, server_default=func.now()
     )
+
+
+class Container(Base):
+    """Logical grouping unit for items, scoped to one (team, planning interval)
+    pair. Names repeat across scopes ("Operations" exists per pair), so items
+    reference containers by id, never by name."""
+
+    __tablename__ = "containers"
+    __table_args__ = (
+        UniqueConstraint(
+            "team_id", "planning_interval", "name", name="uq_container_team_pi_name"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    planning_interval: Mapped[str] = mapped_column(String(64), index=True)
+    team_id: Mapped[int] = mapped_column(
+        ForeignKey("teams.id", ondelete="CASCADE"), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+    team: Mapped["Team"] = relationship()
 
 
 class Capacity(Base):

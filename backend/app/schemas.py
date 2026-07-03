@@ -21,6 +21,7 @@ class ItemBase(BaseModel):
     iteration: int | None = None
     leading_team: str | None = None
     supporting_team: str | None = None
+    container_id: int | None = None
     externer_partner: str | None = None
     assignee_id: int | None = None
     akzeptanzkriterien: str | None = None
@@ -52,6 +53,7 @@ class ItemUpdate(BaseModel):
     iteration: int | None = Field(default=None, ge=1, le=6)
     leading_team: str | None = None
     supporting_team: str | None = None
+    container_id: int | None = None
     externer_partner: str | None = None
     assignee_id: int | None = None
     kategorie: str | None = None
@@ -217,6 +219,24 @@ class PlanningIntervalCreate(BaseModel):
 
 class PlanningIntervalUpdate(BaseModel):
     name: str = Field(min_length=1, max_length=64)
+
+
+class ContainerRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    planning_interval: str
+    team_id: int
+
+
+class ContainerCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    planning_interval: str = Field(min_length=1, max_length=64)
+    team_id: int
+
+
+class ContainerUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
 
 
 class CapacityRead(BaseModel):

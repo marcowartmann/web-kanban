@@ -159,6 +159,18 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
         warnings.append(
             f"Cleared assignee for {cleared_assignees} item(s) whose user no longer exists"
         )
+    from app.models import Container
+
+    existing_container_ids = set(db.scalars(select(Container.id)))
+    cleared_containers = 0
+    for row in item_rows:
+        if row.get("container_id") is not None and row["container_id"] not in existing_container_ids:
+            row["container_id"] = None
+            cleared_containers += 1
+    if cleared_containers:
+        warnings.append(
+            f"Cleared container for {cleared_containers} item(s) whose container no longer exists"
+        )
     if item_rows:
         db.execute(insert(Item.__table__), [{**r, "parent_id": None} for r in item_rows])
         for row in item_rows:

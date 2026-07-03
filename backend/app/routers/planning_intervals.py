@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from app.audit import log_event
 from app.auth import require_admin
 from app.db import get_db
-from app.models import Capacity, Item, PlanningInterval, User
+from app.models import Capacity, Container, Item, PlanningInterval, Team, User
+from app.routers.containers import add_default_containers, remove_containers_of
 from app.schemas import PlanningIntervalCreate, PlanningIntervalRead, PlanningIntervalUpdate
 
 router = APIRouter(prefix="/api/v1/planning-intervals", tags=["planning-intervals"])
@@ -32,6 +33,11 @@ def create_planning_interval(
     db.flush()
     log_event(db, actor=current, event_type="planning_interval.created", entity_type="planning_interval",
               entity_id=pi.id, entity_label=pi.name)
+    add_default_containers(
+        db, actor=current,
+        teams=list(db.scalars(select(Team))),
+        planning_intervals=[pi.name],
+    )
     db.commit()
     db.refresh(pi)
     return pi
@@ -62,6 +68,12 @@ def rename_planning_interval(
     db.execute(
         update(Capacity)
         .where(Capacity.planning_interval == old)
+        .values(planning_interval=payload.name)
+        .execution_options(synchronize_session=False)
+    )
+    db.execute(
+        update(Container)
+        .where(Container.planning_interval == old)
         .values(planning_interval=payload.name)
         .execution_options(synchronize_session=False)
     )
@@ -100,5 +112,9 @@ def delete_planning_interval(
             )
     log_event(db, actor=current, event_type="planning_interval.deleted", entity_type="planning_interval",
               entity_id=pi.id, entity_label=pi.name)
+    # Containers are scope-bound to the PI: remove them (clearing items'
+    # container_id). They deliberately don't count toward the delete guard —
+    # auto-creation means every PI always has containers.
+    remove_containers_of(db, planning_interval=pi.name)
     db.delete(pi)
     db.commit()

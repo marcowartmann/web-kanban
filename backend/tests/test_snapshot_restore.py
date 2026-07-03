@@ -181,6 +181,28 @@ def test_restore_clears_dangling_assignees_with_warning(client, db_session):
     assert db_session.query(Item).filter_by(title="Owned").one().assignee_id is None
 
 
+def test_restore_clears_dangling_containers_with_warning(client, db_session):
+    from app.models import Container, PlanningInterval, Team
+
+    team = Team(name="Network")
+    db_session.add_all([team, PlanningInterval(name="PI1-Q3", position=1)])
+    db_session.flush()
+    container = Container(name="Operations", planning_interval="PI1-Q3", team_id=team.id)
+    db_session.add(container)
+    db_session.flush()
+    item = Item(kind=ItemKind.FEATURE, title="Boxed", position=0, container_id=container.id)
+    db_session.add(item)
+    db_session.commit()
+    name = write_snapshot(db_session, actor="a@x.local")
+    _wipe(db_session)
+    assert client.delete(f"/api/v1/containers/{container.id}").status_code == 204
+
+    body = client.post(f"/api/v1/import/snapshots/{name}/restore").json()
+    assert "Cleared container for 1 item(s) whose container no longer exists" in body["warnings"]
+    db_session.expire_all()
+    assert db_session.query(Item).filter_by(title="Boxed").one().container_id is None
+
+
 def test_restore_legacy_snapshot_warns_and_unassigns(client, db_session):
     import json as _json
     import os

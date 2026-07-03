@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from app.audit import log_event
 from app.auth import require_admin
 from app.db import get_db
-from app.models import Item, Team, User
+from app.models import Item, PlanningInterval, Team, User
+from app.routers.containers import add_default_containers, remove_containers_of
 from app.schemas import TeamCreate, TeamRead, TeamUpdate
 
 router = APIRouter(prefix="/api/v1/teams", tags=["teams"])
@@ -29,6 +30,10 @@ def create_team(
     db.flush()
     log_event(db, actor=current, event_type="team.created", entity_type="team",
               entity_id=team.id, entity_label=team.name)
+    add_default_containers(
+        db, actor=current, teams=[team],
+        planning_intervals=list(db.scalars(select(PlanningInterval.name))),
+    )
     db.commit()
     db.refresh(team)
     return team
@@ -89,6 +94,10 @@ def delete_team(
     # Detach members explicitly (DB also enforces ON DELETE SET NULL).
     for user in db.scalars(select(User).where(User.team_id == team_id)):
         user.team_id = None
+    # Containers are scope-bound to the team: remove them (clearing items'
+    # container_id). They deliberately don't count toward the delete guard —
+    # auto-creation means every team always has containers.
+    remove_containers_of(db, team_id=team_id)
     log_event(db, actor=current, event_type="team.deleted", entity_type="team",
               entity_id=team.id, entity_label=team.name)
     db.delete(team)

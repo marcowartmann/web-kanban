@@ -7,7 +7,7 @@ from app.audit import ITEM_TRACKED_FIELDS, diff_item_changes, log_event
 from app.auth import require_user
 from app.db import get_db
 from app.links import RELATIONS
-from app.models import AuditEvent, Item, ItemKind, ItemLink, User
+from app.models import AuditEvent, Container, Item, ItemKind, ItemLink, User
 from app.schemas import AuditEventRead, ItemCreate, ItemDetail, ItemPage, ItemRead, ItemUpdate, ItemRef, LinkedItem
 from app.wsjf import recompute
 
@@ -34,6 +34,38 @@ def _get_or_404(db: Session, item_id: int, *, eager: bool = False) -> Item:
 def _check_assignee(db: Session, assignee_id: int | None) -> None:
     if assignee_id is not None and db.get(User, assignee_id) is None:
         raise HTTPException(status_code=422, detail="assignee_id does not exist")
+
+
+def _check_container(
+    db: Session, container_id: int, *, planning_interval: str | None, leading_team: str | None
+) -> Container:
+    container = db.get(Container, container_id)
+    if container is None:
+        raise HTTPException(status_code=422, detail="container_id does not exist")
+    if container.planning_interval != planning_interval or container.team.name != leading_team:
+        raise HTTPException(
+            status_code=409,
+            detail="Container does not match the item's planning interval and leading team",
+        )
+    return container
+
+
+def _container_matches(
+    db: Session, container_id: int, *, planning_interval: str | None, leading_team: str | None
+) -> bool:
+    container = db.get(Container, container_id)
+    return (
+        container is not None
+        and container.planning_interval == planning_interval
+        and container.team.name == leading_team
+    )
+
+
+def _container_name(db: Session, container_id: int | None) -> str | None:
+    if container_id is None:
+        return None
+    container = db.get(Container, container_id)
+    return container.name if container else None
 
 
 def _resolve_links(db: Session, item_id: int) -> list[LinkedItem]:
@@ -133,6 +165,12 @@ def create_item(
     if payload.parent_id is not None and db.get(Item, payload.parent_id) is None:
         raise HTTPException(status_code=422, detail="parent_id does not exist")
     _check_assignee(db, payload.assignee_id)
+    if payload.container_id is not None:
+        _check_container(
+            db, payload.container_id,
+            planning_interval=payload.planning_interval,
+            leading_team=payload.leading_team,
+        )
     item = Item(**payload.model_dump())
     recompute(item)
     db.add(item)
@@ -167,9 +205,27 @@ def update_item(
     changes.pop("version", None)
     if "assignee_id" in changes:
         _check_assignee(db, changes["assignee_id"])
+    new_pi = changes.get("planning_interval", item.planning_interval)
+    new_team = changes.get("leading_team", item.leading_team)
+    if changes.get("container_id") is not None:
+        _check_container(
+            db, changes["container_id"], planning_interval=new_pi, leading_team=new_team
+        )
+    elif (
+        "container_id" not in changes
+        and item.container_id is not None
+        and ("planning_interval" in changes or "leading_team" in changes)
+        and not _container_matches(
+            db, item.container_id, planning_interval=new_pi, leading_team=new_team
+        )
+    ):
+        # The patch moved the item out of its container's (PI, team) scope.
+        changes["container_id"] = None
     before = {f: getattr(item, f) for f in changes if f in ITEM_TRACKED_FIELDS}
     if "assignee_id" in changes:
         before["assignee"] = item.assignee
+    if "container_id" in changes:
+        before["container"] = _container_name(db, item.container_id)
     for key, value in changes.items():
         setattr(item, key, value)
     if _WSJF_FIELDS & changes.keys():
@@ -187,6 +243,11 @@ def update_item(
         changes = dict(changes)
         changes["assignee"] = item.assignee
         changes.pop("assignee_id")
+    if "container_id" in changes:
+        # Audit the container by name (ids mean nothing in the log).
+        changes = dict(changes)
+        changes["container"] = _container_name(db, changes["container_id"])
+        changes.pop("container_id")
     for field, old, new in diff_item_changes(before, changes):
         log_event(
             db,

@@ -19,6 +19,7 @@ ITEM_TRACKED_FIELDS = frozenset(
         "supporting_team",
         "externer_partner",
         "assignee",
+        "container",
         "kategorie",
         "sdi_prio",
         "akzeptanzkriterien",
