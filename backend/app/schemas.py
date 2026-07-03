@@ -297,6 +297,7 @@ class UserRead(BaseModel):
     id: int
     email: str | None
     username: str | None = None
+    department_ids: list[int] = []
     display_name: str
     role: str
     is_active: bool
@@ -342,6 +343,10 @@ class DepartmentRename(BaseModel):
 
 class DepartmentMembers(BaseModel):
     user_ids: list[int]
+
+
+class UserDepartments(BaseModel):
+    department_ids: list[int]
 
 
 def _password_fits_bcrypt(value: str | None) -> str | None:
