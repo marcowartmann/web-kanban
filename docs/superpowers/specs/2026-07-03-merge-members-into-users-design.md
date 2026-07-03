@@ -107,8 +107,9 @@ rule applies: dry-run upgrade + downgrade + re-upgrade against compose Postgres,
   - otherwise delete; sessions and capacities cascade; audit `user.deleted`
     (`entity_label = email or display_name`).
 - **New `GET /api/v1/users/options`** (require_user — the full `/users` list stays
-  admin-only): `[{id, display_name}]` ordered by display_name, for assignee/capacity
-  dropdowns. Mechanically: the users router drops its router-level
+  admin-only): `[{id, display_name, team_id}]` ordered by display_name, for
+  assignee/capacity dropdowns (`team_id` so team-scoped capacity views keep narrowing
+  people, as the retired TeamMember rows did). Mechanically: the users router drops its router-level
   `dependencies=[Depends(require_admin)]`; every existing endpoint gains
   `Depends(require_admin)` individually; `/options` alone uses `require_user`.
   Route order: `/options` is declared before `/{user_id}` routes.
@@ -145,7 +146,7 @@ rule applies: dry-run upgrade + downgrade + re-upgrade against compose Postgres,
 
 ## 4. Frontend
 
-- `types.ts`: `TeamMember` deleted → `PersonOption { id: number; display_name: string }`;
+- `types.ts`: `TeamMember` deleted → `PersonOption { id: number; display_name: string; team_id: number | null }`;
   `Item.assignee` stays (read-only display), `Item` gains `assignee_id: number | null`;
   `ItemUpdate` swaps `assignee` for `assignee_id`; `User.email: string | null`;
   `Capacity.member_id` → `user_id`.

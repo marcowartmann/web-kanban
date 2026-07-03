@@ -22,7 +22,7 @@
 - Audit: item assignee changes log `field="assignee"` with old/new display names; `user.deleted` label = email or display_name; capacity label `f"{display_name} · {pi} · I{iteration}"`.
 - Item.assignee_id: FK users `ON DELETE SET NULL`, index `ix_items_assignee_id`; list endpoint uses `selectinload(Item.assignee_user)`.
 - `/api/v1/users/options` (require_user) declared BEFORE `/{user_id}` routes; all other users endpoints keep admin-only via per-endpoint deps.
-- Suite math: backend 202 → 211 (T1, 9 tests) → 218 (T2) → 213 (T3) → 213 (T4) → 215 (T5); frontend 192 → 194 (T6) → 195 (T7) → 195 (T8) → 197 (T9). T10 changes no counts.
+- Suite math: backend 202 → 211 (T1, 9 tests) → 218 (T2) → 213 (T3) → 213 (T4) → 215 (T5); frontend 192 → 194 (T6) → 195 (T7) → 196 (T8) → 198 (T9). T10 changes no counts.
 - Migration 0015 `down_revision = "0014"`: MUST dry-run upgrade + downgrade + re-upgrade against compose Postgres AND run the seeded rehearsal (Task 4) before acceptance. DB left at 0015.
 - ENV (backend tasks), from repo root — the container does NOT bind-mount code:
   ```bash
@@ -162,7 +162,7 @@ def test_options_is_member_accessible(client, member_client):
     assert resp.status_code == 200
     names = [o["display_name"] for o in resp.json()]
     assert names == sorted(names)
-    assert set(resp.json()[0]) == {"id", "display_name"}
+    assert set(resp.json()[0]) == {"id", "display_name", "team_id"}
     assert member_client.get("/api/v1/users").status_code == 403
 ```
 
@@ -225,6 +225,7 @@ class PersonOption(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     display_name: str
+    team_id: int | None
 ```
 
   - `create_user`: email/password optionality:
@@ -946,6 +947,7 @@ def test_restore_legacy_snapshot_warns_and_unassigns(client, db_session):
 export interface PersonOption {
   id: number;
   display_name: string;
+  team_id: number | null;
 }
 ```
 
@@ -1076,6 +1078,11 @@ export function deleteUser(id: number, force = false): Promise<void> {
   - The `assigneeName` person filter stays display-name-based: its option list still
     derives from the PI stories' `s.assignee` strings (unchanged), and story scoping
     keeps comparing `i.assignee === assigneeName` (both are served display names).
+  - Team-scoped capacity narrowing is PRESERVED: wherever the old code narrowed
+    `members` by `team_id` for the selected team (capacity rows + header badges),
+    the new code narrows `people` by `p.team_id` identically — PersonOption carries
+    `team_id` for exactly this. A regression test pins it: with a team selected,
+    capacity rows include only that team's people (+1 test in PlanningView.test.tsx).
   - Any `row.member` field access renames to `row.person` (lib rename), labels via
     `row.person?.display_name`.
 - [ ] **Step 3: CapacitySection** — people list from `getPersonOptions()`;
@@ -1083,7 +1090,7 @@ export function deleteUser(id: number, force = false): Promise<void> {
 - [ ] **Step 4: Tests** — mechanical re-key of fixtures/mocks in the three test files
   (TeamMember fixtures → PersonOption, `member_id` → `user_id` already done in T6,
   `getTeamMembers` mocks → `getPersonOptions`). Counts unchanged.
-- [ ] **Step 5:** tsc clean; vitest — **expect 195 passed**.
+- [ ] **Step 5:** tsc clean; vitest — **expect 196 passed** (+1 narrowing regression test).
 - [ ] **Step 6: Commit** — `git add frontend && git commit -m "feat(frontend): planning + capacity keyed to users"`
 
 ---
@@ -1157,7 +1164,7 @@ export function deleteUser(id: number, force = false): Promise<void> {
   `getTeamMembers/createTeamMember/renameTeamMember/deleteTeamMember`; delete the two
   member-fn tests in `client.renames.test.ts`; repo-wide grep
   `TeamMember|team-members` must return ZERO frontend hits.
-- [ ] **Step 5:** tsc clean; vitest — **expect 197 passed** (195 + 4 − 2).
+- [ ] **Step 5:** tsc clean; vitest — **expect 198 passed** (196 + 4 − 2).
 - [ ] **Step 6: Commit** — `git add frontend && git commit -m "feat(frontend): users section is the person manager; team members UI removed"`
 
 ---
@@ -1206,7 +1213,7 @@ print({k: len(v) for k, v in payload.items()})
 - [ ] **Step 2: Rebuild** — `docker compose up -d --build backend frontend` (alembic
   no-ops at 0015).
 - [ ] **Step 3: Suites at HEAD on new images** — backend copy-dance **215 passed**
-  (then `rm -rf /app/tests`); frontend **197 passed** + tsc clean.
+  (then `rm -rf /app/tests`); frontend **198 passed** + tsc clean.
 - [ ] **Step 4: Smoke (read-only + scratch-person only):**
 
 ```bash
