@@ -56,12 +56,16 @@ function ManualRow({
   index,
   canMove,
   wsjfRank,
+  highlighted,
+  onHover,
   onOpen,
 }: {
   feature: Item;
   index: number;
   canMove: boolean;
   wsjfRank: number;
+  highlighted: boolean;
+  onHover: (id: number | null) => void;
   onOpen: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -75,10 +79,14 @@ function ManualRow({
       ref={setNodeRef}
       style={style}
       data-testid="manual-row"
+      data-feature-id={feature.id}
       data-draggable={canMove}
-      className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm transition hover:bg-blue-50 ${
-        canMove ? "cursor-grab bg-white" : "bg-gray-50 text-gray-400"
-      }`}
+      data-highlighted={highlighted}
+      onMouseEnter={() => onHover(feature.id)}
+      onMouseLeave={() => onHover(null)}
+      className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm transition ${
+        canMove ? "cursor-grab" : "text-gray-400"
+      } ${highlighted ? "bg-blue-50" : canMove ? "bg-white" : "bg-gray-50"}`}
       {...(canMove ? { ...attributes, ...listeners } : {})}
     >
       <span className="w-6 text-right tabular-nums text-gray-400">{index + 1}</span>
@@ -120,6 +128,7 @@ export default function RankingView({
   const [team, setTeam] = useState<string | undefined>();
   const [container, setContainer] = useState<string | undefined>();
   const [department, setDepartment] = useState<string | undefined>();
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
   const sensors = useSensors(useSensor(PointerSensor));
 
   const containerName = useMemo(() => {
@@ -166,7 +175,17 @@ export default function RankingView({
           <h2 className="mb-2 text-sm font-semibold text-gray-700">WSJF ranking</h2>
           <div data-testid="wsjf-list" className="space-y-1">
             {wsjfOrder.map((f, i) => (
-              <div key={f.id} className="flex items-center gap-3 rounded-md border bg-white px-3 py-2 text-sm transition hover:bg-blue-50">
+              <div
+                key={f.id}
+                data-testid="wsjf-row"
+                data-feature-id={f.id}
+                data-highlighted={hoveredId === f.id}
+                onMouseEnter={() => setHoveredId(f.id)}
+                onMouseLeave={() => setHoveredId(null)}
+                className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm transition ${
+                  hoveredId === f.id ? "bg-blue-50" : "bg-white"
+                }`}
+              >
                 <span className="w-6 text-right tabular-nums text-gray-400">{i + 1}</span>
                 <span className="tabular-nums text-xs text-gray-400">#{f.id}</span>
                 <span data-testid="rank-title" className="flex-1 truncate text-gray-900">{f.title}</span>
@@ -183,7 +202,7 @@ export default function RankingView({
             <SortableContext items={manualOrder.map((f) => f.id)} strategy={verticalListSortingStrategy}>
               <div data-testid="manual-list" className="space-y-1">
                 {manualOrder.map((f, i) => (
-                  <ManualRow key={f.id} feature={f} index={i} canMove={canMove(f)} wsjfRank={wsjfRanks.get(f.id) ?? i + 1} onOpen={() => onOpenCard?.(f.id)} />
+                  <ManualRow key={f.id} feature={f} index={i} canMove={canMove(f)} wsjfRank={wsjfRanks.get(f.id) ?? i + 1} highlighted={hoveredId === f.id} onHover={setHoveredId} onOpen={() => onOpenCard?.(f.id)} />
                 ))}
               </div>
             </SortableContext>

@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import RankingView from "./RankingView";
@@ -21,6 +21,22 @@ function renderView() {
     <RankingView items={items} planningIntervals={[]} teams={["Net", "Cloud"]} containers={[]} user={user} onChanged={vi.fn()} />,
   );
 }
+
+it("hovering a row cross-highlights the same feature in the other list", () => {
+  const { container } = render(
+    <RankingView items={items} planningIntervals={[]} teams={["Net", "Cloud"]} containers={[]} user={user} onChanged={vi.fn()} />,
+  );
+  const wsjfRow2 = container.querySelector('[data-testid="wsjf-row"][data-feature-id="2"]')!;
+  const manualRow2 = container.querySelector('[data-testid="manual-row"][data-feature-id="2"]')!;
+  const manualRow1 = container.querySelector('[data-testid="manual-row"][data-feature-id="1"]')!;
+
+  fireEvent.mouseEnter(wsjfRow2);
+  expect(manualRow2).toHaveAttribute("data-highlighted", "true");
+  expect(manualRow1).toHaveAttribute("data-highlighted", "false");
+
+  fireEvent.mouseLeave(wsjfRow2);
+  expect(manualRow2).toHaveAttribute("data-highlighted", "false");
+});
 
 it("clicking a row's info icon opens the feature detail", async () => {
   const onOpenCard = vi.fn();
