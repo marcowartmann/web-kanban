@@ -674,6 +674,7 @@ _FIND_USER = sa.text(
 
 
 def _resolve(bind, name: str, team_id=None) -> int:
+    name = name[:120]  # users.display_name is String(120); sources allow 128
     row = bind.execute(_FIND_USER, {"name": name}).mappings().first()
     if row:
         return row["id"]
@@ -690,7 +691,8 @@ def upgrade() -> None:
         sa.text("SELECT id, name, team_id FROM team_members ORDER BY id")
     ).mappings().all()
     for m in members:
-        row = bind.execute(_FIND_USER, {"name": m["name"]}).mappings().first()
+        name = m["name"][:120]  # align with users.display_name width
+        row = bind.execute(_FIND_USER, {"name": name}).mappings().first()
         if row:
             mapping[m["id"]] = row["id"]
             if row["team_id"] is None and m["team_id"] is not None:
@@ -700,7 +702,7 @@ def upgrade() -> None:
                 )
         else:
             mapping[m["id"]] = bind.execute(
-                _INSERT_PERSON, {"name": m["name"], "team_id": m["team_id"]}
+                _INSERT_PERSON, {"name": name, "team_id": m["team_id"]}
             ).scalar_one()
 
     op.add_column(
@@ -719,7 +721,10 @@ def upgrade() -> None:
         )
     ).scalars().all()
     for raw in raw_names:
-        uid = _resolve(bind, raw.strip())
+        clean = raw.strip()  # Python strip covers tabs/newlines the SQL trim() misses
+        if not clean:
+            continue
+        uid = _resolve(bind, clean)
         bind.execute(
             sa.text("UPDATE items SET assignee_id = :u WHERE assignee = :raw"),
             {"u": uid, "raw": raw},
@@ -769,6 +774,7 @@ def downgrade() -> None:
             nullable=False,
         ),
     )
+    op.create_index("ix_team_members_team_id", "team_members", ["team_id"])
     bind.execute(
         sa.text(
             "INSERT INTO team_members (name, team_id) "
@@ -796,6 +802,7 @@ def downgrade() -> None:
         )
     )
     op.alter_column("capacities", "member_id", existing_type=sa.Integer(), nullable=False)
+    op.create_index("ix_capacities_member_id", "capacities", ["member_id"])
     op.drop_constraint("uq_capacity_user_pi_iter", "capacities", type_="unique")
     op.create_unique_constraint(
         "uq_capacity_member_pi_iter",
