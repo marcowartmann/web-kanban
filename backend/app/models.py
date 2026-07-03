@@ -1,13 +1,20 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, Integer, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, Column, Enum, ForeignKey, Index, Integer, Numeric, String, Table, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 # DateTime is app.timeutil's tz-normalizing TypeDecorator — never import DateTime
 # from sqlalchemy for a column, or SQLite reads it back naive.
 from app.timeutil import DateTime, utcnow
+
+user_team_departments = Table(
+    "user_team_departments",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("department_id", Integer, ForeignKey("team_departments.id", ondelete="CASCADE"), primary_key=True),
+)
 
 
 class ItemKind(str, enum.Enum):
@@ -109,6 +116,37 @@ class Team(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, server_default=func.now()
     )
+
+    departments: Mapped[list["TeamDepartment"]] = relationship(
+        cascade="all, delete-orphan", back_populates="team"
+    )
+
+
+class TeamDepartment(Base):
+    __tablename__ = "team_departments"
+    __table_args__ = (UniqueConstraint("team_id", "name", name="uq_department_team_name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    team_id: Mapped[int] = mapped_column(
+        ForeignKey("teams.id", ondelete="CASCADE"), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+    team: Mapped["Team"] = relationship(back_populates="departments")
+    members: Mapped[list["User"]] = relationship(
+        secondary=user_team_departments, back_populates="departments"
+    )
+
+    @property
+    def team_name(self) -> str:
+        return self.team.name
+
+    @property
+    def member_ids(self) -> list[int]:
+        return sorted(u.id for u in self.members)
 
 
 class Container(Base):
@@ -227,10 +265,17 @@ class User(Base):
     capacities: Mapped[list["Capacity"]] = relationship(
         cascade="all, delete-orphan"
     )
+    departments: Mapped[list["TeamDepartment"]] = relationship(
+        secondary=user_team_departments, back_populates="members"
+    )
 
     @property
     def team_name(self) -> str | None:
         return self.team.name if self.team else None
+
+    @property
+    def department_ids(self) -> list[int]:
+        return sorted(d.id for d in self.departments)
 
 
 class UserSession(Base):
