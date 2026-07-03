@@ -22,6 +22,8 @@ export interface Item {
   leading_team: string | null;
   supporting_team: string | null;
   container_id: number | null;
+  department_id?: number | null;
+  department_name?: string | null;
   externer_partner: string | null;
   assignee: string | null;
   assignee_id: number | null;

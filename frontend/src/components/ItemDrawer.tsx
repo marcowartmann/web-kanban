@@ -10,7 +10,7 @@ import {
   listItems,
   updateItem,
 } from "../api/client";
-import type { Container, Item, ItemKind, ItemUpdate, PersonOption, RelationOption, Team } from "../types";
+import type { Container, Department, Item, ItemKind, ItemUpdate, PersonOption, RelationOption, Team } from "../types";
 import Avatar from "./Avatar";
 import ConfirmDialog from "./ConfirmDialog";
 import Field from "./Field";
@@ -53,6 +53,7 @@ export default function ItemDrawer({
   planningIntervalOptions = [],
   leadingTeamOptions = [],
   containers = [],
+  departments = [],
   teams = [],
   openIds = [],
   onClose,
@@ -69,6 +70,7 @@ export default function ItemDrawer({
   planningIntervalOptions?: string[];
   leadingTeamOptions?: string[];
   containers?: Container[];
+  departments?: Department[];
   teams?: Team[];
   openIds?: number[];
   onClose: () => void;
@@ -288,6 +290,32 @@ export default function ItemDrawer({
           );
         })()}
       </PropLabel>
+      {item.kind !== "risk" && (
+        <PropLabel text="Department">
+          {(() => {
+            const teamName = (value("leading_team") as string | null) || null;
+            if (!teamName) {
+              return <p className="py-1.5 text-sm text-gray-400">Set a leading team first</p>;
+            }
+            const scoped = departments.filter((d) => d.team_name === teamName);
+            const currentId = value("department_id") as number | null;
+            return (
+              <SearchableSelect
+                ariaLabel="Department"
+                value={scoped.find((d) => d.id === currentId)?.name ?? null}
+                options={scoped.map((d) => d.name)}
+                onChange={(v) =>
+                  setDraft((d) => ({
+                    ...d,
+                    department_id: v == null ? null : scoped.find((x) => x.name === v)?.id ?? null,
+                  }))
+                }
+                placeholder="Select department…"
+              />
+            );
+          })()}
+        </PropLabel>
+      )}
       <PropLabel text="Supporting Team">
         <SearchableSelect
           ariaLabel="Supporting Team"

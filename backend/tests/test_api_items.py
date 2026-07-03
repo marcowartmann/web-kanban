@@ -18,6 +18,20 @@ def test_item_read_includes_manual_rank(client, db_session):
     assert body["manual_rank"] == 3
 
 
+def test_item_read_includes_department_fields(client, db_session):
+    from app.models import Team, TeamDepartment
+    net = Team(name="Net")
+    db_session.add(net)
+    db_session.commit()
+    dep = TeamDepartment(name="FE", team_id=net.id)
+    db_session.add(dep)
+    db_session.commit()
+    f = _make_feature(db_session, leading_team="Net", department_id=dep.id)
+    body = client.get(f"/api/v1/items/{f.id}").json()
+    assert body["department_id"] == dep.id
+    assert body["department_name"] == "FE"
+
+
 def test_create_item(client):
     resp = client.post("/api/v1/items", json={
         "kind": "feature", "title": "New Feature", "status": "Funnel",

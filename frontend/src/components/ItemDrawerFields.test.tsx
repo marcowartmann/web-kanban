@@ -79,6 +79,44 @@ it("Container shows a hint until PI and leading team are set", async () => {
   expect(screen.queryByRole("combobox", { name: "Container" })).toBeNull();
 });
 
+it("Department options are scoped to the item's leading team and save department_id", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue({ ...feature, department_id: null } as never);
+  const update = vi.spyOn(client, "updateItem").mockResolvedValue(feature as never);
+  render(
+    <ItemDrawer
+      itemId={5}
+      teams={[{ id: 1, name: "Network" }, { id: 2, name: "Cloud" }]}
+      departments={[
+        { id: 3, name: "FE", team_id: 1, team_name: "Network", member_ids: [] },
+        { id: 4, name: "Cloud-FE", team_id: 2, team_name: "Cloud", member_ids: [] },
+      ]}
+      onClose={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  const dep = await screen.findByRole("combobox", { name: "Department" });
+  fireEvent.focus(dep);
+  expect(screen.queryByText("Cloud-FE")).toBeNull(); // other team's dept not offered
+  fireEvent.mouseDown(screen.getByText("FE"));
+  fireEvent.click(screen.getByRole("button", { name: /save/i }));
+  expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ department_id: 3 }));
+});
+
+it("Department field is hidden for risk items", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue({ ...feature, kind: "risk", department_id: null } as never);
+  render(
+    <ItemDrawer
+      itemId={5}
+      teams={[{ id: 1, name: "Network" }]}
+      departments={[{ id: 3, name: "FE", team_id: 1, team_name: "Network", member_ids: [] }]}
+      onClose={() => {}}
+      onChanged={() => {}}
+    />,
+  );
+  await screen.findByRole("button", { name: /save/i });
+  expect(screen.queryByRole("combobox", { name: "Department" })).toBeNull();
+});
+
 it("keeps an off-list current planning interval selectable", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue({ ...feature, planning_interval: "LEGACY-PI" } as never);
   render(
