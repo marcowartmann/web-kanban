@@ -16,8 +16,16 @@ router = APIRouter(prefix="/api/v1/items", tags=["items"])
 _WSJF_FIELDS = {"business_value", "time_criticality", "risk_reduction", "job_size"}
 
 
-def _get_or_404(db: Session, item_id: int) -> Item:
-    item = db.get(Item, item_id)
+def _get_or_404(db: Session, item_id: int, *, eager: bool = False) -> Item:
+    options = (
+        [
+            selectinload(Item.assignee_user),
+            selectinload(Item.children).selectinload(Item.assignee_user),
+        ]
+        if eager
+        else []
+    )
+    item = db.get(Item, item_id, options=options)
     if item is None:
         raise HTTPException(status_code=404, detail="Item not found")
     return item
@@ -97,7 +105,7 @@ def list_items(
 
 @router.get("/{item_id}", response_model=ItemDetail)
 def get_item(item_id: int, db: Session = Depends(get_db)) -> ItemDetail:
-    item = _get_or_404(db, item_id)
+    item = _get_or_404(db, item_id, eager=True)
     detail = ItemDetail.model_validate(item)
     detail.links = _resolve_links(db, item_id)
     return detail
@@ -167,7 +175,14 @@ def update_item(
     if _WSJF_FIELDS & changes.keys():
         recompute(item)
     if "assignee_id" in changes:
-        db.flush()
+        try:
+            db.flush()  # emits the versioned UPDATE — the race can surface HERE
+        except StaleDataError:
+            db.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail="Item was modified by someone else — reload and retry",
+            )
         db.refresh(item, ["assignee_user"])
         changes = dict(changes)
         changes["assignee"] = item.assignee

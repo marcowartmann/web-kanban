@@ -69,6 +69,26 @@ def test_assignee_audit_logs_names(client, db_session):
     assert rows == [("Alice", "Bob"), ("Bob", None)]
 
 
+def test_assignee_race_is_caught_by_version_predicate(client, db_session):
+    from sqlalchemy import update as core_update
+
+    p = _person(client, "Racer")
+    item = client.post("/api/v1/items", json={"kind": "feature", "title": "R"}).json()
+    # Hold a strong reference so the identity map keeps the stale instance
+    # (weak-ref lesson from the P3 delete-race test).
+    stale = db_session.get(Item, item["id"])
+    assert stale.version == 1
+    db_session.execute(
+        core_update(Item).where(Item.id == item["id"]).values(version=99)
+        .execution_options(synchronize_session=False)
+    )
+    resp = client.patch(
+        f"/api/v1/items/{item['id']}", json={"assignee_id": p["id"], "version": 1}
+    )
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == "Item was modified by someone else — reload and retry"
+
+
 def test_old_string_assignee_patch_is_rejected(client):
     # ItemUpdate is extra="forbid"; the removed string field must 422 on PATCH.
     # (ItemCreate is not forbid — unknown keys there are ignored, existing behavior.)

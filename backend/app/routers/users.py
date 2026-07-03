@@ -180,10 +180,10 @@ def delete_user(
                 status_code=409,
                 detail=f"User '{user.display_name}' is assigned to {assigned} items",
             )
-    # The FK's ondelete="SET NULL" only fires on real Postgres — SQLite (the
-    # test harness) never enforces FK actions without a per-connection PRAGMA,
-    # so nulling happens explicitly here, same as every other cross-entity
-    # cleanup in this codebase (never relying on the DB to cascade for us).
+    # Core UPDATE: bumps items.updated_at (Python onupdate) without an audit row,
+    # and deliberately does NOT bump version (a version bump here would spuriously
+    # 409 unrelated concurrent edits). SQLite tests don't enforce FK ondelete,
+    # hence the explicit null-out; on Postgres the FK's SET NULL also applies.
     db.execute(update(Item).where(Item.assignee_id == user.id).values(assignee_id=None))
     log_event(
         db,
