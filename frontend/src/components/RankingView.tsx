@@ -86,7 +86,7 @@ function ManualRow({
       onMouseLeave={() => onHover(null)}
       className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm transition ${
         canMove ? "cursor-grab" : "text-gray-400"
-      } ${highlighted ? "bg-blue-50" : canMove ? "bg-white" : "bg-gray-50"}`}
+      } ${highlighted ? "border-blue-400 bg-blue-100 ring-1 ring-blue-300" : canMove ? "bg-white" : "bg-gray-50"}`}
       {...(canMove ? { ...attributes, ...listeners } : {})}
     >
       <span className="w-6 text-right tabular-nums text-gray-400">{index + 1}</span>
@@ -183,7 +183,7 @@ export default function RankingView({
                 onMouseEnter={() => setHoveredId(f.id)}
                 onMouseLeave={() => setHoveredId(null)}
                 className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm transition ${
-                  hoveredId === f.id ? "bg-blue-50" : "bg-white"
+                  hoveredId === f.id ? "border-blue-400 bg-blue-100 ring-1 ring-blue-300" : "bg-white"
                 }`}
               >
                 <span className="w-6 text-right tabular-nums text-gray-400">{i + 1}</span>
