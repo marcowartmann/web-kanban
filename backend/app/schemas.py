@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.models import ItemKind
+from app.models import ItemKind, ObjectiveState
 
 
 class ItemBase(BaseModel):
@@ -433,3 +433,42 @@ class CommentCreate(BaseModel):
 
 class CommentUpdate(BaseModel):
     body: str = Field(min_length=1, max_length=4000)
+
+
+class PIObjectiveCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    team_id: int
+    planning_interval: str
+    title: str = Field(min_length=1)
+    description: str | None = None
+    state: ObjectiveState = ObjectiveState.UNCOMMITTED
+    is_key_delivery: bool = False
+    feature_ids: list[int] = []
+
+
+class PIObjectiveUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: str | None = Field(default=None, min_length=1)
+    description: str | None = None
+    state: ObjectiveState | None = None
+    is_key_delivery: bool | None = None
+    position: int | None = None
+
+
+class PIObjectiveRead(BaseModel):
+    id: int
+    team_id: int
+    team_name: str
+    planning_interval: str
+    title: str
+    description: str | None
+    state: ObjectiveState
+    is_key_delivery: bool
+    position: int
+    feature_ids: list[int]
+    feature_count: int
+
+
+class FeatureLinkRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    feature_ids: list[int]
