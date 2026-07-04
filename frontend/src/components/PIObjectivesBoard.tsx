@@ -77,6 +77,10 @@ export default function PIObjectivesBoard({
     void updatePIObjective(id, { state }).catch(reload);
   };
 
+  const featuresById = new Map(features.map((f) => [f.id, f]));
+  const linkedFeaturesOf = (o: PIObjective) =>
+    o.feature_ids.map((id) => ({ id, title: featuresById.get(id)?.title ?? "" }));
+
   const selectedTeam = team ? teams.find((t) => t.name === team) ?? null : null;
   const canEditTeam = (tid: number | undefined) => user.role === "admin" || (tid != null && user.team_id === tid);
   const canAdd = selectedTeam != null && canEditTeam(selectedTeam.id);
@@ -126,6 +130,7 @@ export default function PIObjectivesBoard({
                       obj={o}
                       showTeam={team == null}
                       draggable={canEditTeam(o.team_id)}
+                      linkedFeatures={linkedFeaturesOf(o)}
                       onOpen={canEditTeam(o.team_id) ? () => setEditing(o) : undefined}
                     />
                   ))}

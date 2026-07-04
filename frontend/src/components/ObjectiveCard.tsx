@@ -6,11 +6,13 @@ export default function ObjectiveCard({
   showTeam,
   onOpen,
   draggable = false,
+  linkedFeatures = [],
 }: {
   obj: PIObjective;
   showTeam?: boolean;
   onOpen?: (id: number) => void;
   draggable?: boolean;
+  linkedFeatures?: { id: number; title: string }[];
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: obj.id,
@@ -39,6 +41,15 @@ export default function ObjectiveCard({
       <div className="mt-2 text-xs text-gray-500">
         {obj.feature_count} {obj.feature_count === 1 ? "feature" : "features"}
       </div>
+      {linkedFeatures.length > 0 && (
+        <ul className="mt-1 space-y-0.5">
+          {linkedFeatures.map((f) => (
+            <li key={f.id} className="truncate text-xs text-gray-600">
+              <span className="text-gray-400">#{f.id}</span> {f.title}
+            </li>
+          ))}
+        </ul>
+      )}
     </button>
   );
 }
