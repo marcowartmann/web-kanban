@@ -76,7 +76,8 @@ services:
     image: atmoz/sftp:alpine
     command: ["${SFTP_USER:-kanban}:${SFTP_PASSWORD:-kanban}:::upload"]
     volumes:
-      - sftp_data:/home/${SFTP_USER:-kanban}/upload
+      # backups land here on the host: ./sftp/uploads
+      - ./sftp/uploads:/home/${SFTP_USER:-kanban}/upload
       # runs as root at boot to make the mounted upload volume writable
       - ./sftp/chown-upload.sh:/etc/sftp.d/chown-upload.sh:ro
     ports:
@@ -89,4 +90,3 @@ secrets:
 volumes:
   pgdata:
   snapshots:
-  sftp_data:

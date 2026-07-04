@@ -32,3 +32,7 @@ dist/
 # FontAwesome Pro token (local only — never commit)
 .fa-token
 frontend/.fa-token
+
+# SFTP backup artifacts (bind-mounted target)
+sftp/uploads/*
+!sftp/uploads/.gitkeep
