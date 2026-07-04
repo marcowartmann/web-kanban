@@ -68,8 +68,14 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    volumes:
+      # TLS cert/key live on the host. If ./nginx/certs is empty on first start,
+      # a self-signed dev cert (server.crt/server.key) is generated into it;
+      # replace those with real files to use your own certificate.
+      - ./nginx/certs:/etc/nginx/certs
     ports:
       - "${APP_PORT:-8080}:80"
+      - "${HTTPS_PORT:-8443}:443"
 
   # Dev SFTP target for backups (atmoz/sftp). The backend reaches it at sftp:22.
   sftp:

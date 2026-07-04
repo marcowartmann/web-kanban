@@ -36,3 +36,7 @@ frontend/.fa-token
 # SFTP backup artifacts (bind-mounted target)
 sftp/uploads/*
 !sftp/uploads/.gitkeep
+
+# nginx TLS cert/key (bind-mounted; never commit real or dev keys)
+nginx/certs/*
+!nginx/certs/.gitkeep
