@@ -108,6 +108,30 @@ it("filters the stories by department", async () => {
   expect(screen.queryByText("BE Story")).not.toBeInTheDocument();
 });
 
+it("Unassigned toggle keeps only iteration stories without an assignee; backlog stays", async () => {
+  const items = [
+    story({ id: 1, title: "Assigned Story", iteration: 2, assignee: "Marco", assignee_id: 1 }),
+    story({ id: 2, title: "Free Story", iteration: 2 }),
+    story({ id: 3, title: "Backlog Assigned", iteration: null, assignee: "Marco", assignee_id: 1 }),
+  ];
+  render(
+    <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
+  );
+  expect(await screen.findByText("Assigned Story")).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: /unassigned/i }));
+
+  // Assigned story in an iteration is hidden; unassigned one stays.
+  expect(screen.queryByText("Assigned Story")).not.toBeInTheDocument();
+  expect(screen.getByText("Free Story")).toBeInTheDocument();
+  // The Backlog lane is not filtered by the toggle.
+  expect(screen.getByText("Backlog Assigned")).toBeInTheDocument();
+
+  // Toggling off restores the assigned iteration story.
+  await userEvent.click(screen.getByRole("button", { name: /unassigned/i }));
+  expect(screen.getByText("Assigned Story")).toBeInTheDocument();
+});
+
 it("assigns the iteration slot on drop, and null for the backlog", async () => {
   const update = vi.spyOn(client, "updateItem").mockResolvedValue({} as never);
   const reload = vi.fn().mockResolvedValue(undefined);

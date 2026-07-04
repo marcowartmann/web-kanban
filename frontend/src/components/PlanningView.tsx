@@ -63,6 +63,8 @@ export default function PlanningView({
   const [assigneeName, setAssigneeName] = useState<string | null>(null);
   const [department, setDepartment] = useState<string | null>(null);
   const [showCapacity, setShowCapacity] = useState(false);
+  // When on, iteration lanes show only stories that have no assignee.
+  const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   // On ⚠ hover: the card + its conflict partners stay lit; other cards dim.
   const [highlight, setHighlight] = useState<Set<number> | null>(null);
   const onHighlight = (ids: number[] | null) => setHighlight(ids ? new Set(ids) : null);
@@ -111,8 +113,14 @@ export default function PlanningView({
     let scoped = team ? items.filter((i) => i.leading_team === team.name) : items;
     if (assigneeName) scoped = scoped.filter((i) => i.assignee === assigneeName);
     if (department) scoped = scoped.filter((i) => i.department_name === department);
-    return groupStoriesByIteration(scoped, pi);
-  }, [items, pi, team, assigneeName, department]);
+    const g = groupStoriesByIteration(scoped, pi);
+    // Toggle narrows the iteration lanes to unassigned stories; the backlog
+    // (the pool of not-yet-planned work) is left intact.
+    if (onlyUnassigned) {
+      for (const slot of ITERATION_SLOTS) g.slots[slot] = g.slots[slot].filter((s) => !s.assignee);
+    }
+    return g;
+  }, [items, pi, team, assigneeName, department, onlyUnassigned]);
 
   // Dependency badges + timeline conflicts, computed over the full (unfiltered)
   // item list so a blocker hidden by the team/assignee filter is still detected.
@@ -195,6 +203,9 @@ export default function PlanningView({
           onChange={(v) => setDepartment(v ?? null)}
         />
 
+        <button onClick={() => setOnlyUnassigned((v) => !v)} className={pill(onlyUnassigned)}>
+          Unassigned
+        </button>
         <button onClick={() => setShowCapacity((v) => !v)} className={pill(showCapacity)}>
           Capacity
         </button>
