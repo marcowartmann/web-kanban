@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLink } from "../icons";
 import type { CardLinkInfo } from "../lib/planningLinks";
 import type { Item } from "../types";
 import CardLinkBadges from "./CardLinkBadges";
@@ -43,9 +45,9 @@ export default function FeatureCard({
             title="Highlight all dependencies"
             onMouseEnter={() => onHighlight?.([feature.id, ...(info?.linkPartners ?? [])])}
             onMouseLeave={() => onHighlight?.(null)}
-            className="shrink-0 cursor-help text-gray-400"
+            className="shrink-0 cursor-help text-xs text-gray-400"
           >
-            🔗
+            <FontAwesomeIcon icon={faLink} aria-hidden />
           </span>
         )}
       </div>

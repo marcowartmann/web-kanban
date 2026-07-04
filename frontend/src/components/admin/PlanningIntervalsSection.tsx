@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
+import { faCalendarDays, faPen, faXmark } from "../../icons";
 import {
   ConflictError,
   createPlanningInterval,
@@ -89,7 +91,7 @@ export default function PlanningIntervalsSection({ onChanged }: { onChanged: () 
   return (
     <AdminCard
       title="Planning Intervals"
-      icon="🗓️"
+      icon={<FontAwesomeIcon icon={faCalendarDays} />}
       accent="bg-violet-50 text-violet-600"
       count={intervals.length}
     >
@@ -140,14 +142,14 @@ export default function PlanningIntervalsSection({ onChanged }: { onChanged: () 
                     onClick={() => startRename(p)}
                     className="rounded-md px-1.5 py-1 text-xs text-gray-300 transition hover:bg-blue-50 hover:text-blue-600 group-hover:text-gray-400"
                   >
-                    ✎
+                    <FontAwesomeIcon icon={faPen} aria-hidden />
                   </button>
                   <button
                     aria-label={`remove planning interval ${p.id}`}
                     onClick={() => remove(p.id)}
                     className={adminRemoveButtonClass}
                   >
-                    ✕
+                    <FontAwesomeIcon icon={faXmark} aria-hidden />
                   </button>
                 </span>
               </>

@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
+import { faBuilding, faXmark } from "../../icons";
 import {
   createDepartment,
   deleteDepartment,
@@ -82,7 +84,7 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
   };
 
   return (
-    <AdminCard title="Departments" icon="🏢" count={departments.length}>
+    <AdminCard title="Departments" icon={<FontAwesomeIcon icon={faBuilding} />} count={departments.length}>
       {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
       {teams.length === 0 ? (
         <p className={adminEmptyClass}>Add a team first.</p>
@@ -109,7 +111,7 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
                         Rename
                       </button>
                       <button onClick={() => void remove(dep)} aria-label={`delete ${dep.name}`} className={adminRemoveButtonClass}>
-                        ✕
+                        <FontAwesomeIcon icon={faXmark} aria-hidden />
                       </button>
                     </div>
                     {expanded === dep.id && (

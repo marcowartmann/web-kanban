@@ -1,4 +1,6 @@
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGripVertical, faXmark } from "../icons";
 import {
   SortableContext,
   arrayMove,
@@ -46,7 +48,9 @@ function LaneChip({
       style={style}
       className="flex items-center gap-1.5 rounded-lg bg-surface px-2 py-1 text-sm shadow-xs ring-1 ring-gray-200"
     >
-      <span {...attributes} {...listeners} className="cursor-grab text-gray-400">⠿</span>
+      <span {...attributes} {...listeners} className="cursor-grab text-xs text-gray-400">
+        <FontAwesomeIcon icon={faGripVertical} aria-hidden />
+      </span>
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -58,7 +62,7 @@ function LaneChip({
         onClick={() => onDelete(id)}
         className="rounded-sm p-0.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
       >
-        ✕
+        <FontAwesomeIcon icon={faXmark} aria-hidden />
       </button>
     </div>
   );

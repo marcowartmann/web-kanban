@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBullseye } from "../icons";
 import { isObjectiveLinked, useObjectiveLinks } from "../objectives/links";
 import type { ItemKind } from "../types";
 
@@ -15,8 +17,8 @@ export default function ObjectiveLinkBadge({
   const links = useObjectiveLinks();
   if (!isObjectiveLinked(links, kind, id, parentId)) return null;
   return (
-    <span role="img" aria-label="linked to a PI objective" title="Linked to a PI Objective" className="text-xs">
-      🎯
+    <span role="img" aria-label="linked to a PI objective" title="Linked to a PI Objective" className="text-xs text-blue-500">
+      <FontAwesomeIcon icon={faBullseye} aria-hidden />
     </span>
   );
 }

@@ -1,4 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBan } from "../icons";
 import type { BoardCard } from "../types";
 import ObjectiveLinkBadge from "./ObjectiveLinkBadge";
 
@@ -73,7 +75,7 @@ export default function Card({
           )}
           {(card.blocked_by_count ?? 0) > 0 && (
             <span className="font-medium text-red-600">
-              ⛔ blocked by {card.blocked_by_count}
+              <FontAwesomeIcon icon={faBan} aria-hidden /> blocked by {card.blocked_by_count}
             </span>
           )}
           {(card.blocks_count ?? 0) > 0 && <span>blocks {card.blocks_count}</span>}

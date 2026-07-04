@@ -5,8 +5,10 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useMemo, useState } from "react";
 import { ConflictError, updateItem } from "../api/client";
+import { faMagnifyingGlass, faXmark } from "../icons";
 import { ITERATION_SLOTS, iterationLabel } from "../lib/iterations";
 import { computePlanningLinks } from "../lib/planningLinks";
 import { dependencyComponent, groupByFeature, layoutFlat, type FeatureLane } from "../lib/timeline";
@@ -162,17 +164,10 @@ export default function TimelineView({
           <div className="w-64 shrink-0 px-2">
             {mode === "feature" && (
               <div className="relative">
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  aria-hidden="true"
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                >
-                  <circle cx="9" cy="9" r="6" />
-                  <path strokeLinecap="round" d="M14.5 14.5L18 18" />
-                </svg>
+                <FontAwesomeIcon
+                  icon={faMagnifyingGlass}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"
+                />
                 <input
                   aria-label="Filter by feature title or ID"
                   placeholder="Filter features…"
@@ -184,9 +179,9 @@ export default function TimelineView({
                   <button
                     aria-label="Clear feature filter"
                     onClick={() => setQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-xs text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
                   >
-                    ✕
+                    <FontAwesomeIcon icon={faXmark} />
                   </button>
                 )}
               </div>

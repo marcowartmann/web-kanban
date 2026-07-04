@@ -10,10 +10,19 @@ Postgres, with CSV import of planning data.
 
 Runs Postgres, the backend (auto-migrates on start), and the frontend (nginx) together.
 
+The frontend uses **FontAwesome Pro** icons, which install from a private
+registry. Export your Pro package token before building — it's passed to the
+frontend build as a BuildKit secret and never stored in the image or git:
+
 ```bash
+export FONTAWESOME_PACKAGE_TOKEN="<your-fa-pro-package-token>"
 cp .env.example .env        # optional — override credentials/ports
 docker compose up --build
 ```
+
+(For local frontend work outside Docker, the same env var must be set so
+`npm ci` / `npm install` can reach the `@fortawesome` registry — see
+`frontend/.npmrc`.)
 
 Then open **http://localhost:8080** and use the **Import CSV** button to load
 `Team Planning Q3 26.csv`.

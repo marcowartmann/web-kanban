@@ -1,3 +1,5 @@
+import { faMoon, faSun } from "@fortawesome/pro-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTheme } from "../theme/ThemeContext";
 import { btnGhost } from "./ui";
 
@@ -9,9 +11,10 @@ export default function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-      className={`${btnGhost} text-lg leading-none`}
+      className={`${btnGhost} text-base leading-none text-gray-500`}
     >
-      {isDark ? "☀️" : "🌙"}
+      {/* FA icon: sized by font-size (text-base = 1em), colored via currentColor. */}
+      <FontAwesomeIcon icon={isDark ? faSun : faMoon} />
     </button>
   );
 }

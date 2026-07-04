@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
+import { faChevronDown, faCheck } from "../icons";
 
 // A clean, non-native single-select dropdown for the filter bar.
 export default function FilterSelect({
@@ -58,18 +60,10 @@ export default function FilterSelect({
           {label}
         </span>
         <span className="font-medium">{value ?? allLabel}</span>
-        <svg
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-          className={`h-4 w-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <FontAwesomeIcon
+          icon={faChevronDown}
+          className={`text-xs text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       {open && (
@@ -114,13 +108,7 @@ function Option({
       >
         <span className="truncate">{children}</span>
         {selected && (
-          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4 shrink-0">
-            <path
-              fillRule="evenodd"
-              d="M16.7 5.3a1 1 0 010 1.4l-7.2 7.2a1 1 0 01-1.42 0l-3.3-3.3a1 1 0 011.42-1.42l2.59 2.6 6.49-6.49a1 1 0 011.42 0z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <FontAwesomeIcon icon={faCheck} className="shrink-0 text-xs" />
         )}
       </button>
     </li>

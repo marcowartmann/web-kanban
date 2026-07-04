@@ -1,5 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { getAuditEvents } from "../../api/client";
+import { faScroll } from "../../icons";
 import type { AuditEvent } from "../../types";
 
 const PAGE = 50;
@@ -46,7 +48,7 @@ export default function AuditLogSection() {
           className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-base text-indigo-600"
           aria-hidden
         >
-          📜
+          <FontAwesomeIcon icon={faScroll} />
         </span>
         <h2 className="text-sm font-semibold text-gray-900">Audit Log</h2>
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">

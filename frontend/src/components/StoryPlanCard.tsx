@@ -1,4 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLink, faTriangleExclamation } from "../icons";
 import type { CardLinkInfo } from "../lib/planningLinks";
 import type { Item } from "../types";
 import CardLinkBadges from "./CardLinkBadges";
@@ -65,9 +67,9 @@ export default function StoryPlanCard({
                 title="Highlight all dependencies"
                 onMouseEnter={() => onHighlight?.([story.id, ...(info?.linkPartners ?? [])])}
                 onMouseLeave={() => onHighlight?.(null)}
-                className="cursor-help text-gray-400"
+                className="cursor-help text-xs text-gray-400"
               >
-                🔗
+                <FontAwesomeIcon icon={faLink} aria-hidden />
               </span>
             )}
             {conflicts.length > 0 && (
@@ -77,9 +79,9 @@ export default function StoryPlanCard({
                 title={conflicts.map((c) => c.message).join("\n")}
                 onMouseEnter={() => onHighlight?.([story.id, ...(info?.conflictPartners ?? [])])}
                 onMouseLeave={() => onHighlight?.(null)}
-                className={`cursor-help ${hasError ? "text-red-600" : "text-amber-600"}`}
+                className={`cursor-help text-xs ${hasError ? "text-red-600" : "text-amber-600"}`}
               >
-                ⚠
+                <FontAwesomeIcon icon={faTriangleExclamation} aria-hidden />
               </span>
             )}
           </span>
