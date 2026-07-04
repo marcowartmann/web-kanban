@@ -9,6 +9,7 @@ from app.auth import require_admin
 from app.crypto import decrypt, encrypt
 from app.db import get_db
 from app.models import BackupConfig, BackupRun, User
+from app.scheduler import reschedule
 from app.schemas import (
     BackupConfigRead,
     BackupConfigUpdate,
@@ -60,6 +61,7 @@ def update_config(
               entity_type="backup", entity_id=1, entity_label="backup config")
     db.commit()
     db.refresh(cfg)
+    reschedule(db)
     return _serialize(cfg)
 
 
