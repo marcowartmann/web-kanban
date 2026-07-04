@@ -1,6 +1,8 @@
 import type {
   AuditEvent,
   AuthUser,
+  BackupConfig,
+  BackupRun,
   Board,
   Capacity,
   Comment,
@@ -415,4 +417,25 @@ export function deletePIObjective(id: number): Promise<void> {
 
 export function getObjectiveLinkedFeatures(): Promise<number[]> {
   return request<number[]>(`${API}/pi-objectives/linked-features`);
+}
+
+// --- Backup (SFTP) ---
+export function getBackupConfig(): Promise<BackupConfig> {
+  return request<BackupConfig>(`${API}/backup/config`);
+}
+export function saveBackupConfig(
+  body: Omit<BackupConfig, "has_password"> & { password?: string; clear_password?: boolean },
+): Promise<BackupConfig> {
+  return request<BackupConfig>(`${API}/backup/config`, { ...json(body), method: "PUT" });
+}
+export function testBackup(
+  body: { sftp_host?: string; sftp_port?: number; sftp_username?: string; password?: string; remote_dir?: string },
+): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>(`${API}/backup/test`, json(body));
+}
+export function runBackup(): Promise<BackupRun> {
+  return request<BackupRun>(`${API}/backup/run`, { method: "POST" });
+}
+export function getBackupRuns(): Promise<BackupRun[]> {
+  return request<BackupRun[]>(`${API}/backup/runs`);
 }
