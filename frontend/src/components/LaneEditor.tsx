@@ -89,7 +89,7 @@ export default function LaneEditor({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b bg-gray-50 px-6 py-3">
+    <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 px-6 py-3">
       <DndContext onDragEnd={(e) => void handleLaneDragEnd(e, board, onChanged)}>
         <SortableContext
           items={board.lanes.map((l) => l.id)}

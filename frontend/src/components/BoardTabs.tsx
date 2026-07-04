@@ -10,7 +10,7 @@ export default function BoardTabs({
   onSelect: (id: number) => void;
 }) {
   return (
-    <div className="flex gap-1 border-b bg-white px-6">
+    <div className="flex gap-1 border-b border-gray-200 bg-white px-6">
       {boards.map((board) => (
         <button
           key={board.id}
