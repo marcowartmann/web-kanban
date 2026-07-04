@@ -55,3 +55,25 @@ it("filters the linked-feature list by search", async () => {
   expect(screen.getByLabelText("Alpha")).toBeInTheDocument();
   expect(screen.queryByLabelText("Beta")).toBeNull();
 });
+
+it("pins already-selected features above the rest", () => {
+  const existing = {
+    id: 5, team_id: 1, team_name: "Network", planning_interval: "PI1-Q3", title: "O",
+    description: null, state: "uncommitted" as const, is_key_delivery: false, position: 0,
+    feature_ids: [9], feature_count: 1,
+  };
+  render(
+    <ObjectiveEditor
+      existing={existing}
+      teamId={1}
+      teamName="Network"
+      planningInterval="PI1-Q3"
+      features={[feature(7, { title: "Alpha" }), feature(9, { title: "Beta" })]}
+      onClose={() => {}}
+      onSaved={() => {}}
+    />,
+  );
+  const beta = screen.getByLabelText("Beta"); // selected → pinned on top
+  const alpha = screen.getByLabelText("Alpha"); // unselected → below
+  expect(beta.compareDocumentPosition(alpha) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
