@@ -16,6 +16,20 @@ it("groupByFeature buckets a feature's PI stories into backlog vs slots", () => 
   expect(lanes[0].slots[2].map((s) => s.id)).toEqual([11, 12]);
 });
 
+it("groupByFeature orders feature lanes by manual_rank ascending, unranked last, orphan last", () => {
+  const items = [
+    feature(1, { manual_rank: 2 }),
+    feature(2, { manual_rank: 5 }),
+    feature(3, { manual_rank: null }),
+    story(11, 1, 1),
+    story(21, 2, 1),
+    story(31, 3, 1),
+    story(99, null, 1), // orphan
+  ];
+  const lanes = groupByFeature(items, "PI1-Q3", { showAll: true });
+  expect(lanes.map((l) => (l.feature ? l.feature.id : "orphan"))).toEqual([1, 2, 3, "orphan"]);
+});
+
 it("groupByFeature puts parentless stories in the orphan (null) lane, last", () => {
   const items = [feature(1), story(11, 1, 1), story(99, null, 3)];
   const lanes = groupByFeature(items, "PI1-Q3", { showAll: true });
