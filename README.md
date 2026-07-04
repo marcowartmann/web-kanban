@@ -71,14 +71,46 @@ Builds cross-compile to `linux/amd64` via `docker buildx` (QEMU), so this works
 from an Apple-Silicon Mac.
 
 **2. On the server**, copy the compose file, `.env.prod.example`, and the
-`nginx/` dir, then:
+`nginx/` dir into one directory, then create `.env` **in that same directory**
+(Compose auto-loads `.env` from the current working directory):
 
 ```bash
-cp .env.prod.example .env     # fill in POSTGRES_PASSWORD, APP_SECRET,
-                              # INITIAL_ADMIN_PASSWORD (all required)
+cp .env.prod.example .env
+```
+
+Edit `.env` and set real, **non-empty** values for the three required secrets —
+the stack refuses to start until they are set (`POSTGRES_PASSWORD is missing a
+value` means one is still blank):
+
+```bash
+POSTGRES_PASSWORD=$(openssl rand -hex 24)
+APP_SECRET=$(openssl rand -hex 32)
+INITIAL_ADMIN_PASSWORD=<choose one>
+```
+
+Verify the config resolves before starting — this prints an error naming any
+missing variable:
+
+```bash
+docker compose -f docker-compose.prod.yml config >/dev/null && echo OK
+```
+
+Then launch:
+
+```bash
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
+
+> **Changed `POSTGRES_PASSWORD` after a first run and now the backend won't
+> become healthy?** Postgres only applies the password when it *initialises* its
+> data volume, so an existing volume keeps the old password and the backend can't
+> authenticate. Reset the (empty) database with
+> `docker compose -f docker-compose.prod.yml down -v` and `up -d` again. `-v`
+> deletes the database — only do this before you have real data.
+
+The stack runs under its own Compose project name (`jamra-prod`), so its
+containers and volumes never collide with the dev stack.
 
 Postgres runs bundled in the compose stack (named `pgdata` volume, not published
 to the host). The backend applies DB migrations automatically on start. Put your

@@ -9,6 +9,13 @@
 # Put your real TLS cert/key in ./nginx/certs (server.crt / server.key); if the
 # dir is empty a self-signed cert is generated so the site still comes up.
 
+# Own project name so the prod stack's containers and (crucially) its pgdata
+# volume never collide with the dev stack's `web-kanban` project. Sharing the
+# volume is a common cause of "backend unhealthy": Postgres only sets the
+# password on first init, so a volume created by the dev stack keeps the dev
+# password and the prod backend fails to authenticate.
+name: jamra-prod
+
 services:
   db:
     image: postgres:18
