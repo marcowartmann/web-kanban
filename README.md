@@ -27,11 +27,26 @@ docker compose up --build
 Then open **http://localhost:8080** and use the **Import CSV** button to load
 `Team Planning Q3 26.csv`.
 
-- App (frontend): http://localhost:8080
+- App (frontend): http://localhost:8080 — or HTTPS at https://localhost:8443
 - Backend API (direct): http://localhost:8000/api/health
 - Stop: `docker compose down` (add `-v` to also drop the database volume)
 
-Host ports are overridable in `.env` (`APP_PORT`, `BACKEND_PORT`). Postgres is published
+### HTTPS / TLS
+
+The frontend serves on both HTTP (`APP_PORT`, default `8080`) and HTTPS (`HTTPS_PORT`,
+default `8443`). The cert and key are read from the host directory `./nginx/certs`,
+bind-mounted into the container at `/etc/nginx/certs`:
+
+- `server.crt` — certificate (public key / full chain)
+- `server.key` — private key
+
+If that directory is empty on first start, a **self-signed dev certificate** is
+generated into it automatically (browsers will warn — expected for local dev).
+To use your own certificate, drop `server.crt` / `server.key` into `./nginx/certs`
+before starting; they take precedence and are never overwritten. The cert files are
+gitignored.
+
+Host ports are overridable in `.env` (`APP_PORT`, `HTTPS_PORT`, `BACKEND_PORT`). Postgres is published
 for external clients (psql/DBeaver/pgAdmin) at `DB_PORT` (default `5432`), bound to
 `DB_BIND` (default `127.0.0.1` — this host only). Set `DB_BIND=0.0.0.0` to allow LAN
 access, and use a strong `POSTGRES_PASSWORD` if you do. You can still inspect it in-container

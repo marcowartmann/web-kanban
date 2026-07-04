@@ -17,7 +17,15 @@ RUN npm run build
 # --- runtime stage: serve static files + proxy /api ------------------------
 FROM nginx:alpine AS runtime
 
+# openssl is used by the startup hook to mint a self-signed dev cert if none
+# is mounted.
+RUN apk add --no-cache openssl
+
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY app_locations.conf /etc/nginx/app_locations.conf
+# nginx's official entrypoint runs every *.sh in this dir before starting.
+COPY docker-cert-entrypoint.sh /docker-entrypoint.d/10-gen-dev-cert.sh
+RUN chmod +x /docker-entrypoint.d/10-gen-dev-cert.sh
 
-EXPOSE 80
+EXPOSE 80 443
