@@ -157,6 +157,22 @@ export interface Team {
   name: string;
 }
 
+export type ObjectiveState = "committed" | "uncommitted" | "out_of_scope";
+
+export interface PIObjective {
+  id: number;
+  team_id: number;
+  team_name: string;
+  planning_interval: string;
+  title: string;
+  description: string | null;
+  state: ObjectiveState;
+  is_key_delivery: boolean;
+  position: number;
+  feature_ids: number[];
+  feature_count: number;
+}
+
 export interface Container {
   id: number;
   name: string;

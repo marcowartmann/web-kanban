@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import BoardTabs from "./components/BoardTabs";
 import BoardView from "./components/BoardView";
+import PIObjectivesBoard from "./components/PIObjectivesBoard";
 import ItemDrawer from "./components/ItemDrawer";
 import NewItemBar from "./components/NewItemBar";
 import StoryBoardModal from "./components/StoryBoardModal";
@@ -25,6 +26,7 @@ export default function App() {
   const { boards, items, links, planningIntervals, loading, error, reload } = useBoard();
   const [view, setView] = useState<View>("board");
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
+  const [objectivesTab, setObjectivesTab] = useState(false);
   // Panels are docked right-to-left: the rightmost is the primary item, and a
   // related item docks beside it as [story, feature] (feature always on the right).
   const [panels, setPanels] = useState<number[]>([]);
@@ -91,6 +93,7 @@ export default function App() {
   );
 
   const selectBoard = (id: number) => {
+    setObjectivesTab(false);
     setActiveBoardId(id);
     setFilters((f) => ({ ...f, kinds: undefined })); // reset kind narrowing per board
   };
@@ -170,28 +173,46 @@ export default function App() {
         <div className="p-8 text-red-600">{error}</div>
       ) : activeBoard ? (
         <>
-          <BoardTabs boards={boards} activeId={activeBoardId} onSelect={selectBoard} />
-          <Toolbar
-            filters={filters}
-            onChange={setFilters}
-            planningIntervals={planningIntervals}
-            teams={teams}
-            assignees={assignees}
-            containerNames={containerNames}
-            departmentNames={departmentNames}
-            kindOptions={activeBoard.kinds}
+          <BoardTabs
+            boards={boards}
+            activeId={objectivesTab ? null : activeBoardId}
+            onSelect={selectBoard}
+            objectivesActive={objectivesTab}
+            onSelectObjectives={() => setObjectivesTab(true)}
           />
-          <BoardView
-            board={activeBoard}
-            items={items}
-            links={links}
-            filters={filters}
-            containers={containers}
-            onOpenCard={openItem}
-            onOpenStories={setOpenStoriesFeatureId}
-            onChanged={handleChanged}
-            canEditLanes={isAdmin}
-          />
+          {objectivesTab ? (
+            <PIObjectivesBoard
+              teams={teamOptions}
+              planningIntervals={planningIntervals}
+              user={user}
+              features={items.filter((i) => i.kind === "feature")}
+              onChanged={handleChanged}
+            />
+          ) : (
+            <>
+              <Toolbar
+                filters={filters}
+                onChange={setFilters}
+                planningIntervals={planningIntervals}
+                teams={teams}
+                assignees={assignees}
+                containerNames={containerNames}
+                departmentNames={departmentNames}
+                kindOptions={activeBoard.kinds}
+              />
+              <BoardView
+                board={activeBoard}
+                items={items}
+                links={links}
+                filters={filters}
+                containers={containers}
+                onOpenCard={openItem}
+                onOpenStories={setOpenStoriesFeatureId}
+                onChanged={handleChanged}
+                canEditLanes={isAdmin}
+              />
+            </>
+          )}
         </>
       ) : null}
 

@@ -13,7 +13,9 @@ import type {
   ItemUpdate,
   Lane,
   LinkRow,
+  ObjectiveState,
   PersonOption,
+  PIObjective,
   PlanningInterval,
   RelationOption,
   RestoreResult,
@@ -374,4 +376,39 @@ export function updateComment(id: number, body: string): Promise<Comment> {
 
 export function deleteComment(id: number): Promise<void> {
   return request<void>(`${API}/comments/${id}`, { method: "DELETE" });
+}
+
+// --- PI Objectives ---
+export function getPIObjectives(params: { planning_interval?: string; team?: string }): Promise<PIObjective[]> {
+  const q = new URLSearchParams();
+  if (params.planning_interval) q.set("planning_interval", params.planning_interval);
+  if (params.team) q.set("team", params.team);
+  return request<PIObjective[]>(`${API}/pi-objectives?${q.toString()}`);
+}
+
+export function createPIObjective(body: {
+  team_id: number;
+  planning_interval: string;
+  title: string;
+  description?: string | null;
+  state?: ObjectiveState;
+  is_key_delivery?: boolean;
+  feature_ids?: number[];
+}): Promise<PIObjective> {
+  return request<PIObjective>(`${API}/pi-objectives`, json(body));
+}
+
+export function updatePIObjective(
+  id: number,
+  body: Partial<{ title: string; description: string | null; state: ObjectiveState; is_key_delivery: boolean; position: number }>,
+): Promise<PIObjective> {
+  return request<PIObjective>(`${API}/pi-objectives/${id}`, { ...json(body), method: "PATCH" });
+}
+
+export function setObjectiveFeatures(id: number, feature_ids: number[]): Promise<PIObjective> {
+  return request<PIObjective>(`${API}/pi-objectives/${id}/features`, { ...json({ feature_ids }), method: "PUT" });
+}
+
+export function deletePIObjective(id: number): Promise<void> {
+  return request<void>(`${API}/pi-objectives/${id}`, { method: "DELETE" });
 }
