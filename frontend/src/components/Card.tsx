@@ -40,6 +40,17 @@ export default function Card({
               {card.type ?? card.kind}
             </span>
             <span className="text-xs text-gray-400">#{card.id}</span>
+            {card.kind === "risk" && card.risk_scope && (
+              <span
+                className={`rounded-sm px-1.5 py-0.5 text-xs font-medium ${
+                  card.risk_scope === "art"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-slate-100 text-slate-700"
+                }`}
+              >
+                {card.risk_scope === "art" ? "ART" : "Team"}
+              </span>
+            )}
           </span>
           {card.wsjf_score != null && (
             <span className="text-xs font-semibold text-gray-600">
