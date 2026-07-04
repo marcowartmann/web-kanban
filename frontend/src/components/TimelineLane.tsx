@@ -31,7 +31,7 @@ export default function TimelineLane({
   const storiesFor = (slot: SlotKey) => (slot === "backlog" ? lane.backlog : lane.slots[slot]);
 
   return (
-    <div className="flex items-start gap-2 border-b py-2">
+    <div className="flex items-start gap-2 border-b border-gray-200 py-2">
       <div className="sticky left-0 z-10 w-64 shrink-0 bg-gray-50 p-2">
         {lane.feature ? (
           <FeatureCard
