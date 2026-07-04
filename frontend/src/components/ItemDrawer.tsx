@@ -18,7 +18,6 @@ import InlineAddInput from "./InlineAddInput";
 import ItemActivity from "./ItemActivity";
 import ItemComments from "./ItemComments";
 import PlainSelect from "./PlainSelect";
-import SearchableSelect from "./SearchableSelect";
 import WsjfToggle from "./WsjfToggle";
 
 const NUMERIC_FIELDS = new Set([
@@ -330,24 +329,33 @@ export default function ItemDrawer({
         />
       </PropLabel>
       <PropLabel text="Assignee">
-        <div className="flex items-center gap-2">
-          {assigneeName && <Avatar name={assigneeName} />}
-          <div className="min-w-0 flex-1">
-            <SearchableSelect
-              ariaLabel="Assignee"
-              value={assigneeName}
-              options={people.map((p) => p.display_name)}
-              onChange={(v) =>
-                setDraft((d) => ({
-                  ...d,
-                  assignee_id:
-                    v == null ? null : people.find((p) => p.display_name === v)?.id ?? null,
-                }))
-              }
-              placeholder="Search person…"
-            />
-          </div>
-        </div>
+        {(() => {
+          // Prefilter people to the chosen leading team (draft-aware); the
+          // current assignee stays selectable even if outside that team.
+          const teamName = (value("leading_team") as string | null) || null;
+          const team = teamName ? teams.find((t) => t.name === teamName) ?? null : null;
+          const scoped = team ? people.filter((p) => p.team_id === team.id) : people;
+          return (
+            <div className="flex items-center gap-2">
+              {assigneeName && <Avatar name={assigneeName} />}
+              <div className="min-w-0 flex-1">
+                <PlainSelect
+                  ariaLabel="Assignee"
+                  value={assigneeName}
+                  options={withCurrent(assigneeName, scoped.map((p) => p.display_name))}
+                  onChange={(v) =>
+                    setDraft((d) => ({
+                      ...d,
+                      assignee_id:
+                        v == null ? null : people.find((p) => p.display_name === v)?.id ?? null,
+                    }))
+                  }
+                  placeholder="Select person…"
+                />
+              </div>
+            </div>
+          );
+        })()}
       </PropLabel>
       <PropLabel text="T-Shirt Size">
         <PlainSelect

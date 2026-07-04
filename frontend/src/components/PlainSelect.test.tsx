@@ -37,6 +37,22 @@ it("marks the current value as selected when open", async () => {
   expect(screen.getByRole("option", { name: "Funnel" })).toHaveAttribute("aria-selected", "false");
 });
 
+it("can clear back to null via the placeholder option", async () => {
+  const onChange = vi.fn();
+  render(
+    <PlainSelect
+      ariaLabel="Status"
+      value="Ready"
+      options={["Funnel", "Ready"]}
+      onChange={onChange}
+      placeholder="Select status…"
+    />,
+  );
+  await userEvent.click(screen.getByRole("combobox", { name: "Status" }));
+  await userEvent.click(screen.getByRole("option", { name: "Select status…" }));
+  expect(onChange).toHaveBeenCalledWith(null);
+});
+
 it("shows the placeholder when there is no value", () => {
   render(
     <PlainSelect
