@@ -25,6 +25,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kanban}:${POSTGRES_PASSWORD:-kanban}@db:5432/${POSTGRES_DB:-kanban}
       BOOTSTRAP_ADMIN: "true"
+      # Encrypts the stored SFTP backup password. Change in production.
+      APP_SECRET: ${APP_SECRET:-dev-insecure-change-me}
       # Set to "true" behind TLS so the session cookie is HTTPS-only.
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       # Dev defaults — override all three in any real deployment.
@@ -69,6 +71,15 @@ services:
     ports:
       - "${APP_PORT:-8080}:80"
 
+  # Dev SFTP target for backups (atmoz/sftp). The backend reaches it at sftp:22.
+  sftp:
+    image: atmoz/sftp:alpine
+    command: ["${SFTP_USER:-kanban}:${SFTP_PASSWORD:-kanban}:::upload"]
+    volumes:
+      - sftp_data:/home/${SFTP_USER:-kanban}/upload
+    ports:
+      - "127.0.0.1:${SFTP_PORT:-2222}:22"
+
 secrets:
   fa_token:
     environment: FONTAWESOME_PACKAGE_TOKEN
@@ -76,3 +87,4 @@ secrets:
 volumes:
   pgdata:
   snapshots:
+  sftp_data:
