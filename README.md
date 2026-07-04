@@ -1,4 +1,4 @@
-# SAFe Kanban
+# JAMra
 
 Web app for managing SAFe Feature / Story / Risk items on a Kanban board, backed by
 Postgres, with CSV import of planning data.
