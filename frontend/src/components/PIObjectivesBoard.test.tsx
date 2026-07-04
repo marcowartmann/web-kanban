@@ -27,3 +27,9 @@ it("renders objectives in state columns with feature count and Key Delivery badg
   expect(screen.getByText(/key delivery/i)).toBeInTheDocument();
   await waitFor(() => expect(client.getPIObjectives).toHaveBeenCalled());
 });
+
+it("computeStateChange reports whether a drop changes the column", async () => {
+  const { computeStateChange } = await import("./PIObjectivesBoard");
+  expect(computeStateChange("uncommitted", "committed")).toEqual({ changed: true, state: "committed" });
+  expect(computeStateChange("committed", "committed")).toEqual({ changed: false, state: "committed" });
+});

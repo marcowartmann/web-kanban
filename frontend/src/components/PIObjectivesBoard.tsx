@@ -1,5 +1,13 @@
+import {
+  DndContext,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { useCallback, useEffect, useState } from "react";
-import { getPIObjectives } from "../api/client";
+import { getPIObjectives, updatePIObjective } from "../api/client";
 import type { AuthUser, Item, ObjectiveState, PIObjective, Team } from "../types";
 import FilterSelect from "./FilterSelect";
 import ObjectiveCard from "./ObjectiveCard";
@@ -10,6 +18,20 @@ const COLUMNS: { key: ObjectiveState; label: string }[] = [
   { key: "uncommitted", label: "Uncommitted" },
   { key: "out_of_scope", label: "Out of scope" },
 ];
+
+/** Pure drop resolver — extracted so the drag logic is unit-testable. */
+export function computeStateChange(from: ObjectiveState, to: ObjectiveState) {
+  return { changed: from !== to, state: to };
+}
+
+function Column({ col, children }: { col: ObjectiveState; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: col });
+  return (
+    <div ref={setNodeRef} className={`flex flex-col gap-2 rounded-lg p-1 ${isOver ? "bg-blue-50 ring-2 ring-blue-300" : ""}`}>
+      {children}
+    </div>
+  );
+}
 
 export default function PIObjectivesBoard({
   teams,
@@ -35,6 +57,25 @@ export default function PIObjectivesBoard({
   }, [pi, team]);
 
   useEffect(reload, [reload]);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+
+  const onDragEnd = (e: DragEndEvent) => {
+    const id = Number(e.active.id);
+    const to = e.over?.id as ObjectiveState | undefined;
+    const current = objectives.find((o) => o.id === id);
+    if (!current || !to) return;
+    const { changed, state } = computeStateChange(current.state, to);
+    if (!changed) return;
+    setObjectives((os) =>
+      os.map((o) =>
+        o.id === id
+          ? { ...o, state, is_key_delivery: state === "committed" ? o.is_key_delivery : false }
+          : o,
+      ),
+    );
+    void updatePIObjective(id, { state }).catch(reload);
+  };
 
   const selectedTeam = team ? teams.find((t) => t.name === team) ?? null : null;
   const canEditTeam = (tid: number | undefined) => user.role === "admin" || (tid != null && user.team_id === tid);
@@ -69,28 +110,31 @@ export default function PIObjectivesBoard({
           <span className="text-xs text-gray-400">Select your team to add objectives</span>
         )}
       </div>
-      <div className="grid grid-cols-3 gap-4 p-6">
-        {COLUMNS.map((col) => {
-          const inColumn = objectives.filter((o) => o.state === col.key);
-          return (
-            <div key={col.key}>
-              <h2 className="mb-2 text-sm font-semibold text-gray-700">
-                {col.label} <span className="text-gray-400">{inColumn.length}</span>
-              </h2>
-              <div className="flex flex-col gap-2">
-                {inColumn.map((o) => (
-                  <ObjectiveCard
-                    key={o.id}
-                    obj={o}
-                    showTeam={team == null}
-                    onOpen={canEditTeam(o.team_id) ? () => setEditing(o) : undefined}
-                  />
-                ))}
+      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+        <div className="grid grid-cols-3 gap-4 p-6">
+          {COLUMNS.map((col) => {
+            const inColumn = objectives.filter((o) => o.state === col.key);
+            return (
+              <div key={col.key}>
+                <h2 className="mb-2 text-sm font-semibold text-gray-700">
+                  {col.label} <span className="text-gray-400">{inColumn.length}</span>
+                </h2>
+                <Column col={col.key}>
+                  {inColumn.map((o) => (
+                    <ObjectiveCard
+                      key={o.id}
+                      obj={o}
+                      showTeam={team == null}
+                      draggable={canEditTeam(o.team_id)}
+                      onOpen={canEditTeam(o.team_id) ? () => setEditing(o) : undefined}
+                    />
+                  ))}
+                </Column>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </DndContext>
 
       {editing && editorTeam && (
         <ObjectiveEditor

@@ -1,18 +1,31 @@
+import { useDraggable } from "@dnd-kit/core";
 import type { PIObjective } from "../types";
 
 export default function ObjectiveCard({
   obj,
   showTeam,
   onOpen,
+  draggable = false,
 }: {
   obj: PIObjective;
   showTeam?: boolean;
   onOpen?: (id: number) => void;
+  draggable?: boolean;
 }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: obj.id,
+    disabled: !draggable,
+  });
+  const style = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : undefined;
   return (
     <button
+      ref={setNodeRef}
+      style={style}
+      {...(draggable ? { ...listeners, ...attributes } : {})}
       onClick={() => onOpen?.(obj.id)}
-      className="w-full rounded-lg border border-gray-200 bg-surface p-3 text-left shadow-xs transition hover:shadow-sm"
+      className={`w-full rounded-lg border border-gray-200 bg-surface p-3 text-left shadow-xs transition hover:shadow-sm ${
+        isDragging ? "opacity-50" : ""
+      }`}
     >
       <div className="mb-1 flex items-center justify-between gap-2">
         {showTeam ? <span className="text-xs text-gray-400">{obj.team_name}</span> : <span />}
