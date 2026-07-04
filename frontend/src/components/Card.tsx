@@ -1,5 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import type { BoardCard } from "../types";
+import ObjectiveLinkBadge from "./ObjectiveLinkBadge";
 
 const kindStyles: Record<string, string> = {
   feature: "bg-blue-100 text-blue-800",
@@ -40,6 +41,7 @@ export default function Card({
               {card.type ?? card.kind}
             </span>
             <span className="text-xs text-gray-400">#{card.id}</span>
+            <ObjectiveLinkBadge kind={card.kind} id={card.id} parentId={card.parent_id} />
             {card.kind === "risk" && card.risk_scope && (
               <span
                 className={`rounded-sm px-1.5 py-0.5 text-xs font-medium ${

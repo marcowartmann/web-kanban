@@ -14,7 +14,8 @@ import ThemeToggle from "./components/ThemeToggle";
 import UserMenu from "./components/UserMenu";
 import { useAuth } from "./auth/AuthContext";
 import { useBoard } from "./hooks/useBoard";
-import { getContainers, getDepartments, getPersonOptions, getTeams } from "./api/client";
+import { getContainers, getDepartments, getObjectiveLinkedFeatures, getPersonOptions, getTeams } from "./api/client";
+import { ObjectiveLinksContext } from "./objectives/links";
 import { statusOptionsByKind } from "./lib/boardLanes";
 import type { Container, Department, PersonOption, Team } from "./types";
 
@@ -56,6 +57,7 @@ export default function App() {
   const [teamOptions, setTeamOptions] = useState<Team[]>([]);
   const [containers, setContainers] = useState<Container[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [objectiveLinks, setObjectiveLinks] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (activeBoardId == null && boards.length) setActiveBoardId(boards[0].id);
@@ -69,6 +71,7 @@ export default function App() {
     void getTeams().then(setTeamOptions);
     void getContainers().then(setContainers);
     void getDepartments().then(setDepartments);
+    void getObjectiveLinkedFeatures().then((ids) => setObjectiveLinks(new Set(ids)));
   }, [refreshKey]);
 
   const statusOptions = useMemo(() => statusOptionsByKind(boards), [boards]);
@@ -117,6 +120,7 @@ export default function App() {
   );
 
   return (
+    <ObjectiveLinksContext.Provider value={objectiveLinks}>
     <div className="min-h-screen bg-canvas">
       <header className="flex items-center justify-between border-b border-gray-200 bg-surface px-6 py-4">
         <div className="flex items-center gap-4">
@@ -254,5 +258,6 @@ export default function App() {
         </div>
       )}
     </div>
+    </ObjectiveLinksContext.Provider>
   );
 }

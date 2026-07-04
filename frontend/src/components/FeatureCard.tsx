@@ -1,6 +1,7 @@
 import type { CardLinkInfo } from "../lib/planningLinks";
 import type { Item } from "../types";
 import CardLinkBadges from "./CardLinkBadges";
+import ObjectiveLinkBadge from "./ObjectiveLinkBadge";
 
 export default function FeatureCard({
   feature,
@@ -31,6 +32,7 @@ export default function FeatureCard({
           {feature.type ?? feature.kind}
         </span>
         <span className="text-xs text-gray-400">#{feature.id}</span>
+        <ObjectiveLinkBadge kind="feature" id={feature.id} />
       </div>
       <div className="flex items-start justify-between gap-2">
         <div className="font-semibold text-gray-900">{feature.title}</div>

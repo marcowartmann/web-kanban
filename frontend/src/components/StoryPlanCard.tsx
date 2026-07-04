@@ -2,6 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import type { CardLinkInfo } from "../lib/planningLinks";
 import type { Item } from "../types";
 import CardLinkBadges from "./CardLinkBadges";
+import ObjectiveLinkBadge from "./ObjectiveLinkBadge";
 
 export default function StoryPlanCard({
   story,
@@ -51,6 +52,7 @@ export default function StoryPlanCard({
       >
         <div className="mb-1 flex items-center gap-1.5 text-xs text-gray-400">
           <span>#{story.id}</span>
+          <ObjectiveLinkBadge kind="story" id={story.id} parentId={story.parent_id} />
           {parentTitle && <span className="truncate">· {parentTitle}</span>}
         </div>
         <div className="flex items-start justify-between gap-2">
