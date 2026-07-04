@@ -256,6 +256,31 @@ def test_restore_clears_dangling_containers_with_warning(client, db_session):
     assert db_session.query(Item).filter_by(title="Boxed").one().container_id is None
 
 
+def test_restore_clears_dangling_departments_with_warning(client, db_session):
+    from app.models import Team, TeamDepartment
+
+    team = Team(name="Network")
+    db_session.add(team)
+    db_session.flush()
+    dept = TeamDepartment(name="Campus", team_id=team.id)
+    db_session.add(dept)
+    db_session.flush()
+    item = Item(kind=ItemKind.FEATURE, title="Deptd", position=0, department_id=dept.id)
+    db_session.add(item)
+    db_session.commit()
+    name = write_snapshot(db_session, actor="a@x.local")
+    _wipe(db_session)
+    # Simulate restoring into a DB that no longer has that department (e.g. a
+    # freshly deployed instance with an empty config).
+    db_session.query(TeamDepartment).delete()
+    db_session.commit()
+
+    body = client.post(f"/api/v1/import/snapshots/{name}/restore").json()
+    assert "Cleared department for 1 item(s) whose department no longer exists" in body["warnings"]
+    db_session.expire_all()
+    assert db_session.query(Item).filter_by(title="Deptd").one().department_id is None
+
+
 def test_restore_legacy_snapshot_warns_and_unassigns(client, db_session):
     import json as _json
     import os
