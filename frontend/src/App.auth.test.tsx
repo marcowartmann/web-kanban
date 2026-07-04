@@ -4,6 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import * as client from "./api/client";
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
+import { ThemeProvider } from "./theme/ThemeContext";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -24,9 +25,11 @@ function mockAppData(role: "admin" | "member") {
 it("admins reach Import CSV inside the Admin section", async () => {
   mockAppData("admin");
   render(
-    <AuthProvider>
-      <App />
-    </AuthProvider>,
+    <ThemeProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ThemeProvider>,
   );
   // Import is no longer in the board header; it lives in Admin.
   expect(screen.queryByText(/import csv/i)).not.toBeInTheDocument();
@@ -37,9 +40,11 @@ it("admins reach Import CSV inside the Admin section", async () => {
 it("members see neither the Admin tab nor Import", async () => {
   mockAppData("member");
   render(
-    <AuthProvider>
-      <App />
-    </AuthProvider>,
+    <ThemeProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ThemeProvider>,
   );
   expect(await screen.findByText("U")).toBeInTheDocument(); // user menu rendered
   expect(screen.queryByRole("button", { name: "Admin" })).not.toBeInTheDocument();

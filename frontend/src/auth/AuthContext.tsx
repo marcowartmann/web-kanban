@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(null);
   }, []);
 
-  if (!checked) return <div className="min-h-screen bg-gray-50" />;
+  if (!checked) return <div className="min-h-screen bg-canvas" />;
   if (!user) return <LoginPage onLoggedIn={setUser} />;
   return <AuthContext.Provider value={{ user, setUser }}>{children}</AuthContext.Provider>;
 }

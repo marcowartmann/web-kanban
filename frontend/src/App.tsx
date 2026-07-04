@@ -9,6 +9,7 @@ import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
 import RankingView from "./components/RankingView";
 import TimelineView from "./components/TimelineView";
+import ThemeToggle from "./components/ThemeToggle";
 import UserMenu from "./components/UserMenu";
 import { useAuth } from "./auth/AuthContext";
 import { useBoard } from "./hooks/useBoard";
@@ -113,7 +114,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold text-gray-900">SAFe Kanban</h1>
@@ -127,6 +128,7 @@ export default function App() {
         </div>
         <div className="flex items-center gap-3">
           {view === "board" && <NewItemBar onCreated={handleChanged} />}
+          <ThemeToggle />
           <UserMenu user={user} onLoggedOut={() => setUser(null)} />
         </div>
       </header>
