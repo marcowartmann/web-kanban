@@ -9,6 +9,11 @@ services:
       # postgres:18+ stores data in a version subdir; mount the parent dir
       # (mounting /var/lib/postgresql/data fails on 18+).
       - pgdata:/var/lib/postgresql
+    # Expose Postgres to external clients (psql/DBeaver/pgAdmin). Bound to
+    # 127.0.0.1 by default so only this host can reach it; set DB_BIND=0.0.0.0
+    # in .env to allow LAN access (pair with a strong POSTGRES_PASSWORD).
+    ports:
+      - "${DB_BIND:-127.0.0.1}:${DB_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kanban}"]
       interval: 5s

@@ -22,8 +22,11 @@ Then open **http://localhost:8080** and use the **Import CSV** button to load
 - Backend API (direct): http://localhost:8000/api/health
 - Stop: `docker compose down` (add `-v` to also drop the database volume)
 
-Host ports are overridable in `.env` (`APP_PORT`, `BACKEND_PORT`). The database is not
-published to the host; inspect it with `docker compose exec db psql -U kanban`.
+Host ports are overridable in `.env` (`APP_PORT`, `BACKEND_PORT`). Postgres is published
+for external clients (psql/DBeaver/pgAdmin) at `DB_PORT` (default `5432`), bound to
+`DB_BIND` (default `127.0.0.1` — this host only). Set `DB_BIND=0.0.0.0` to allow LAN
+access, and use a strong `POSTGRES_PASSWORD` if you do. You can still inspect it in-container
+with `docker compose exec db psql -U kanban`.
 
 ## Local development (without Docker for the app)
 
