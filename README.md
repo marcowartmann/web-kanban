@@ -52,6 +52,40 @@ for external clients (psql/DBeaver/pgAdmin) at `DB_PORT` (default `5432`), bound
 access, and use a strong `POSTGRES_PASSWORD` if you do. You can still inspect it in-container
 with `docker compose exec db psql -U kanban`.
 
+## Production deployment (Docker Hub images)
+
+Production runs prebuilt images from Docker Hub (`marcowartmannmw/jamra-frontend`
+and `marcowartmannmw/jamra-backend`) via [`docker-compose.prod.yml`](docker-compose.prod.yml).
+The images are built for `linux/amd64` and pushed from a dev machine, so the
+FontAwesome Pro token never touches the server.
+
+**1. Build & push the images** (from a machine with `frontend/.fa-token` and
+`docker login` as `marcowartmannmw`):
+
+```bash
+scripts/publish.sh            # tags :latest
+scripts/publish.sh v1.0.0     # tags :v1.0.0 and :latest
+```
+
+Builds cross-compile to `linux/amd64` via `docker buildx` (QEMU), so this works
+from an Apple-Silicon Mac.
+
+**2. On the server**, copy the compose file, `.env.prod.example`, and the
+`nginx/` dir, then:
+
+```bash
+cp .env.prod.example .env     # fill in POSTGRES_PASSWORD, APP_SECRET,
+                              # INITIAL_ADMIN_PASSWORD (all required)
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Postgres runs bundled in the compose stack (named `pgdata` volume, not published
+to the host). The backend applies DB migrations automatically on start. Put your
+real TLS `server.crt` / `server.key` in `./nginx/certs`; if absent, a self-signed
+cert is generated so the site still comes up. Set `IMAGE_TAG` in `.env` to deploy
+a specific version; upgrade with `pull` + `up -d` again.
+
 ## Local development (without Docker for the app)
 
 ```bash
