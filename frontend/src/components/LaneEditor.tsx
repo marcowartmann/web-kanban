@@ -44,14 +44,14 @@ function LaneChip({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-1.5 rounded-lg bg-white px-2 py-1 text-sm shadow-xs ring-1 ring-gray-200"
+      className="flex items-center gap-1.5 rounded-lg bg-surface px-2 py-1 text-sm shadow-xs ring-1 ring-gray-200"
     >
       <span {...attributes} {...listeners} className="cursor-grab text-gray-400">⠿</span>
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={() => value.trim() && value !== name && onRename(id, value.trim())}
-        className="w-24 rounded-md border border-transparent px-1.5 py-0.5 text-sm transition hover:border-gray-200 focus:border-blue-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+        className="w-24 rounded-md border border-transparent px-1.5 py-0.5 text-sm transition hover:border-gray-200 focus:border-blue-400 focus:bg-surface focus:outline-hidden focus:ring-2 focus:ring-blue-100"
       />
       <button
         aria-label={`delete lane ${id}`}
@@ -113,7 +113,7 @@ export default function LaneEditor({
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="New lane"
-          className="w-40 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+          className="w-40 rounded-lg border border-gray-300 bg-surface px-3 py-1.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
         />
         <button onClick={onAdd} className={btnPrimary}>
           Add lane

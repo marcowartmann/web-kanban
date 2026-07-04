@@ -40,7 +40,7 @@ export default function AuditLogSection() {
   }, [q, entityType]);
 
   return (
-    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs ring-1 ring-black/5">
+    <section className="rounded-2xl border border-gray-200 bg-surface p-5 shadow-xs ring-1 ring-black/5">
       <header className="mb-4 flex flex-wrap items-center gap-2.5">
         <span
           className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-base text-indigo-600"
@@ -63,7 +63,7 @@ export default function AuditLogSection() {
             aria-label="Entity type"
             value={entityType}
             onChange={(e) => setEntityType(e.target.value)}
-            className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+            className="rounded-lg border border-gray-300 bg-surface px-2 py-1.5 text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
           >
             <option value="">All types</option>
             {ENTITY_TYPES.map((t) => (

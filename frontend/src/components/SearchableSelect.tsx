@@ -61,7 +61,7 @@ export default function SearchableSelect({
             setQuery(e.target.value);
             setOpen(true);
           }}
-          className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-lg border border-gray-300 bg-surface px-2.5 py-1.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
         />
         {value && (
           <button

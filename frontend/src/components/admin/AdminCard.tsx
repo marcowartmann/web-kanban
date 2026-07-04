@@ -6,7 +6,7 @@ import { inputClass } from "../ui";
  *  Intervals / Capacity. App-wide tokens live in components/ui.ts; the admin
  *  variants below are deliberate size/layout departures from those. */
 export const adminCardClass =
-  "rounded-2xl border border-gray-200 bg-white p-5 shadow-xs ring-1 ring-black/5";
+  "rounded-2xl border border-gray-200 bg-surface p-5 shadow-xs ring-1 ring-black/5";
 
 export const adminInputClass = inputClass;
 

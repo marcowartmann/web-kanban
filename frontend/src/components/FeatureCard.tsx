@@ -24,7 +24,7 @@ export default function FeatureCard({
   return (
     <button
       onClick={() => onOpen(feature.id)}
-      className={`w-full rounded-lg border bg-white p-3 text-left shadow-xs transition-opacity hover:shadow-sm ${ring} ${dimmed ? "opacity-30" : ""}`}
+      className={`w-full rounded-lg border bg-surface p-3 text-left shadow-xs transition-opacity hover:shadow-sm ${ring} ${dimmed ? "opacity-30" : ""}`}
     >
       <div className="mb-1 flex items-center gap-1.5">
         <span className="rounded-sm bg-blue-100 px-1.5 py-0.5 text-xs text-blue-800">

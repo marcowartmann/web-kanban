@@ -27,7 +27,7 @@ function avatarColor(name: string): string {
 
 function NameCell({ label, avatar, avatarClass }: { label: string; avatar: string; avatarClass: string }) {
   return (
-    <div className="sticky left-0 z-10 flex w-72 shrink-0 items-center gap-2 bg-white px-3 py-2">
+    <div className="sticky left-0 z-10 flex w-72 shrink-0 items-center gap-2 bg-surface px-3 py-2">
       <span
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ${avatarClass}`}
       >
@@ -41,7 +41,7 @@ function NameCell({ label, avatar, avatarClass }: { label: string; avatar: strin
 export default function CapacityGrid({ rows }: { rows: MemberLoadRow[] }) {
   const totals = loadCapacityTotals(rows);
   return (
-    <div className="mb-4 w-max rounded-xl border border-gray-200 bg-white text-gray-600">
+    <div className="mb-4 w-max rounded-xl border border-gray-200 bg-surface text-gray-600">
       {rows.map((r) => {
         const name = r.person?.display_name ?? "Unassigned";
         const unassigned = r.person === null;
