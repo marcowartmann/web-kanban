@@ -412,3 +412,7 @@ export function setObjectiveFeatures(id: number, feature_ids: number[]): Promise
 export function deletePIObjective(id: number): Promise<void> {
   return request<void>(`${API}/pi-objectives/${id}`, { method: "DELETE" });
 }
+
+export function getObjectiveLinkedFeatures(): Promise<number[]> {
+  return request<number[]>(`${API}/pi-objectives/linked-features`);
+}

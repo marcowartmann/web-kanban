@@ -5,7 +5,16 @@ from sqlalchemy.orm import Session
 from app.audit import log_event
 from app.auth import require_user
 from app.db import get_db
-from app.models import Item, ItemKind, ObjectiveState, PIObjective, PlanningInterval, Team, User
+from app.models import (
+    Item,
+    ItemKind,
+    ObjectiveState,
+    PIObjective,
+    PlanningInterval,
+    Team,
+    User,
+    pi_objective_features,
+)
 from app.pi_objectives import normalize_key_delivery
 from app.schemas import (
     FeatureLinkRequest,
@@ -76,6 +85,12 @@ def list_objectives(
         stmt = stmt.where(Team.name == team)
     stmt = stmt.order_by(PIObjective.state, PIObjective.position, PIObjective.id)
     return [_serialize(o) for o in db.scalars(stmt)]
+
+
+@router.get("/linked-features", response_model=list[int])
+def linked_features(db: Session = Depends(get_db)) -> list[int]:
+    """Distinct feature ids linked to any PI objective (drives card badges)."""
+    return sorted(db.scalars(select(pi_objective_features.c.item_id).distinct()))
 
 
 @router.post("", response_model=PIObjectiveRead, status_code=201)
