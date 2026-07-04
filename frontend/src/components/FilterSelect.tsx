@@ -44,7 +44,7 @@ export default function FilterSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-100 ${
+        className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-xs transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
           active
             ? "border-blue-300 bg-blue-50 text-blue-700"
             : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
@@ -71,7 +71,7 @@ export default function FilterSelect({
       {open && (
         <ul
           role="listbox"
-          className="absolute left-0 z-20 mt-2 max-h-60 min-w-[11rem] overflow-auto rounded-xl border border-gray-200 bg-white p-1 shadow-lg ring-1 ring-black/5"
+          className="absolute left-0 z-20 mt-2 max-h-60 min-w-44 overflow-auto rounded-xl border border-gray-200 bg-white p-1 shadow-lg ring-1 ring-black/5"
         >
           <Option selected={value === undefined} onSelect={() => select(undefined)}>
             <span className="text-gray-400">{allLabel}</span>

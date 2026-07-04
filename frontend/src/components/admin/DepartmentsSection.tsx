@@ -120,7 +120,7 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
                               type="checkbox"
                               checked={dep.member_ids.includes(p.id)}
                               onChange={() => void toggleMember(dep, p.id)}
-                              className="h-4 w-4 rounded border-gray-300"
+                              className="h-4 w-4 rounded-sm border-gray-300"
                             />
                             {p.display_name}
                           </label>

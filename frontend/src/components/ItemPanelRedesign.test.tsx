@@ -28,12 +28,12 @@ function mount(extra: Record<string, unknown> = {}, props: Record<string, unknow
 it("renders wide two-zone layout by default and compact grid when compact", async () => {
   const wide = mount();
   expect(await screen.findByDisplayValue("Panel Feature")).toBeInTheDocument();
-  expect(screen.getByTestId("item-panel").className).toContain("w-[40rem]");
+  expect(screen.getByTestId("item-panel").className).toContain("w-160");
   wide.unmount();
 
   mount({}, { compact: true });
   expect(await screen.findByDisplayValue("Panel Feature")).toBeInTheDocument();
-  expect(screen.getByTestId("item-panel").className).toContain("w-[26rem]");
+  expect(screen.getByTestId("item-panel").className).toContain("w-104");
 });
 
 it("saves description, acceptance criteria and definition of done", async () => {

@@ -31,7 +31,7 @@ it("deletes a lane", async () => {
   expect(del).toHaveBeenCalledWith(11);
 });
 
-it("renames a lane on blur", async () => {
+it("renames a lane on blur-sm", async () => {
   const rename = vi.spyOn(client, "renameLane").mockResolvedValue({ id: 10, name: "Backlog", position: 0 });
   render(<LaneEditor board={board} onChanged={() => {}} />);
   const input = screen.getByDisplayValue("Funnel");

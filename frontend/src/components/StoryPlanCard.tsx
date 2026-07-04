@@ -47,7 +47,7 @@ export default function StoryPlanCard({
         {...listeners}
         {...attributes}
         onClick={() => onOpen(story.id)}
-        className={`w-full rounded-lg border bg-white p-3 text-left shadow-sm hover:shadow ${ring}`}
+        className={`w-full rounded-lg border bg-white p-3 text-left shadow-xs hover:shadow-sm ${ring}`}
       >
         {parentTitle && (
           <div className="mb-1 truncate text-xs text-gray-400">{parentTitle}</div>

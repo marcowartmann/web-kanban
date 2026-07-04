@@ -109,7 +109,7 @@ export default function CapacitySection({
                 onClick={() => setPi(p)}
                 className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
                   p === pi
-                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    ? "border-blue-600 bg-blue-600 text-white shadow-xs"
                     : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                 }`}
               >
@@ -149,7 +149,7 @@ export default function CapacitySection({
                         value={values[key] ?? ""}
                         onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
                         onBlur={(e) => void commit(p.id, slot, e.target.value)}
-                        className="w-16 rounded-lg border border-gray-200 px-2 py-1.5 text-center text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        className="w-16 rounded-lg border border-gray-200 px-2 py-1.5 text-center text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
                       />
                     </td>
                   );
