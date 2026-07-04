@@ -46,7 +46,7 @@ it("members see neither the Admin tab nor Import", async () => {
       </AuthProvider>
     </ThemeProvider>,
   );
-  expect(await screen.findByText("U")).toBeInTheDocument(); // user menu rendered
+  expect(await screen.findByRole("button", { name: "U" })).toBeInTheDocument(); // user menu rendered
   expect(screen.queryByRole("button", { name: "Admin" })).not.toBeInTheDocument();
   expect(screen.queryByText(/import csv/i)).not.toBeInTheDocument();
 });
