@@ -37,3 +37,21 @@ it("creates an objective; Key Delivery is disabled unless committed; features sc
   })));
   await waitFor(() => expect(setFeatures).toHaveBeenCalledWith(9, [7]));
 });
+
+it("filters the linked-feature list by search", async () => {
+  render(
+    <ObjectiveEditor
+      teamId={1}
+      teamName="Network"
+      planningInterval="PI1-Q3"
+      features={[feature(7, { title: "Alpha" }), feature(9, { title: "Beta" })]}
+      onClose={() => {}}
+      onSaved={() => {}}
+    />,
+  );
+  expect(screen.getByLabelText("Alpha")).toBeInTheDocument();
+  expect(screen.getByLabelText("Beta")).toBeInTheDocument();
+  await userEvent.type(screen.getByPlaceholderText(/search features/i), "alph");
+  expect(screen.getByLabelText("Alpha")).toBeInTheDocument();
+  expect(screen.queryByLabelText("Beta")).toBeNull();
+});
