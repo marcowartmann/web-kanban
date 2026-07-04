@@ -67,6 +67,21 @@ def kind_for_type(raw_type: str | None) -> tuple[ItemKind, str | None]:
     return ItemKind.FEATURE, f"Unknown Type '{raw_type}', treated as feature"
 
 
+def classify_risk_scope(kind: ItemKind, kategorie: str | None) -> str | None:
+    """ART/Team classification for a risk, derived from its kategorie text.
+
+    Returns None for non-risks and for risks whose kategorie names neither.
+    """
+    if kind != ItemKind.RISK or not kategorie:
+        return None
+    low = kategorie.lower()
+    if "art risk" in low:
+        return "art"
+    if "team risk" in low:
+        return "team"
+    return None
+
+
 @dataclass
 class ParsedItem:
     kind: ItemKind
