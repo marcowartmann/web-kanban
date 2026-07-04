@@ -472,3 +472,55 @@ class PIObjectiveRead(BaseModel):
 class FeatureLinkRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     feature_ids: list[int]
+
+
+class BackupConfigRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    sftp_host: str | None
+    sftp_port: int
+    sftp_username: str | None
+    remote_dir: str
+    include_db: bool
+    include_snapshots: bool
+    schedule_frequency: str
+    schedule_day_of_week: int
+    schedule_time: str
+    enabled: bool
+    has_password: bool = False
+
+
+class BackupConfigUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    sftp_host: str | None = None
+    sftp_port: int = 22
+    sftp_username: str | None = None
+    password: str | None = None
+    clear_password: bool = False
+    remote_dir: str = "upload"
+    include_db: bool = True
+    include_snapshots: bool = True
+    schedule_frequency: str = "disabled"
+    schedule_day_of_week: int = 0
+    schedule_time: str = "02:00"
+    enabled: bool = False
+
+
+class BackupRunRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    started_at: datetime
+    finished_at: datetime | None
+    trigger: str
+    status: str
+    db_file: str | None
+    snapshots_file: str | None
+    message: str | None
+
+
+class SftpTestRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    sftp_host: str | None = None
+    sftp_port: int | None = None
+    sftp_username: str | None = None
+    password: str | None = None
+    remote_dir: str | None = None

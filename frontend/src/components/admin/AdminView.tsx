@@ -1,9 +1,10 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import { faBox, faBoxArchive, faCalendarDays, faFileImport, faScroll, faUser, faUsers } from "../../icons";
+import { faBox, faBoxArchive, faCalendarDays, faCloudArrowUp, faFileImport, faScroll, faUser, faUsers } from "../../icons";
 import { useAuth } from "../../auth/AuthContext";
 import AuditLogSection from "./AuditLogSection";
+import BackupSection from "./BackupSection";
 import CapacitySection from "./CapacitySection";
 import ContainersSection from "./ContainersSection";
 import DepartmentsSection from "./DepartmentsSection";
@@ -13,7 +14,7 @@ import SnapshotsSection from "./SnapshotsSection";
 import TeamsSection from "./TeamsSection";
 import UsersSection from "./UsersSection";
 
-type AdminSection = "users" | "teams" | "intervals" | "containers" | "import" | "snapshots" | "audit";
+type AdminSection = "users" | "teams" | "intervals" | "containers" | "import" | "snapshots" | "backup" | "audit";
 
 const SECTIONS: { id: AdminSection; label: string; icon: IconDefinition }[] = [
   { id: "users", label: "Users", icon: faUser },
@@ -22,6 +23,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: IconDefinition }[] = [
   { id: "containers", label: "Containers", icon: faBox },
   { id: "import", label: "Import CSV", icon: faFileImport },
   { id: "snapshots", label: "Snapshots", icon: faBoxArchive },
+  { id: "backup", label: "Backup", icon: faCloudArrowUp },
   { id: "audit", label: "Audit Log", icon: faScroll },
 ];
 
@@ -86,6 +88,7 @@ export default function AdminView({
           )}
           {section === "import" && <ImportSection onImported={onChanged} />}
           {section === "snapshots" && <SnapshotsSection onChanged={onChanged} />}
+          {section === "backup" && <BackupSection />}
           {section === "audit" && <AuditLogSection />}
         </div>
       </div>

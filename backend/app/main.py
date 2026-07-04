@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app import scheduler
 from app.auth import ensure_initial_admin, require_user
 from app.config import settings
 from app.db import SessionLocal, get_db
@@ -21,7 +22,11 @@ async def lifespan(app: FastAPI):
             logging.getLogger("uvicorn").info(
                 "auth bootstrap: initial admin is %s", settings.initial_admin_email
             )
-    yield
+    scheduler.start()
+    try:
+        yield
+    finally:
+        scheduler.shutdown()
 
 
 app = FastAPI(title="SAFe Kanban API", lifespan=lifespan)
@@ -37,7 +42,7 @@ app.add_middleware(
 configure_access_logging()
 app.add_middleware(RequestLoggingMiddleware)
 
-from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments, pi_objectives
+from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments, pi_objectives, backup
 
 app.include_router(auth.router)
 for protected in (
@@ -55,6 +60,7 @@ for protected in (
     features_ranking.router,
     departments.router,
     pi_objectives.router,
+    backup.router,
 ):
     app.include_router(protected, dependencies=[Depends(require_user)])
 

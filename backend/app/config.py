@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     session_ttl_days: int = 14
     cookie_secure: bool = False
+    app_secret: str = "dev-insecure-change-me"
     bootstrap_admin: bool = False
     initial_admin_email: str = "admin@example.com"
     initial_admin_password: str = "admin"

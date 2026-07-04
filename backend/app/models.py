@@ -402,3 +402,38 @@ class Comment(Base):
     @property
     def author_name(self) -> str | None:
         return self.author.display_name if self.author else None
+
+
+class BackupConfig(Base):
+    __tablename__ = "backup_config"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)  # singleton row id=1
+    sftp_host: Mapped[str | None] = mapped_column(String(255))
+    sftp_port: Mapped[int] = mapped_column(Integer, default=22)
+    sftp_username: Mapped[str | None] = mapped_column(String(255))
+    sftp_password_enc: Mapped[str | None] = mapped_column(Text)
+    remote_dir: Mapped[str] = mapped_column(String(512), default="upload")
+    include_db: Mapped[bool] = mapped_column(default=True)
+    include_snapshots: Mapped[bool] = mapped_column(default=True)
+    schedule_frequency: Mapped[str] = mapped_column(String(16), default="disabled")
+    schedule_day_of_week: Mapped[int] = mapped_column(Integer, default=0)
+    schedule_time: Mapped[str] = mapped_column(String(5), default="02:00")
+    enabled: Mapped[bool] = mapped_column(default=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now(), onupdate=utcnow
+    )
+
+
+class BackupRun(Base):
+    __tablename__ = "backup_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    trigger: Mapped[str] = mapped_column(String(16))
+    status: Mapped[str] = mapped_column(String(16))
+    db_file: Mapped[str | None] = mapped_column(String(255))
+    snapshots_file: Mapped[str | None] = mapped_column(String(255))
+    message: Mapped[str | None] = mapped_column(Text)

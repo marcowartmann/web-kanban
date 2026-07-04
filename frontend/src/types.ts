@@ -157,6 +157,31 @@ export interface Team {
   name: string;
 }
 
+export interface BackupConfig {
+  sftp_host: string | null;
+  sftp_port: number;
+  sftp_username: string | null;
+  remote_dir: string;
+  include_db: boolean;
+  include_snapshots: boolean;
+  schedule_frequency: "disabled" | "daily" | "weekly";
+  schedule_day_of_week: number;
+  schedule_time: string;
+  enabled: boolean;
+  has_password: boolean;
+}
+
+export interface BackupRun {
+  id: number;
+  started_at: string;
+  finished_at: string | null;
+  trigger: "manual" | "scheduled";
+  status: "success" | "error" | "running";
+  db_file: string | null;
+  snapshots_file: string | null;
+  message: string | null;
+}
+
 export type ObjectiveState = "committed" | "uncommitted" | "out_of_scope";
 
 export interface PIObjective {
