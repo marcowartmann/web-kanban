@@ -49,7 +49,7 @@ export default function AdminView({
               <li key={s.id}>
                 <button
                   onClick={() => setSection(s.id)}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-100 ${
+                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
                     section === s.id
                       ? "bg-blue-50 font-medium text-blue-700"
                       : "text-gray-600 hover:bg-gray-100"

@@ -89,14 +89,14 @@ export default function StoryBoardModal({
 
   return (
     <div
-      className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 p-6 backdrop-blur-xs"
       onClick={onClose}
     >
       <div
         className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-gradient-to-b from-blue-50/90 via-blue-50/40 to-white px-5 py-3.5">
+        <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-linear-to-b from-blue-50/90 via-blue-50/40 to-white px-5 py-3.5">
           <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold text-gray-900">
             <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
               Feature
@@ -115,7 +115,7 @@ export default function StoryBoardModal({
           <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={() => onOpenItem(featureId)}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-xs transition hover:bg-gray-50"
             >
               Edit feature
             </button>
@@ -131,7 +131,7 @@ export default function StoryBoardModal({
             ) : (
               <button
                 onClick={() => setAddingStory(true)}
-                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700"
               >
                 + Add story
               </button>

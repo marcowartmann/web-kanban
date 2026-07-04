@@ -104,8 +104,8 @@ export default function App() {
   const navButton = (target: View, label: string) => (
     <button
       onClick={() => setView(target)}
-      className={`rounded-md px-3 py-1.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-100 ${
-        view === target ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+      className={`rounded-md px-3 py-1.5 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
+        view === target ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-700"
       }`}
     >
       {label}

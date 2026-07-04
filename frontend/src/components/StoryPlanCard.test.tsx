@@ -22,7 +22,7 @@ it("shows dependency count badges", () => {
   expect(screen.getByText(/related 3/i)).toBeInTheDocument();
 });
 
-it("shows a red ring + warning marker with a tooltip for an error conflict", () => {
+it("shows a red ring-3 + warning marker with a tooltip for an error conflict", () => {
   const { container } = renderCard({
     blocks_count: 0, blocked_by_count: 1, related_count: 0, conflictPartners: [], linkPartners: [],
     conflicts: [{ severity: "error", message: "Blocked by \"X\" (#9) scheduled in Iteration 5 (after this)" }],
@@ -32,7 +32,7 @@ it("shows a red ring + warning marker with a tooltip for an error conflict", () 
   expect(container.querySelector(".ring-red-400")).toBeTruthy();
 });
 
-it("uses an amber ring for warnings only", () => {
+it("uses an amber ring-3 for warnings only", () => {
   const { container } = renderCard({
     blocks_count: 0, blocked_by_count: 1, related_count: 0, conflictPartners: [], linkPartners: [],
     conflicts: [{ severity: "warning", message: "Same iteration as blocker \"X\" (#9)" }],
@@ -41,7 +41,7 @@ it("uses an amber ring for warnings only", () => {
   expect(container.querySelector(".ring-red-400")).toBeFalsy();
 });
 
-it("renders no badges or ring without info", () => {
+it("renders no badges or ring-3 without info", () => {
   const { container } = renderCard();
   expect(screen.queryByText(/blocked by/i)).not.toBeInTheDocument();
   expect(container.querySelector(".ring-2")).toBeFalsy();
@@ -109,7 +109,7 @@ it("dims the card when dimmed", () => {
   expect(container.querySelector(".opacity-30")).toBeTruthy();
 });
 
-it("shows a blue ring when selected", () => {
+it("shows a blue ring-3 when selected", () => {
   const { container } = render(
     <DndContext>
       <StoryPlanCard story={story} selected onOpen={() => {}} />

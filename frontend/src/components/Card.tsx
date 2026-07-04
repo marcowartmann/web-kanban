@@ -32,11 +32,11 @@ export default function Card({
         {...listeners}
         {...attributes}
         onClick={() => onOpen(card.id)}
-        className="w-full rounded-lg border border-gray-200 bg-white p-3 text-left shadow-sm hover:shadow"
+        className="w-full rounded-lg border border-gray-200 bg-white p-3 text-left shadow-xs hover:shadow-sm"
       >
         <div className="mb-1 flex items-center justify-between gap-2">
           <span className="flex items-center gap-1.5">
-            <span className={`rounded px-1.5 py-0.5 text-xs ${kindStyles[card.kind] ?? "bg-gray-100 text-gray-800"}`}>
+            <span className={`rounded-sm px-1.5 py-0.5 text-xs ${kindStyles[card.kind] ?? "bg-gray-100 text-gray-800"}`}>
               {card.type ?? card.kind}
             </span>
             <span className="text-xs text-gray-400">#{card.id}</span>
@@ -77,7 +77,7 @@ export default function Card({
             e.stopPropagation();
             onOpenStories(card.id);
           }}
-          className="mt-1 w-full rounded bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+          className="mt-1 w-full rounded-sm bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
         >
           Stories ({card.children_count})
         </button>

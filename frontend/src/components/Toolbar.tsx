@@ -81,7 +81,7 @@ export default function Toolbar({
           placeholder="Search title…"
           value={searchValue}
           onChange={handleSearchChange}
-          className="w-56 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-3 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="w-56 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-3 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-300 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-100"
         />
       </div>
 
@@ -128,9 +128,9 @@ export default function Toolbar({
               type="button"
               aria-pressed={active}
               onClick={() => toggleKind(kind)}
-              className={`rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-100 ${
+              className={`rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
                 active
-                  ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                  ? "border-blue-600 bg-blue-600 text-white shadow-xs"
                   : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >

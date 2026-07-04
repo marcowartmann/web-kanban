@@ -61,13 +61,13 @@ export default function SearchableSelect({
             setQuery(e.target.value);
             setOpen(true);
           }}
-          className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
         />
         {value && (
           <button
             aria-label={ariaLabel ? `Clear ${ariaLabel}` : "Clear"}
             onClick={clear}
-            className="shrink-0 rounded p-0.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+            className="shrink-0 rounded-sm p-0.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
           >
             ✕
           </button>

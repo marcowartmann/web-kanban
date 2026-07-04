@@ -205,7 +205,7 @@ export default function ContainersSection({
                 onClick={() => setPi(p)}
                 className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
                   p === pi
-                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    ? "border-blue-600 bg-blue-600 text-white shadow-xs"
                     : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                 }`}
               >

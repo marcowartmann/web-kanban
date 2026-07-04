@@ -119,7 +119,7 @@ export default function TimelineView({
 
   const pill = (active: boolean) =>
     `rounded-full border px-3 py-1 text-sm font-medium transition ${
-      active ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+      active ? "border-blue-600 bg-blue-600 text-white shadow-xs" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
     }`;
 
   return (
@@ -175,13 +175,13 @@ export default function TimelineView({
                   placeholder="Filter features…"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-8 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-8 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-300 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-100"
                 />
                 {query && (
                   <button
                     aria-label="Clear feature filter"
                     onClick={() => setQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
                   >
                     ✕
                   </button>

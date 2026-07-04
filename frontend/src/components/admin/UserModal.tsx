@@ -175,7 +175,7 @@ export default function UserModal({
                           ids.includes(d.id) ? ids.filter((x) => x !== d.id) : [...ids, d.id],
                         )
                       }
-                      className="h-4 w-4 rounded border-gray-300"
+                      className="h-4 w-4 rounded-sm border-gray-300"
                     />
                     {d.name} <span className="text-xs text-gray-400">· {d.team_name}</span>
                   </label>
@@ -189,7 +189,7 @@ export default function UserModal({
                 type="checkbox"
                 checked={active}
                 onChange={(e) => setActive(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300"
+                className="h-4 w-4 rounded-sm border-gray-300"
               />
               Active
             </label>
@@ -203,7 +203,7 @@ export default function UserModal({
           <button
             onClick={() => void save()}
             disabled={!valid || busy}
-            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
+            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
           >
             Save
           </button>

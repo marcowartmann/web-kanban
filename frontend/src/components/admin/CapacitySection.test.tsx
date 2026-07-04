@@ -5,7 +5,7 @@ import CapacitySection from "./CapacitySection";
 
 afterEach(() => vi.restoreAllMocks());
 
-it("commits a capacity edit on blur", async () => {
+it("commits a capacity edit on blur-sm", async () => {
   vi.spyOn(client, "getPersonOptions").mockResolvedValue([
     { id: 1, display_name: "Marco", team_id: null },
   ]);

@@ -37,9 +37,9 @@ const KIND_CHIP: Record<string, string> = {
 };
 // Soft kind-tinted band fading into the panel body.
 const KIND_BAND: Record<string, string> = {
-  feature: "bg-gradient-to-b from-blue-50/90 via-blue-50/40 to-white",
-  story: "bg-gradient-to-b from-slate-100/90 via-slate-50/40 to-white",
-  risk: "bg-gradient-to-b from-red-50/90 via-red-50/40 to-white",
+  feature: "bg-linear-to-b from-blue-50/90 via-blue-50/40 to-white",
+  story: "bg-linear-to-b from-slate-100/90 via-slate-50/40 to-white",
+  risk: "bg-linear-to-b from-red-50/90 via-red-50/40 to-white",
 };
 
 const withCurrent = (current: string | null, options: string[]): string[] =>
@@ -471,7 +471,7 @@ export default function ItemDrawer({
                 <button
                   aria-label={`remove story ${child.id}`}
                   onClick={() => removeStory(child.id)}
-                  className="shrink-0 rounded p-0.5 text-gray-300 transition hover:bg-white hover:text-red-600 group-hover:text-gray-400"
+                  className="shrink-0 rounded-sm p-0.5 text-gray-300 transition hover:bg-white hover:text-red-600 group-hover:text-gray-400"
                 >
                   ✕
                 </button>
@@ -523,7 +523,7 @@ export default function ItemDrawer({
               <button
                 aria-label={`remove link ${link.link_id}`}
                 onClick={() => removeLink(link.link_id)}
-                className="ml-2 shrink-0 rounded p-0.5 text-gray-300 transition hover:bg-white hover:text-red-600 group-hover:text-gray-400"
+                className="ml-2 shrink-0 rounded-sm p-0.5 text-gray-300 transition hover:bg-white hover:text-red-600 group-hover:text-gray-400"
               >
                 ✕
               </button>
@@ -542,7 +542,7 @@ export default function ItemDrawer({
                     onClick={() => setPickRelation(rel)}
                     className={`rounded-full px-3 py-1 text-xs font-medium transition ${
                       pickRelation?.label === rel.label
-                        ? "bg-blue-600 text-white shadow-sm"
+                        ? "bg-blue-600 text-white shadow-xs"
                         : "bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-100"
                     }`}
                   >
@@ -597,7 +597,7 @@ export default function ItemDrawer({
           <button
             onClick={save}
             disabled={!dirty}
-            className="ml-auto rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-default disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
+            className="ml-auto rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:cursor-default disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
           >
             Save
           </button>
@@ -624,7 +624,7 @@ export default function ItemDrawer({
                 aria-label="copy id"
                 title="Copy id"
                 onClick={() => void navigator.clipboard?.writeText(`#${item.id}`)}
-                className="shrink-0 rounded px-0.5 text-xs text-gray-400 transition hover:text-gray-600"
+                className="shrink-0 rounded-sm px-0.5 text-xs text-gray-400 transition hover:text-gray-600"
               >
                 #{item.id}
               </button>
@@ -664,7 +664,7 @@ export default function ItemDrawer({
               value={(value("title") as string) ?? ""}
               onChange={(v) => set("title", v)}
               placeholder="Title"
-              className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1 py-1 text-lg font-semibold leading-snug text-gray-900 transition hover:bg-white/60 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1 py-1 text-lg font-semibold leading-snug text-gray-900 transition hover:bg-white/60 focus:border-blue-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-100"
             />
           </div>
           {conflict && (
@@ -732,7 +732,7 @@ function NarrativeText({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1.5 py-1 text-sm leading-relaxed text-gray-700 transition placeholder:text-gray-300 hover:bg-gray-50 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+        className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1.5 py-1 text-sm leading-relaxed text-gray-700 transition placeholder:text-gray-300 hover:bg-gray-50 focus:border-blue-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-100"
       />
     </section>
   );
@@ -795,7 +795,7 @@ function TabButton({
       aria-selected={selected}
       onClick={onClick}
       className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
-        selected ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+        selected ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-700"
       }`}
     >
       {children}
@@ -853,7 +853,7 @@ function Drawer({
     <aside
       data-testid="item-panel"
       className={`flex h-full shrink-0 flex-col border-l border-gray-200 bg-white shadow-xl ${
-        compact ? "w-[26rem]" : "w-[40rem]"
+        compact ? "w-104" : "w-160"
       }`}
       onClick={(e) => e.stopPropagation()}
     >
@@ -895,7 +895,7 @@ function ItemPicker({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search…"
-            className="mb-1 w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="mb-1 w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
           />
           <ul className="max-h-48 overflow-auto">
             {filtered.map((it) => (

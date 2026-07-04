@@ -42,7 +42,7 @@ export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser)
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
       <form
         onSubmit={(e) => void submit(e)}
-        className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm ring-1 ring-black/5"
+        className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-xs ring-1 ring-black/5"
       >
         <h1 className="text-lg font-semibold text-gray-900">SAFe Kanban</h1>
         <p className="mb-6 mt-0.5 text-sm text-gray-500">Sign in to your workspace.</p>
@@ -55,7 +55,7 @@ export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser)
                 type="button"
                 onClick={() => setMethod(m)}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                  method === m ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+                  method === m ? "bg-white text-gray-900 shadow-xs" : "text-gray-500"
                 }`}
               >
                 {m === "ldap" ? "LDAP" : "Local"}
@@ -90,7 +90,7 @@ export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser)
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
+          className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
         >
           Sign in
         </button>

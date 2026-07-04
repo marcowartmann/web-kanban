@@ -6,18 +6,18 @@ import { inputClass } from "../ui";
  *  Intervals / Capacity. App-wide tokens live in components/ui.ts; the admin
  *  variants below are deliberate size/layout departures from those. */
 export const adminCardClass =
-  "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ring-1 ring-black/5";
+  "rounded-2xl border border-gray-200 bg-white p-5 shadow-xs ring-1 ring-black/5";
 
 export const adminInputClass = inputClass;
 
 export const adminAddButtonClass =
-  "shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200";
+  "shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200";
 
 export const adminRowClass =
   "group flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2 text-sm text-gray-700 transition hover:border-gray-200 hover:bg-gray-50";
 
 export const adminRemoveButtonClass =
-  "shrink-0 rounded-md p-1 text-sm leading-none text-gray-300 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-100";
+  "shrink-0 rounded-md p-1 text-sm leading-none text-gray-300 transition hover:bg-red-50 hover:text-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-100";
 
 export const adminEmptyClass = "px-3 py-6 text-center text-sm text-gray-400";
 
