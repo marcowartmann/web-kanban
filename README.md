@@ -123,6 +123,36 @@ real TLS `server.crt` / `server.key` in `./nginx/certs`; if absent, a self-signe
 cert is generated so the site still comes up. Set `IMAGE_TAG` in `.env` to deploy
 a specific version; upgrade with `pull` + `up -d` again.
 
+### Migrating a full instance (database dump/restore)
+
+To seed a new deployment as a **complete copy** of an existing instance — all
+users, teams, planning intervals, containers, departments, items, links and
+comments — use a full database dump. (The in-app **snapshot** restore only covers
+items/comments/links, so restoring a snapshot into a fresh DB leaves the config
+tables empty and nulls item references to missing departments/containers/users.)
+
+On the **source** machine (against whichever stack holds the data):
+
+```bash
+scripts/db-dump.sh                       # dev stack -> jamra-db-<timestamp>.sql.gz
+# or an explicit target/stack:
+scripts/db-dump.sh dump.sql.gz docker-compose.prod.yml
+```
+
+Copy the `.sql.gz` to the **target** server, then restore into the prod stack:
+
+```bash
+scripts/db-restore.sh dump.sql.gz docker-compose.prod.yml
+```
+
+The restore stops the backend, loads the dump (a `--clean` dump drops and
+recreates every table), and restarts the backend (its `alembic upgrade head` is a
+no-op when the dump's migration version matches the image). **It replaces all
+data in the target**, including the bootstrap admin — afterwards log in with the
+source instance's credentials (user password hashes transfer; LDAP users still
+authenticate via LDAP). Dumps may contain password hashes and are gitignored
+(`*.sql.gz`) — keep them private.
+
 ## Local development (without Docker for the app)
 
 ```bash

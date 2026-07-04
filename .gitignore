@@ -41,3 +41,6 @@ sftp/uploads/*
 # nginx TLS cert/key (bind-mounted; never commit real or dev keys)
 nginx/certs/*
 !nginx/certs/.gitkeep
+
+# Database dumps (may contain user password hashes — never commit)
+*.sql.gz
