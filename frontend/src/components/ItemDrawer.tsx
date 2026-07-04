@@ -37,9 +37,9 @@ const KIND_CHIP: Record<string, string> = {
 };
 // Soft kind-tinted band fading into the panel body.
 const KIND_BAND: Record<string, string> = {
-  feature: "bg-linear-to-b from-blue-50/90 via-blue-50/40 to-white",
-  story: "bg-linear-to-b from-slate-100/90 via-slate-50/40 to-white",
-  risk: "bg-linear-to-b from-red-50/90 via-red-50/40 to-white",
+  feature: "bg-linear-to-b from-blue-50/90 via-blue-50/40 to-surface",
+  story: "bg-linear-to-b from-slate-100/90 via-slate-50/40 to-surface",
+  risk: "bg-linear-to-b from-red-50/90 via-red-50/40 to-surface",
 };
 
 const withCurrent = (current: string | null, options: string[]): string[] =>
@@ -459,7 +459,7 @@ export default function ItemDrawer({
                   <span className="min-w-0 flex-1 truncate">{child.title}</span>
                 )}
                 {child.status && (
-                  <span className="shrink-0 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-500 ring-1 ring-gray-200">
+                  <span className="shrink-0 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-medium text-gray-500 ring-1 ring-gray-200">
                     {child.status}
                   </span>
                 )}
@@ -471,7 +471,7 @@ export default function ItemDrawer({
                 <button
                   aria-label={`remove story ${child.id}`}
                   onClick={() => removeStory(child.id)}
-                  className="shrink-0 rounded-sm p-0.5 text-gray-300 transition hover:bg-white hover:text-red-600 group-hover:text-gray-400"
+                  className="shrink-0 rounded-sm p-0.5 text-gray-300 transition hover:bg-surface hover:text-red-600 group-hover:text-gray-400"
                 >
                   ✕
                 </button>
@@ -523,7 +523,7 @@ export default function ItemDrawer({
               <button
                 aria-label={`remove link ${link.link_id}`}
                 onClick={() => removeLink(link.link_id)}
-                className="ml-2 shrink-0 rounded-sm p-0.5 text-gray-300 transition hover:bg-white hover:text-red-600 group-hover:text-gray-400"
+                className="ml-2 shrink-0 rounded-sm p-0.5 text-gray-300 transition hover:bg-surface hover:text-red-600 group-hover:text-gray-400"
               >
                 ✕
               </button>
@@ -543,7 +543,7 @@ export default function ItemDrawer({
                     className={`rounded-full px-3 py-1 text-xs font-medium transition ${
                       pickRelation?.label === rel.label
                         ? "bg-blue-600 text-white shadow-xs"
-                        : "bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-100"
+                        : "bg-surface text-gray-600 ring-1 ring-gray-200 hover:bg-gray-100"
                     }`}
                   >
                     {rel.label}
@@ -611,8 +611,8 @@ export default function ItemDrawer({
       }
     >
       {/* Sticky header: kind-tinted band, chips row, breadcrumb (stories), title, conflict. */}
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white">
-        <div className={KIND_BAND[item.kind] ?? "bg-white"}>
+      <div className="sticky top-0 z-10 border-b border-gray-200 bg-surface">
+        <div className={KIND_BAND[item.kind] ?? "bg-surface"}>
           <div className="flex items-center justify-between gap-2 px-5 pt-3">
             <span className="flex min-w-0 items-center gap-2">
               <span
@@ -637,7 +637,7 @@ export default function ItemDrawer({
             <button
               onClick={onClose}
               aria-label="Close"
-              className="-mr-1 shrink-0 rounded-lg p-1 text-gray-400 transition hover:bg-white/70 hover:text-gray-700"
+              className="-mr-1 shrink-0 rounded-lg p-1 text-gray-400 transition hover:bg-surface/70 hover:text-gray-700"
             >
               ✕
             </button>
@@ -664,7 +664,7 @@ export default function ItemDrawer({
               value={(value("title") as string) ?? ""}
               onChange={(v) => set("title", v)}
               placeholder="Title"
-              className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1 py-1 text-lg font-semibold leading-snug text-gray-900 transition hover:bg-white/60 focus:border-blue-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+              className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1 py-1 text-lg font-semibold leading-snug text-gray-900 transition hover:bg-surface/60 focus:border-blue-400 focus:bg-surface focus:outline-hidden focus:ring-2 focus:ring-blue-100"
             />
           </div>
           {conflict && (
@@ -732,7 +732,7 @@ function NarrativeText({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1.5 py-1 text-sm leading-relaxed text-gray-700 transition placeholder:text-gray-300 hover:bg-gray-50 focus:border-blue-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+        className="w-full resize-none rounded-lg border border-transparent bg-transparent px-1.5 py-1 text-sm leading-relaxed text-gray-700 transition placeholder:text-gray-300 hover:bg-gray-50 focus:border-blue-400 focus:bg-surface focus:outline-hidden focus:ring-2 focus:ring-blue-100"
       />
     </section>
   );
@@ -795,7 +795,7 @@ function TabButton({
       aria-selected={selected}
       onClick={onClick}
       className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
-        selected ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-700"
+        selected ? "bg-surface text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-700"
       }`}
     >
       {children}
@@ -852,13 +852,13 @@ function Drawer({
   return (
     <aside
       data-testid="item-panel"
-      className={`flex h-full shrink-0 flex-col border-l border-gray-200 bg-white shadow-xl ${
+      className={`flex h-full shrink-0 flex-col border-l border-gray-200 bg-surface shadow-xl ${
         compact ? "w-104" : "w-160"
       }`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex-1 overflow-y-auto">{children}</div>
-      {footer && <div className="shrink-0 border-t border-gray-200 bg-white px-5 py-3">{footer}</div>}
+      {footer && <div className="shrink-0 border-t border-gray-200 bg-surface px-5 py-3">{footer}</div>}
     </aside>
   );
 }
@@ -884,12 +884,12 @@ function ItemPicker({
         aria-label="choose item"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+        className="w-full rounded-lg border border-gray-200 bg-surface px-2.5 py-1.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
       >
         Choose item…
       </button>
       {open && !disabled && (
-        <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
+        <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-surface p-1 shadow-lg">
           <input
             autoFocus
             value={query}

@@ -93,17 +93,17 @@ export default function StoryBoardModal({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
+        className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl ring-1 ring-black/5"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-linear-to-b from-blue-50/90 via-blue-50/40 to-white px-5 py-3.5">
+        <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-linear-to-b from-blue-50/90 via-blue-50/40 to-surface px-5 py-3.5">
           <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold text-gray-900">
             <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
               Feature
             </span>
             {feature && <span className="shrink-0 text-xs text-gray-400">#{feature.id}</span>}
             <span className="truncate">{feature ? feature.title : "Loading…"}</span>
-            <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-gray-200">
+            <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-gray-200">
               {feature?.children?.length ?? 0} stories
             </span>
             {feature?.wsjf_score != null && (
@@ -115,7 +115,7 @@ export default function StoryBoardModal({
           <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={() => onOpenItem(featureId)}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-xs transition hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 shadow-xs transition hover:bg-gray-50"
             >
               Edit feature
             </button>
@@ -139,7 +139,7 @@ export default function StoryBoardModal({
             <button
               onClick={onClose}
               aria-label="Close"
-              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-white/70 hover:text-gray-700"
+              className="rounded-lg p-1.5 text-gray-400 transition hover:bg-surface/70 hover:text-gray-700"
             >
               ✕
             </button>

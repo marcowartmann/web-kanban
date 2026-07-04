@@ -32,7 +32,7 @@ export default function Card({
         {...listeners}
         {...attributes}
         onClick={() => onOpen(card.id)}
-        className="w-full rounded-lg border border-gray-200 bg-white p-3 text-left shadow-xs hover:shadow-sm"
+        className="w-full rounded-lg border border-gray-200 bg-surface p-3 text-left shadow-xs hover:shadow-sm"
       >
         <div className="mb-1 flex items-center justify-between gap-2">
           <span className="flex items-center gap-1.5">

@@ -42,7 +42,7 @@ export default function WsjfToggle({
               className={`flex-1 rounded-md border py-1.5 text-xs font-semibold transition ${
                 active
                   ? `${ACTIVE_CLASS[i]} shadow-xs`
-                  : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  : "border-gray-200 bg-surface text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
               {v}

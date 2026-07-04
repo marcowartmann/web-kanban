@@ -42,7 +42,7 @@ export default function PlanningColumn({
             <span
               title="Load / Capacity"
               className={`rounded-full px-2 py-0.5 font-medium ${
-                over ? "bg-red-100 text-red-700" : "bg-white text-gray-600"
+                over ? "bg-red-100 text-red-700" : "bg-surface text-gray-600"
               }`}
             >
               {load} / {capacity} SP
