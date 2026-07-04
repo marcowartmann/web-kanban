@@ -59,7 +59,8 @@ it("scopes the stories to the selected team", async () => {
     <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
   );
   expect(await screen.findByText("Plat Story")).toBeInTheDocument();
-  await userEvent.click(screen.getByRole("button", { name: "Network" }));
+  await userEvent.click(screen.getByRole("button", { name: /team/i }));
+  await userEvent.click(screen.getByRole("option", { name: "Network" }));
   expect(screen.getByText("Net Story")).toBeInTheDocument();
   expect(screen.queryByText("Plat Story")).not.toBeInTheDocument();
 });
@@ -151,7 +152,8 @@ it("scopes the capacity grid rows to the selected team's people", async () => {
   expect(screen.getByText("Marco")).toBeInTheDocument();
   expect(screen.getByText("Petra")).toBeInTheDocument();
 
-  await userEvent.click(screen.getByRole("button", { name: "Network" }));
+  await userEvent.click(screen.getByRole("button", { name: /team/i }));
+  await userEvent.click(screen.getByRole("option", { name: "Network" }));
   // Network selected: Petra (Platform) drops out of the rows and the header capacity.
   expect(screen.getByText("Marco")).toBeInTheDocument();
   expect(screen.queryByText("Petra")).not.toBeInTheDocument();

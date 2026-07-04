@@ -7,12 +7,16 @@ export default function FilterSelect({
   options,
   onChange,
   allLabel = "All",
+  allowAll = true,
 }: {
   label: string;
   value: string | undefined;
   options: string[];
   onChange: (value: string | undefined) => void;
   allLabel?: string;
+  // When false, omit the "All" entry — the control is a required selector
+  // (e.g. Planning Interval) and always shows a concrete value.
+  allowAll?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -35,7 +39,7 @@ export default function FilterSelect({
     setOpen(false);
   };
 
-  const active = value !== undefined;
+  const active = allowAll && value !== undefined;
 
   return (
     <div ref={ref} className="relative">
@@ -73,9 +77,11 @@ export default function FilterSelect({
           role="listbox"
           className="absolute left-0 z-20 mt-2 max-h-60 min-w-44 overflow-auto rounded-xl border border-gray-200 bg-surface p-1 shadow-lg ring-1 ring-black/5"
         >
-          <Option selected={value === undefined} onSelect={() => select(undefined)}>
-            <span className="text-gray-400">{allLabel}</span>
-          </Option>
+          {allowAll && (
+            <Option selected={value === undefined} onSelect={() => select(undefined)}>
+              <span className="text-gray-400">{allLabel}</span>
+            </Option>
+          )}
           {options.map((o) => (
             <Option key={o} selected={value === o} onSelect={() => select(o)}>
               {o}

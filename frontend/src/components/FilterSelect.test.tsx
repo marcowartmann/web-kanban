@@ -28,3 +28,20 @@ it("emits the chosen option, and undefined when All is picked", async () => {
   await userEvent.click(screen.getByRole("option", { name: "All" }));
   expect(onChange).toHaveBeenLastCalledWith(undefined);
 });
+
+it("as a required selector (allowAll=false) offers no 'All' option", async () => {
+  render(
+    <FilterSelect
+      label="Planning Interval"
+      value="PI1-Q3"
+      options={["PI1-Q3", "PI2-Q4"]}
+      onChange={() => {}}
+      allowAll={false}
+    />,
+  );
+  const trigger = screen.getByRole("button", { name: /planning interval/i });
+  expect(trigger).toHaveTextContent("PI1-Q3");
+  await userEvent.click(trigger);
+  expect(screen.queryByRole("option", { name: "All" })).toBeNull();
+  expect(screen.getByRole("option", { name: "PI2-Q4" })).toBeInTheDocument();
+});
