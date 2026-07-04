@@ -37,7 +37,13 @@ export default function ObjectiveEditor({
   const [state, setState] = useState<ObjectiveState>(existing?.state ?? "uncommitted");
   const [keyDelivery, setKeyDelivery] = useState(existing?.is_key_delivery ?? false);
   const [featureIds, setFeatureIds] = useState<number[]>(existing?.feature_ids ?? []);
+  const [featureQuery, setFeatureQuery] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const q = featureQuery.trim().toLowerCase();
+  const visibleFeatures = q
+    ? scoped.filter((f) => f.title.toLowerCase().includes(q) || String(f.id).includes(q))
+    : scoped;
 
   const toggleFeature = (id: number) =>
     setFeatureIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
@@ -110,12 +116,26 @@ export default function ObjectiveEditor({
           </label>
         </div>
         <div className="mb-4">
-          <span className="mb-1 block text-xs font-medium text-gray-500">Linked features</span>
+          <span className="mb-1 block text-xs font-medium text-gray-500">
+            Linked features {featureIds.length > 0 && <span className="text-gray-400">({featureIds.length} selected)</span>}
+          </span>
+          {scoped.length > 0 && (
+            <input
+              aria-label="Search features"
+              placeholder="Search features…"
+              value={featureQuery}
+              onChange={(e) => setFeatureQuery(e.target.value)}
+              className={`mb-2 w-full ${inputClass}`}
+            />
+          )}
           <div className="max-h-40 overflow-auto rounded-lg border border-gray-200 p-2">
             {scoped.length === 0 && (
               <p className="text-xs text-gray-400">No features for this team + PI.</p>
             )}
-            {scoped.map((f) => (
+            {scoped.length > 0 && visibleFeatures.length === 0 && (
+              <p className="text-xs text-gray-400">No features match “{featureQuery}”.</p>
+            )}
+            {visibleFeatures.map((f) => (
               <label key={f.id} className="flex items-center gap-2 py-0.5 text-sm text-gray-700">
                 <input
                   type="checkbox"
