@@ -49,9 +49,14 @@ export default function StoryPlanCard({
         onClick={() => onOpen(story.id)}
         className={`w-full rounded-lg border bg-surface p-3 text-left shadow-xs hover:shadow-sm ${ring}`}
       >
-        {parentTitle && (
-          <div className="mb-1 truncate text-xs text-gray-400">{parentTitle}</div>
-        )}
+        <div className="mb-1 flex items-center gap-1.5 text-xs text-gray-400">
+          <span>#{story.id}</span>
+          {parentTitle && (
+            <span className="truncate">
+              · #{story.parent_id} {parentTitle}
+            </span>
+          )}
+        </div>
         <div className="flex items-start justify-between gap-2">
           <div className="font-medium text-gray-900">{story.title}</div>
           <span className="flex shrink-0 items-center gap-1">

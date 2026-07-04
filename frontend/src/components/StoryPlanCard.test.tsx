@@ -15,6 +15,23 @@ const renderCard = (info?: CardLinkInfo) =>
     </DndContext>,
   );
 
+it("shows the story id like board cards do", () => {
+  renderCard();
+  expect(screen.getByText("#1")).toBeInTheDocument();
+});
+
+it("shows the parent feature id next to the parent title", () => {
+  const child = { ...story, id: 2, parent_id: 5 } as unknown as Item;
+  render(
+    <DndContext>
+      <StoryPlanCard story={child} parentTitle="Fusion Router" onOpen={() => {}} />
+    </DndContext>,
+  );
+  expect(screen.getByText("#2")).toBeInTheDocument();
+  expect(screen.getByText(/#5/)).toBeInTheDocument();
+  expect(screen.getByText(/Fusion Router/)).toBeInTheDocument();
+});
+
 it("shows dependency count badges", () => {
   renderCard({ blocks_count: 1, blocked_by_count: 2, related_count: 3, conflicts: [], conflictPartners: [], linkPartners: [] });
   expect(screen.getByText(/blocked by 2/i)).toBeInTheDocument();
