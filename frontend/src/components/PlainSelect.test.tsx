@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import PlainSelect from "./PlainSelect";
 
-it("is a native select (no search input) and reports the picked value", async () => {
+it("opens a styled option list and reports the picked value", async () => {
   const onChange = vi.fn();
   render(
     <PlainSelect
@@ -14,24 +14,38 @@ it("is a native select (no search input) and reports the picked value", async ()
       placeholder="Select status…"
     />,
   );
-  const sel = screen.getByRole("combobox", { name: "Status" });
-  expect(sel.tagName).toBe("SELECT");
-  await userEvent.selectOptions(sel, "Ready");
+  // Closed: placeholder shown, options not in the DOM.
+  const trigger = screen.getByRole("combobox", { name: "Status" });
+  expect(screen.queryByRole("option")).toBeNull();
+
+  await userEvent.click(trigger);
+  await userEvent.click(screen.getByRole("option", { name: "Ready" }));
   expect(onChange).toHaveBeenCalledWith("Ready");
 });
 
-it("selecting the placeholder clears to null", async () => {
-  const onChange = vi.fn();
+it("marks the current value as selected when open", async () => {
   render(
     <PlainSelect
       ariaLabel="Status"
       value="Ready"
       options={["Funnel", "Ready"]}
-      onChange={onChange}
+      onChange={vi.fn()}
+    />,
+  );
+  await userEvent.click(screen.getByRole("combobox", { name: "Status" }));
+  expect(screen.getByRole("option", { name: "Ready" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("option", { name: "Funnel" })).toHaveAttribute("aria-selected", "false");
+});
+
+it("shows the placeholder when there is no value", () => {
+  render(
+    <PlainSelect
+      ariaLabel="Status"
+      value={null}
+      options={["Funnel"]}
+      onChange={vi.fn()}
       placeholder="Select status…"
     />,
   );
-  const sel = screen.getByRole("combobox", { name: "Status" });
-  await userEvent.selectOptions(sel, "");
-  expect(onChange).toHaveBeenCalledWith(null);
+  expect(screen.getByRole("combobox", { name: "Status" })).toHaveTextContent("Select status…");
 });

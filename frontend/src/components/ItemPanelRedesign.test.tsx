@@ -65,7 +65,8 @@ it("saves supporting team, t-shirt size and stakeholder from the properties rail
   await screen.findByDisplayValue("Panel Feature");
 
   const tshirt = screen.getByRole("combobox", { name: "T-Shirt Size" });
-  await userEvent.selectOptions(tshirt, "XL");
+  await userEvent.click(tshirt);
+  await userEvent.click(screen.getByRole("option", { name: "XL" }));
   await userEvent.type(screen.getByLabelText("Stakeholder"), "CTO office");
   await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
 
