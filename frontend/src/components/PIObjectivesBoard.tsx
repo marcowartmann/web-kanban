@@ -3,6 +3,7 @@ import { getPIObjectives } from "../api/client";
 import type { AuthUser, Item, ObjectiveState, PIObjective, Team } from "../types";
 import FilterSelect from "./FilterSelect";
 import ObjectiveCard from "./ObjectiveCard";
+import ObjectiveEditor from "./ObjectiveEditor";
 
 const COLUMNS: { key: ObjectiveState; label: string }[] = [
   { key: "committed", label: "Committed" },
@@ -26,6 +27,7 @@ export default function PIObjectivesBoard({
   const [pi, setPi] = useState<string>(planningIntervals[0] ?? "");
   const [team, setTeam] = useState<string | null>(null);
   const [objectives, setObjectives] = useState<PIObjective[]>([]);
+  const [editing, setEditing] = useState<PIObjective | "new" | null>(null);
 
   const reload = useCallback(() => {
     if (!pi) return;
@@ -33,6 +35,11 @@ export default function PIObjectivesBoard({
   }, [pi, team]);
 
   useEffect(reload, [reload]);
+
+  const selectedTeam = team ? teams.find((t) => t.name === team) ?? null : null;
+  const canEditTeam = (tid: number | undefined) => user.role === "admin" || (tid != null && user.team_id === tid);
+  const canAdd = selectedTeam != null && canEditTeam(selectedTeam.id);
+  const editorTeam = editing === "new" ? selectedTeam : editing ? { id: editing.team_id, name: editing.team_name } : null;
 
   return (
     <div>
@@ -51,6 +58,16 @@ export default function PIObjectivesBoard({
           onChange={(v) => setTeam(v ?? null)}
           allLabel="All teams"
         />
+        {canAdd ? (
+          <button
+            onClick={() => setEditing("new")}
+            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700"
+          >
+            + New objective
+          </button>
+        ) : (
+          <span className="text-xs text-gray-400">Select your team to add objectives</span>
+        )}
       </div>
       <div className="grid grid-cols-3 gap-4 p-6">
         {COLUMNS.map((col) => {
@@ -62,13 +79,33 @@ export default function PIObjectivesBoard({
               </h2>
               <div className="flex flex-col gap-2">
                 {inColumn.map((o) => (
-                  <ObjectiveCard key={o.id} obj={o} showTeam={team == null} />
+                  <ObjectiveCard
+                    key={o.id}
+                    obj={o}
+                    showTeam={team == null}
+                    onOpen={canEditTeam(o.team_id) ? () => setEditing(o) : undefined}
+                  />
                 ))}
               </div>
             </div>
           );
         })}
       </div>
+
+      {editing && editorTeam && (
+        <ObjectiveEditor
+          existing={editing === "new" ? undefined : editing}
+          teamId={editorTeam.id}
+          teamName={editorTeam.name}
+          planningInterval={pi}
+          features={features}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            reload();
+            onChanged();
+          }}
+        />
+      )}
     </div>
   );
 }
