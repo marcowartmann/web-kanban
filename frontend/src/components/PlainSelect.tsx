@@ -31,7 +31,7 @@ export default function PlainSelect({
     return () => document.removeEventListener("mousedown", onDocMouseDown);
   }, []);
 
-  const commit = (v: string) => {
+  const commit = (v: string | null) => {
     onChange(v);
     setOpen(false);
   };
@@ -68,9 +68,21 @@ export default function PlainSelect({
           role="listbox"
           className={`absolute z-10 mt-1 max-h-48 w-full overflow-auto ${popoverClass}`}
         >
-          {options.length === 0 && (
-            <li className="px-3 py-1.5 text-xs text-gray-400">No options</li>
-          )}
+          <li>
+            <button
+              type="button"
+              role="option"
+              aria-selected={value == null}
+              onClick={() => commit(null)}
+              className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition ${
+                value == null
+                  ? "bg-blue-50 font-medium text-blue-700"
+                  : "text-gray-400 hover:bg-gray-50"
+              }`}
+            >
+              <span className="truncate">{placeholder}</span>
+            </button>
+          </li>
           {options.map((o) => {
             const selected = o === value;
             return (

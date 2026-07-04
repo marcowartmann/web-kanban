@@ -31,8 +31,8 @@ it("assigns a person from the strict dropdown and saves it by id", async () => {
     />,
   );
   await screen.findByDisplayValue("F");
-  fireEvent.focus(screen.getByRole("combobox", { name: "Assignee" }));
-  fireEvent.mouseDown(screen.getByText("Worker"));
+  fireEvent.click(screen.getByRole("combobox", { name: "Assignee" }));
+  fireEvent.click(screen.getByRole("option", { name: "Worker" }));
   fireEvent.click(screen.getByRole("button", { name: /save/i }));
   expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ assignee_id: 7 }));
 });
@@ -50,7 +50,9 @@ it("clears the assignee and saves a null id", async () => {
     />,
   );
   await screen.findByDisplayValue("F");
-  fireEvent.click(screen.getByRole("button", { name: "Clear Assignee" }));
+  // Clear by picking the placeholder entry in the dropdown.
+  fireEvent.click(screen.getByRole("combobox", { name: "Assignee" }));
+  fireEvent.click(screen.getByRole("option", { name: /select person/i }));
   fireEvent.click(screen.getByRole("button", { name: /save/i }));
   expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ assignee_id: null }));
 });
