@@ -42,10 +42,23 @@ export function groupByFeature(items: Item[], pi: string, opts: { showAll: boole
   let lanes = [...laneByKey.values()];
   if (!opts.showAll) lanes = lanes.filter(hasSlotStory);
 
+  // Order by manual ranking, ascending (rank 1 / highest priority first, as on
+  // the Ranking page). Unranked features fall to the bottom; the orphan lane
+  // always sorts last. Ties break on the feature's board position, then title.
+  const rankAscNullsLast = (a: number | null | undefined, b: number | null | undefined): number => {
+    if (a == null && b == null) return 0;
+    if (a == null) return 1;
+    if (b == null) return -1;
+    return a - b;
+  };
   lanes.sort((a, b) => {
     if (!a.feature) return 1;
     if (!b.feature) return -1;
-    return a.feature.position - b.feature.position || a.feature.title.localeCompare(b.feature.title);
+    return (
+      rankAscNullsLast(a.feature.manual_rank, b.feature.manual_rank) ||
+      a.feature.position - b.feature.position ||
+      a.feature.title.localeCompare(b.feature.title)
+    );
   });
   return lanes;
 }
