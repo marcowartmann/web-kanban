@@ -94,6 +94,22 @@ def test_put_features_enforces_team_and_pi(client, db_session):
     assert bad.status_code == 422
 
 
+def test_linked_features_endpoint_returns_distinct_ids(client, db_session):
+    team, _pi = _seed(db_session)
+    f1 = Item(kind=ItemKind.FEATURE, title="F1", leading_team="Network", planning_interval="PI1-Q3")
+    f2 = Item(kind=ItemKind.FEATURE, title="F2", leading_team="Network", planning_interval="PI1-Q3")
+    db_session.add_all([f1, f2])
+    db_session.commit()
+    oid = client.post("/api/v1/pi-objectives", json={
+        "team_id": team.id, "planning_interval": "PI1-Q3", "title": "O", "feature_ids": [f1.id],
+    }).json()["id"]
+    # link f1 only
+    assert client.get("/api/v1/pi-objectives/linked-features").json() == [f1.id]
+    # linking more updates the set
+    client.put(f"/api/v1/pi-objectives/{oid}/features", json={"feature_ids": [f1.id, f2.id]})
+    assert sorted(client.get("/api/v1/pi-objectives/linked-features").json()) == sorted([f1.id, f2.id])
+
+
 def test_delete_objective(client, db_session):
     team, _pi = _seed(db_session)
     oid = client.post("/api/v1/pi-objectives", json={
