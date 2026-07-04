@@ -16,11 +16,24 @@ user_team_departments = Table(
     Column("department_id", Integer, ForeignKey("team_departments.id", ondelete="CASCADE"), primary_key=True),
 )
 
+pi_objective_features = Table(
+    "pi_objective_features",
+    Base.metadata,
+    Column("pi_objective_id", Integer, ForeignKey("pi_objectives.id", ondelete="CASCADE"), primary_key=True),
+    Column("item_id", Integer, ForeignKey("items.id", ondelete="CASCADE"), primary_key=True),
+)
+
 
 class ItemKind(str, enum.Enum):
     FEATURE = "feature"
     STORY = "story"
     RISK = "risk"
+
+
+class ObjectiveState(str, enum.Enum):
+    COMMITTED = "committed"
+    UNCOMMITTED = "uncommitted"
+    OUT_OF_SCOPE = "out_of_scope"
 
 
 class Item(Base):
@@ -246,6 +259,47 @@ class PlanningInterval(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, server_default=func.now()
     )
+
+
+class PIObjective(Base):
+    __tablename__ = "pi_objectives"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    team_id: Mapped[int] = mapped_column(
+        ForeignKey("teams.id", ondelete="CASCADE"), index=True
+    )
+    planning_interval_id: Mapped[int] = mapped_column(
+        ForeignKey("planning_intervals.id", ondelete="CASCADE"), index=True
+    )
+    title: Mapped[str] = mapped_column(String(512))
+    description: Mapped[str | None] = mapped_column(Text)
+    state: Mapped[ObjectiveState] = mapped_column(
+        Enum(ObjectiveState, native_enum=False), index=True, default=ObjectiveState.UNCOMMITTED
+    )
+    is_key_delivery: Mapped[bool] = mapped_column(default=False)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now(), onupdate=utcnow
+    )
+
+    team: Mapped["Team"] = relationship()
+    planning_interval: Mapped["PlanningInterval"] = relationship()
+    features: Mapped[list["Item"]] = relationship(secondary=pi_objective_features)
+
+    @property
+    def team_name(self) -> str:
+        return self.team.name
+
+    @property
+    def planning_interval_name(self) -> str:
+        return self.planning_interval.name
+
+    @property
+    def feature_ids(self) -> list[int]:
+        return sorted(f.id for f in self.features)
 
 
 class User(Base):
