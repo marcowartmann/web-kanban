@@ -40,6 +40,7 @@ class Item(Base):
     description: Mapped[str | None] = mapped_column(Text)
     kategorie: Mapped[str | None] = mapped_column(String(256))
     art: Mapped[str | None] = mapped_column(String(64))
+    risk_scope: Mapped[str | None] = mapped_column(String(16))  # "art" | "team" | NULL (risks only)
     sdi_prio: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str | None] = mapped_column(String(64), index=True)
     tshirt_size: Mapped[str | None] = mapped_column(String(16))
