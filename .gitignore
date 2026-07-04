@@ -28,3 +28,7 @@ dist/
 
 # Local agent definitions (not part of the app)
 .github/agents/
+
+# FontAwesome Pro token (local only — never commit)
+.fa-token
+frontend/.fa-token
