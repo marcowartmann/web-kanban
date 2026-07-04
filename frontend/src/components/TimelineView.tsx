@@ -124,32 +124,35 @@ export default function TimelineView({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-surface px-6 py-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Planning Interval</span>
-        {planningIntervals.map((p) => (
-          <button key={p} onClick={() => setPi(p)} className={pill(p === pi)}>
-            {p}
-          </button>
-        ))}
-        <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Mode</span>
-        <button onClick={() => setMode("feature")} className={pill(mode === "feature")}>By feature</button>
-        <button onClick={() => setMode("deps")} className={pill(mode === "deps")}>Dependencies</button>
-        {mode === "deps" && selected.size > 0 && (
-          <button onClick={() => setSelected(new Set())} className={pill(false)}>Clear ({selected.size})</button>
-        )}
+      <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
+        <FilterSelect
+          label="Planning Interval"
+          value={pi ?? undefined}
+          options={planningIntervals}
+          onChange={(v) => v && setPi(v)}
+          allowAll={false}
+        />
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Mode</span>
+          <button onClick={() => setMode("feature")} className={pill(mode === "feature")}>By feature</button>
+          <button onClick={() => setMode("deps")} className={pill(mode === "deps")}>Dependencies</button>
+          {mode === "deps" && selected.size > 0 && (
+            <button onClick={() => setSelected(new Set())} className={pill(false)}>Clear ({selected.size})</button>
+          )}
+        </div>
         {mode === "feature" && (
           <>
-            <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Lanes</span>
-            <button onClick={() => setShowAll(true)} className={pill(showAll)}>Show all</button>
-            <button onClick={() => setShowAll(false)} className={pill(!showAll)}>Only planned</button>
-            <div className="ml-2">
-              <FilterSelect
-                label="Department"
-                value={department ?? undefined}
-                options={departmentNames}
-                onChange={(v) => setDepartment(v ?? null)}
-              />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Lanes</span>
+              <button onClick={() => setShowAll(true)} className={pill(showAll)}>Show all</button>
+              <button onClick={() => setShowAll(false)} className={pill(!showAll)}>Only planned</button>
             </div>
+            <FilterSelect
+              label="Department"
+              value={department ?? undefined}
+              options={departmentNames}
+              onChange={(v) => setDepartment(v ?? null)}
+            />
           </>
         )}
       </div>

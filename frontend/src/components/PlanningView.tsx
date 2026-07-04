@@ -167,46 +167,35 @@ export default function PlanningView({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-surface px-6 py-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          Planning Interval
-        </span>
-        {planningIntervals.map((p) => (
-          <button key={p} onClick={() => setPi(p)} className={pill(p === pi)}>
-            {p}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
+        <FilterSelect
+          label="Planning Interval"
+          value={pi ?? undefined}
+          options={planningIntervals}
+          onChange={(v) => v && setPi(v)}
+          allowAll={false}
+        />
+        <FilterSelect
+          label="Team"
+          value={teams.find((t) => t.id === teamId)?.name}
+          options={teams.map((t) => t.name)}
+          onChange={(v) => setTeamId(v ? teams.find((t) => t.name === v)?.id ?? null : null)}
+          allLabel="All teams"
+        />
+        <FilterSelect
+          label="Assignee"
+          value={assigneeName ?? undefined}
+          options={assigneeOptions}
+          onChange={(v) => setAssigneeName(v ?? null)}
+        />
+        <FilterSelect
+          label="Department"
+          value={department ?? undefined}
+          options={departmentNames}
+          onChange={(v) => setDepartment(v ?? null)}
+        />
 
-        <span className="ml-4 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          Team
-        </span>
-        <button onClick={() => setTeamId(null)} className={pill(teamId === null)}>
-          All teams
-        </button>
-        {teams.map((t) => (
-          <button key={t.id} onClick={() => setTeamId(t.id)} className={pill(teamId === t.id)}>
-            {t.name}
-          </button>
-        ))}
-
-        <div className="ml-4">
-          <FilterSelect
-            label="Assignee"
-            value={assigneeName ?? undefined}
-            options={assigneeOptions}
-            onChange={(v) => setAssigneeName(v ?? null)}
-          />
-        </div>
-        <div>
-          <FilterSelect
-            label="Department"
-            value={department ?? undefined}
-            options={departmentNames}
-            onChange={(v) => setDepartment(v ?? null)}
-          />
-        </div>
-
-        <button onClick={() => setShowCapacity((v) => !v)} className={`ml-2 ${pill(showCapacity)}`}>
+        <button onClick={() => setShowCapacity((v) => !v)} className={pill(showCapacity)}>
           Capacity
         </button>
       </div>
