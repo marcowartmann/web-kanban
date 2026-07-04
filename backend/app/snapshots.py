@@ -226,6 +226,18 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
         warnings.append(
             f"Cleared container for {cleared_containers} item(s) whose container no longer exists"
         )
+    from app.models import TeamDepartment
+
+    existing_department_ids = set(db.scalars(select(TeamDepartment.id)))
+    cleared_departments = 0
+    for row in item_rows:
+        if row.get("department_id") is not None and row["department_id"] not in existing_department_ids:
+            row["department_id"] = None
+            cleared_departments += 1
+    if cleared_departments:
+        warnings.append(
+            f"Cleared department for {cleared_departments} item(s) whose department no longer exists"
+        )
     if item_rows:
         db.execute(insert(Item.__table__), [{**r, "parent_id": None} for r in item_rows])
         for row in item_rows:
