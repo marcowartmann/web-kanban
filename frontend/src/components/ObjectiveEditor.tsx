@@ -41,9 +41,11 @@ export default function ObjectiveEditor({
   const [saving, setSaving] = useState(false);
 
   const q = featureQuery.trim().toLowerCase();
-  const visibleFeatures = q
-    ? scoped.filter((f) => f.title.toLowerCase().includes(q) || String(f.id).includes(q))
-    : scoped;
+  const selectedFeatures = scoped.filter((f) => featureIds.includes(f.id));
+  const unselected = scoped.filter((f) => !featureIds.includes(f.id));
+  const visibleUnselected = q
+    ? unselected.filter((f) => f.title.toLowerCase().includes(q) || String(f.id).includes(q))
+    : unselected;
 
   const toggleFeature = (id: number) =>
     setFeatureIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
@@ -132,20 +134,35 @@ export default function ObjectiveEditor({
             {scoped.length === 0 && (
               <p className="text-xs text-gray-400">No features for this team + PI.</p>
             )}
-            {scoped.length > 0 && visibleFeatures.length === 0 && (
-              <p className="text-xs text-gray-400">No features match “{featureQuery}”.</p>
-            )}
-            {visibleFeatures.map((f) => (
+            {/* Selected features pinned on top, always visible regardless of search. */}
+            {selectedFeatures.map((f) => (
               <label key={f.id} className="flex items-center gap-2 py-0.5 text-sm text-gray-700">
                 <input
                   type="checkbox"
                   aria-label={f.title}
-                  checked={featureIds.includes(f.id)}
+                  checked
                   onChange={() => toggleFeature(f.id)}
                 />
                 <span className="text-xs text-gray-400">#{f.id}</span> {f.title}
               </label>
             ))}
+            {selectedFeatures.length > 0 && visibleUnselected.length > 0 && (
+              <div className="my-1 border-t border-gray-100" />
+            )}
+            {visibleUnselected.map((f) => (
+              <label key={f.id} className="flex items-center gap-2 py-0.5 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  aria-label={f.title}
+                  checked={false}
+                  onChange={() => toggleFeature(f.id)}
+                />
+                <span className="text-xs text-gray-400">#{f.id}</span> {f.title}
+              </label>
+            ))}
+            {scoped.length > 0 && selectedFeatures.length === 0 && visibleUnselected.length === 0 && (
+              <p className="text-xs text-gray-400">No features match “{featureQuery}”.</p>
+            )}
           </div>
         </div>
         <div className="flex justify-between">
