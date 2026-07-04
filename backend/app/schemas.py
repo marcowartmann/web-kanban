@@ -12,6 +12,7 @@ class ItemBase(BaseModel):
     type: str | None = None
     kategorie: str | None = None
     art: str | None = None
+    risk_scope: str | None = None
     sdi_prio: str | None = None
     status: str | None = None
     tshirt_size: str | None = None

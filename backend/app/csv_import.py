@@ -143,6 +143,7 @@ def parse_items(rows: list[dict[str, str]]) -> ParsedImport:
         if type_warning:
             result.warnings.append(f"Row {index + 2}: {type_warning}")
         data = _row_to_data(row)
+        data["risk_scope"] = classify_risk_scope(kind, data.get("kategorie"))
 
         if kind == ItemKind.FEATURE:
             item = ParsedItem(kind=kind, data=data)
