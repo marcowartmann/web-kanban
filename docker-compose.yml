@@ -77,6 +77,8 @@ services:
     command: ["${SFTP_USER:-kanban}:${SFTP_PASSWORD:-kanban}:::upload"]
     volumes:
       - sftp_data:/home/${SFTP_USER:-kanban}/upload
+      # runs as root at boot to make the mounted upload volume writable
+      - ./sftp/chown-upload.sh:/etc/sftp.d/chown-upload.sh:ro
     ports:
       - "127.0.0.1:${SFTP_PORT:-2222}:22"
 
