@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api/client";
@@ -65,8 +65,7 @@ it("saves supporting team, t-shirt size and stakeholder from the properties rail
   await screen.findByDisplayValue("Panel Feature");
 
   const tshirt = screen.getByRole("combobox", { name: "T-Shirt Size" });
-  fireEvent.focus(tshirt);
-  fireEvent.mouseDown(screen.getByText("XL"));
+  await userEvent.selectOptions(tshirt, "XL");
   await userEvent.type(screen.getByLabelText("Stakeholder"), "CTO office");
   await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
 

@@ -17,6 +17,7 @@ import Field from "./Field";
 import InlineAddInput from "./InlineAddInput";
 import ItemActivity from "./ItemActivity";
 import ItemComments from "./ItemComments";
+import PlainSelect from "./PlainSelect";
 import SearchableSelect from "./SearchableSelect";
 import WsjfToggle from "./WsjfToggle";
 
@@ -224,7 +225,7 @@ export default function ItemDrawer({
   const properties = (
     <>
       <PropLabel text="Status">
-        <SearchableSelect
+        <PlainSelect
           ariaLabel="Status"
           value={(value("status") as string | null) || null}
           options={withCurrent(
@@ -236,7 +237,7 @@ export default function ItemDrawer({
         />
       </PropLabel>
       <PropLabel text="Planning Interval">
-        <SearchableSelect
+        <PlainSelect
           ariaLabel="Planning Interval"
           value={(value("planning_interval") as string | null) || null}
           options={withCurrent(
@@ -248,7 +249,7 @@ export default function ItemDrawer({
         />
       </PropLabel>
       <PropLabel text="Leading Team">
-        <SearchableSelect
+        <PlainSelect
           ariaLabel="Leading Team"
           value={(value("leading_team") as string | null) || null}
           options={withCurrent((value("leading_team") as string | null) || null, leadingTeamOptions)}
@@ -275,7 +276,7 @@ export default function ItemDrawer({
           );
           const currentId = value("container_id") as number | null;
           return (
-            <SearchableSelect
+            <PlainSelect
               ariaLabel="Container"
               value={scoped.find((c) => c.id === currentId)?.name ?? null}
               options={scoped.map((c) => c.name)}
@@ -300,7 +301,7 @@ export default function ItemDrawer({
             const scoped = departments.filter((d) => d.team_name === teamName);
             const currentId = value("department_id") as number | null;
             return (
-              <SearchableSelect
+              <PlainSelect
                 ariaLabel="Department"
                 value={scoped.find((d) => d.id === currentId)?.name ?? null}
                 options={scoped.map((d) => d.name)}
@@ -317,7 +318,7 @@ export default function ItemDrawer({
         </PropLabel>
       )}
       <PropLabel text="Supporting Team">
-        <SearchableSelect
+        <PlainSelect
           ariaLabel="Supporting Team"
           value={(value("supporting_team") as string | null) || null}
           options={withCurrent(
@@ -349,7 +350,7 @@ export default function ItemDrawer({
         </div>
       </PropLabel>
       <PropLabel text="T-Shirt Size">
-        <SearchableSelect
+        <PlainSelect
           ariaLabel="T-Shirt Size"
           value={(value("tshirt_size") as string | null) || null}
           options={withCurrent((value("tshirt_size") as string | null) || null, TSHIRT_SIZES)}

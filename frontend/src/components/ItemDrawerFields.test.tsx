@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "../api/client";
 import ItemDrawer from "./ItemDrawer";
@@ -30,8 +31,7 @@ it("Status is a dropdown of the item-kind's board lanes and saves the pick", asy
     />,
   );
   const status = await screen.findByRole("combobox", { name: "Status" });
-  fireEvent.focus(status);
-  fireEvent.mouseDown(screen.getByText("Ready"));
+  await userEvent.selectOptions(status, "Ready");
   fireEvent.click(screen.getByRole("button", { name: /save/i }));
   expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ status: "Ready" }));
 });
@@ -53,11 +53,10 @@ it("Container options are scoped to the item's PI + leading team and save contai
     />,
   );
   const container = await screen.findByRole("combobox", { name: "Container" });
-  fireEvent.focus(container);
   // Only the (PI1-Q3, Network) container is offered.
   expect(screen.queryByText("Old Operations")).toBeNull();
   expect(screen.queryByText("Cloud Ops")).toBeNull();
-  fireEvent.mouseDown(screen.getByText("Operations"));
+  await userEvent.selectOptions(container, "Operations");
   fireEvent.click(screen.getByRole("button", { name: /save/i }));
   expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ container_id: 1 }));
 });
@@ -95,9 +94,8 @@ it("Department options are scoped to the item's leading team and save department
     />,
   );
   const dep = await screen.findByRole("combobox", { name: "Department" });
-  fireEvent.focus(dep);
   expect(screen.queryByText("Cloud-FE")).toBeNull(); // other team's dept not offered
-  fireEvent.mouseDown(screen.getByText("FE"));
+  await userEvent.selectOptions(dep, "FE");
   fireEvent.click(screen.getByRole("button", { name: /save/i }));
   expect(update).toHaveBeenCalledWith(5, expect.objectContaining({ department_id: 3 }));
 });
@@ -128,5 +126,5 @@ it("keeps an off-list current planning interval selectable", async () => {
     />,
   );
   const pi = await screen.findByRole("combobox", { name: "Planning Interval" });
-  expect((pi as HTMLInputElement).value).toBe("LEGACY-PI");
+  expect((pi as HTMLSelectElement).value).toBe("LEGACY-PI");
 });
