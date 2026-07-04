@@ -1,4 +1,4 @@
-# SAFe Kanban Backend
+# JAMra Backend
 
 ## Setup
 ```bash

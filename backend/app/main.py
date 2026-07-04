@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
         scheduler.shutdown()
 
 
-app = FastAPI(title="SAFe Kanban API", lifespan=lifespan)
+app = FastAPI(title="JAMra API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
