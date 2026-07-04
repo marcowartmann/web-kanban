@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
+import { faChevronRight, faXmark } from "../icons";
 import {
   ConflictError,
   createItem,
@@ -482,7 +484,7 @@ export default function ItemDrawer({
                   onClick={() => removeStory(child.id)}
                   className="shrink-0 rounded-sm p-0.5 text-gray-300 transition hover:bg-surface hover:text-red-600 group-hover:text-gray-400"
                 >
-                  ✕
+                  <FontAwesomeIcon icon={faXmark} aria-hidden />
                 </button>
               </li>
             ))}
@@ -534,7 +536,7 @@ export default function ItemDrawer({
                 onClick={() => removeLink(link.link_id)}
                 className="ml-2 shrink-0 rounded-sm p-0.5 text-gray-300 transition hover:bg-surface hover:text-red-600 group-hover:text-gray-400"
               >
-                ✕
+                <FontAwesomeIcon icon={faXmark} aria-hidden />
               </button>
             </li>
           ))}
@@ -648,7 +650,7 @@ export default function ItemDrawer({
               aria-label="Close"
               className="-mr-1 shrink-0 rounded-lg p-1 text-gray-400 transition hover:bg-surface/70 hover:text-gray-700"
             >
-              ✕
+              <FontAwesomeIcon icon={faXmark} aria-hidden />
             </button>
           </div>
           {showParentLink && (
@@ -659,8 +661,8 @@ export default function ItemDrawer({
               <span className="shrink-0 font-semibold uppercase tracking-wide text-gray-400">
                 Parent feature
               </span>
-              <span aria-hidden className="text-gray-300">
-                ❯
+              <span aria-hidden className="text-xs text-gray-300">
+                <FontAwesomeIcon icon={faChevronRight} />
               </span>
               <span className="truncate font-medium text-blue-600 group-hover:underline">
                 {parent ? parent.title : `#${item.parent_id}`}
@@ -840,7 +842,7 @@ function CloseBar({ onClose }: { onClose: () => void }) {
         aria-label="Close"
         className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
       >
-        ✕
+        <FontAwesomeIcon icon={faXmark} aria-hidden />
       </button>
     </div>
   );

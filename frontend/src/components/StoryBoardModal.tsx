@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "../icons";
 import {
   DndContext,
   PointerSensor,
@@ -141,7 +143,7 @@ export default function StoryBoardModal({
               aria-label="Close"
               className="rounded-lg p-1.5 text-gray-400 transition hover:bg-surface/70 hover:text-gray-700"
             >
-              ✕
+              <FontAwesomeIcon icon={faXmark} aria-hidden />
             </button>
           </div>
         </div>

@@ -1,5 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { API, createSnapshot, deleteSnapshot, listSnapshots, restoreSnapshot, uploadSnapshot } from "../../api/client";
+import { faBoxArchive } from "../../icons";
 import type { SnapshotInfo } from "../../types";
 import ConfirmDialog from "../ConfirmDialog";
 import { btnPrimary, btnSecondary } from "../ui";
@@ -89,7 +91,7 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
   return (
     <AdminCard
       title="Import snapshots"
-      icon="🗂️"
+      icon={<FontAwesomeIcon icon={faBoxArchive} />}
       accent="bg-emerald-50 text-emerald-600"
       count={snapshots.length}
     >

@@ -1,5 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { ConflictError, createTeam, deleteTeam, getTeams, renameTeam } from "../../api/client";
+import { faPen, faUsers, faXmark } from "../../icons";
 import type { Team } from "../../types";
 import ConfirmDialog from "../ConfirmDialog";
 import AdminCard, {
@@ -81,7 +83,7 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
   };
 
   return (
-    <AdminCard title="Teams" icon="👥" accent="bg-blue-50 text-blue-600" count={teams.length}>
+    <AdminCard title="Teams" icon={<FontAwesomeIcon icon={faUsers} />} accent="bg-blue-50 text-blue-600" count={teams.length}>
       <div className="mb-4 flex gap-2">
         <input
           value={name}
@@ -129,14 +131,14 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
                     onClick={() => startRename(t)}
                     className="rounded-md px-1.5 py-1 text-xs text-gray-300 transition hover:bg-blue-50 hover:text-blue-600 group-hover:text-gray-400"
                   >
-                    ✎
+                    <FontAwesomeIcon icon={faPen} aria-hidden />
                   </button>
                   <button
                     aria-label={`remove team ${t.id}`}
                     onClick={() => remove(t.id)}
                     className={adminRemoveButtonClass}
                   >
-                    ✕
+                    <FontAwesomeIcon icon={faXmark} aria-hidden />
                   </button>
                 </span>
               </>

@@ -1,5 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { getCapacities, getPersonOptions, getTeams, upsertCapacity } from "../../api/client";
+import { faChartColumn } from "../../icons";
 import { ITERATION_SLOTS, iterationLabel } from "../../lib/iterations";
 import type { Capacity, PersonOption, Team } from "../../types";
 import FilterSelect from "../FilterSelect";
@@ -66,7 +68,7 @@ export default function CapacitySection({
       className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-base text-amber-600"
       aria-hidden
     >
-      📊
+      <FontAwesomeIcon icon={faChartColumn} />
     </span>
   );
 

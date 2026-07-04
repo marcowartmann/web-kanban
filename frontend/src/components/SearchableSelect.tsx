@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
+import { faCheck, faXmark } from "../icons";
 import { popoverClass } from "./ui";
 
 export default function SearchableSelect({
@@ -67,9 +69,9 @@ export default function SearchableSelect({
           <button
             aria-label={ariaLabel ? `Clear ${ariaLabel}` : "Clear"}
             onClick={clear}
-            className="shrink-0 rounded-sm p-0.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+            className="shrink-0 rounded-sm p-0.5 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
           >
-            ✕
+            <FontAwesomeIcon icon={faXmark} />
           </button>
         )}
       </div>
@@ -92,20 +94,7 @@ export default function SearchableSelect({
                   }`}
                 >
                   <span className="truncate">{o}</span>
-                  {selected && (
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                      className="h-4 w-4 shrink-0"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.7 5.3a1 1 0 010 1.4l-7.2 7.2a1 1 0 01-1.42 0l-3.3-3.3a1 1 0 011.42-1.42l2.59 2.6 6.49-6.49a1 1 0 011.42 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
+                  {selected && <FontAwesomeIcon icon={faCheck} className="shrink-0 text-xs" />}
                 </button>
               </li>
             );

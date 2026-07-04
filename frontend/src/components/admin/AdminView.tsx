@@ -1,4 +1,7 @@
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
+import { faBox, faBoxArchive, faCalendarDays, faFileImport, faScroll, faUser, faUsers } from "../../icons";
 import { useAuth } from "../../auth/AuthContext";
 import AuditLogSection from "./AuditLogSection";
 import CapacitySection from "./CapacitySection";
@@ -12,14 +15,14 @@ import UsersSection from "./UsersSection";
 
 type AdminSection = "users" | "teams" | "intervals" | "containers" | "import" | "snapshots" | "audit";
 
-const SECTIONS: { id: AdminSection; label: string; icon: string }[] = [
-  { id: "users", label: "Users", icon: "👤" },
-  { id: "teams", label: "Teams & Capacity", icon: "👥" },
-  { id: "intervals", label: "Planning Intervals", icon: "🗓️" },
-  { id: "containers", label: "Containers", icon: "📦" },
-  { id: "import", label: "Import CSV", icon: "📥" },
-  { id: "snapshots", label: "Snapshots", icon: "🗂️" },
-  { id: "audit", label: "Audit Log", icon: "📜" },
+const SECTIONS: { id: AdminSection; label: string; icon: IconDefinition }[] = [
+  { id: "users", label: "Users", icon: faUser },
+  { id: "teams", label: "Teams & Capacity", icon: faUsers },
+  { id: "intervals", label: "Planning Intervals", icon: faCalendarDays },
+  { id: "containers", label: "Containers", icon: faBox },
+  { id: "import", label: "Import CSV", icon: faFileImport },
+  { id: "snapshots", label: "Snapshots", icon: faBoxArchive },
+  { id: "audit", label: "Audit Log", icon: faScroll },
 ];
 
 export default function AdminView({
@@ -55,7 +58,7 @@ export default function AdminView({
                       : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
-                  <span aria-hidden>{s.icon}</span>
+                  <FontAwesomeIcon icon={s.icon} fixedWidth aria-hidden className="text-gray-400" />
                   {s.label}
                 </button>
               </li>

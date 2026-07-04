@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
+import { faBox, faPen, faXmark } from "../../icons";
 import {
   ConflictError,
   createContainer,
@@ -47,7 +49,7 @@ export default function ContainersSection({
       className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-base text-violet-600"
       aria-hidden
     >
-      📦
+      <FontAwesomeIcon icon={faBox} />
     </span>
   );
 
@@ -165,14 +167,14 @@ export default function ContainersSection({
               onClick={() => startRename(c)}
               className="rounded-md px-1.5 py-1 text-xs text-gray-300 transition hover:bg-blue-50 hover:text-blue-600 group-hover:text-gray-400"
             >
-              ✎
+              <FontAwesomeIcon icon={faPen} aria-hidden />
             </button>
             <button
               aria-label={`remove container ${c.id}`}
               onClick={() => remove(c.id)}
               className={adminRemoveButtonClass}
             >
-              ✕
+              <FontAwesomeIcon icon={faXmark} aria-hidden />
             </button>
           </span>
         </>

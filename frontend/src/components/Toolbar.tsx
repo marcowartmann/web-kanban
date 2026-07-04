@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
+import { faMagnifyingGlass, faXmark } from "../icons";
 import type { ItemKind } from "../types";
 import FilterSelect from "./FilterSelect";
 
@@ -66,17 +68,10 @@ export default function Toolbar({
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
       <div className="relative">
-        <svg
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden="true"
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-        >
-          <circle cx="9" cy="9" r="6" />
-          <path strokeLinecap="round" d="M14.5 14.5L18 18" />
-        </svg>
+        <FontAwesomeIcon
+          icon={faMagnifyingGlass}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"
+        />
         <input
           placeholder="Search title…"
           value={searchValue}
@@ -146,9 +141,7 @@ export default function Toolbar({
           onClick={() => onChange({})}
           className="ml-auto inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
         >
-          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
-            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-          </svg>
+          <FontAwesomeIcon icon={faXmark} className="text-xs" />
           Clear all
         </button>
       )}

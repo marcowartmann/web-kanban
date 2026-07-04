@@ -1,4 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from "../icons";
 import type { PIObjective } from "../types";
 
 export default function ObjectiveCard({
@@ -33,7 +35,7 @@ export default function ObjectiveCard({
         {showTeam ? <span className="text-xs text-gray-400">{obj.team_name}</span> : <span />}
         {obj.state === "committed" && obj.is_key_delivery && (
           <span className="rounded-sm bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
-            ★ Key Delivery
+            <FontAwesomeIcon icon={faStar} aria-hidden /> Key Delivery
           </span>
         )}
       </div>

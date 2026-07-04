@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
+import { faChevronDown, faCheck } from "../icons";
 import { popoverClass } from "./ui";
 
 /** A plain dropdown with the same value/options/onChange contract as
@@ -50,18 +52,7 @@ export default function PlainSelect({
         }`}
       >
         <span className="truncate">{value ?? placeholder}</span>
-        <svg
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-          className="h-4 w-4 shrink-0 text-gray-400"
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <FontAwesomeIcon icon={faChevronDown} className="shrink-0 text-xs text-gray-400" />
       </button>
       {open && (
         <ul
@@ -99,20 +90,7 @@ export default function PlainSelect({
                   }`}
                 >
                   <span className="truncate">{o}</span>
-                  {selected && (
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                      className="h-4 w-4 shrink-0"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.7 5.3a1 1 0 010 1.4l-7.2 7.2a1 1 0 01-1.42 0l-3.3-3.3a1 1 0 011.42-1.42l2.59 2.6 6.49-6.49a1 1 0 011.42 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
+                  {selected && <FontAwesomeIcon icon={faCheck} className="shrink-0 text-xs" />}
                 </button>
               </li>
             );

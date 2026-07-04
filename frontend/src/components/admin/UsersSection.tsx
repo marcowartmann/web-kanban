@@ -1,5 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { ConflictError, deleteUser, getDepartments, getTeams, listUsers } from "../../api/client";
+import { faUser } from "../../icons";
 import type { AuthUser, Department, Team } from "../../types";
 import ConfirmDialog from "../ConfirmDialog";
 import UserModal from "./UserModal";
@@ -62,7 +64,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
           className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-base text-rose-600"
           aria-hidden
         >
-          👤
+          <FontAwesomeIcon icon={faUser} />
         </span>
         <h2 className="text-sm font-semibold text-gray-900">Users</h2>
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">

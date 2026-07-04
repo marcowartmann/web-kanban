@@ -1,5 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
 import { changeMyPassword, logout } from "../api/client";
+import { faArrowRightFromBracket, faChevronDown, faLock } from "../icons";
 import type { AuthUser } from "../types";
 import Avatar from "./Avatar";
 import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass, popoverClass } from "./ui";
@@ -67,18 +69,10 @@ export default function UserMenu({
             admin
           </span>
         )}
-        <svg
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-          className={`h-4 w-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <FontAwesomeIcon
+          icon={faChevronDown}
+          className={`text-xs text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       {open && (
@@ -95,13 +89,7 @@ export default function UserMenu({
             }}
             className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
           >
-            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4 text-gray-400">
-              <path
-                fillRule="evenodd"
-                d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <FontAwesomeIcon icon={faLock} className="w-4 text-xs text-gray-400" />
             Change password
           </button>
           <button
@@ -112,13 +100,7 @@ export default function UserMenu({
             }}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm text-red-600 transition hover:bg-red-50"
           >
-            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
-              <path
-                fillRule="evenodd"
-                d="M3 4a1 1 0 011-1h6a1 1 0 110 2H5v10h5a1 1 0 110 2H4a1 1 0 01-1-1V4zm10.293 2.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L14.586 11H8a1 1 0 110-2h6.586l-1.293-1.293a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <FontAwesomeIcon icon={faArrowRightFromBracket} className="w-4 text-xs" />
             Log out
           </button>
         </div>

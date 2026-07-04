@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCaretDown, faCaretUp, faCircleInfo, faGripVertical, faLock } from "../icons";
 import {
   SortableContext,
   useSortable,
@@ -24,13 +26,7 @@ function InfoButton({ onOpen }: { onOpen: () => void }) {
       }}
       className="shrink-0 rounded-md p-1 text-gray-300 transition hover:bg-blue-50 hover:text-blue-600"
     >
-      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
-        <path
-          fillRule="evenodd"
-          d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zM9 9a1 1 0 012 0v4a1 1 0 11-2 0V9zm1-4a1 1 0 100 2 1 1 0 000-2z"
-          clipRule="evenodd"
-        />
-      </svg>
+      <FontAwesomeIcon icon={faCircleInfo} className="text-sm" />
     </button>
   );
 }
@@ -39,14 +35,20 @@ function DeltaBadge({ delta }: { delta: number }) {
   const direction = delta > 0 ? "up" : delta < 0 ? "down" : "none";
   const cls =
     delta > 0 ? "text-green-600" : delta < 0 ? "text-red-600" : "text-gray-300";
-  const glyph = delta > 0 ? "▲" : delta < 0 ? "▼" : "–";
   return (
     <span
       data-testid="delta"
       data-direction={direction}
-      className={`w-10 text-right text-xs font-semibold tabular-nums ${cls}`}
+      className={`flex w-10 items-center justify-end gap-0.5 text-xs font-semibold tabular-nums ${cls}`}
     >
-      {delta === 0 ? glyph : `${glyph}${Math.abs(delta)}`}
+      {delta === 0 ? (
+        "–"
+      ) : (
+        <>
+          <FontAwesomeIcon icon={delta > 0 ? faCaretUp : faCaretDown} aria-hidden />
+          {Math.abs(delta)}
+        </>
+      )}
     </span>
   );
 }
@@ -90,7 +92,9 @@ function ManualRow({
       {...(canMove ? { ...attributes, ...listeners } : {})}
     >
       <span className="w-6 text-right tabular-nums text-gray-400">{index + 1}</span>
-      <span className="w-4">{canMove ? "⠿" : "🔒"}</span>
+      <span className="w-4 text-xs text-gray-400">
+        <FontAwesomeIcon icon={canMove ? faGripVertical : faLock} aria-hidden />
+      </span>
       <span className="tabular-nums text-xs text-gray-400">#{feature.id}</span>
       <span data-testid="rank-title" className="flex-1 truncate text-gray-900">
         {feature.title}
