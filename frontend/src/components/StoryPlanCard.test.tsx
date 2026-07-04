@@ -20,7 +20,7 @@ it("shows the story id like board cards do", () => {
   expect(screen.getByText("#1")).toBeInTheDocument();
 });
 
-it("shows the parent feature id next to the parent title", () => {
+it("shows only its own id, with the parent title carrying no id", () => {
   const child = { ...story, id: 2, parent_id: 5 } as unknown as Item;
   render(
     <DndContext>
@@ -28,8 +28,8 @@ it("shows the parent feature id next to the parent title", () => {
     </DndContext>,
   );
   expect(screen.getByText("#2")).toBeInTheDocument();
-  expect(screen.getByText(/#5/)).toBeInTheDocument();
   expect(screen.getByText(/Fusion Router/)).toBeInTheDocument();
+  expect(screen.queryByText(/#5/)).not.toBeInTheDocument();
 });
 
 it("shows dependency count badges", () => {

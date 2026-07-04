@@ -51,11 +51,7 @@ export default function StoryPlanCard({
       >
         <div className="mb-1 flex items-center gap-1.5 text-xs text-gray-400">
           <span>#{story.id}</span>
-          {parentTitle && (
-            <span className="truncate">
-              · #{story.parent_id} {parentTitle}
-            </span>
-          )}
+          {parentTitle && <span className="truncate">· {parentTitle}</span>}
         </div>
         <div className="flex items-start justify-between gap-2">
           <div className="font-medium text-gray-900">{story.title}</div>
