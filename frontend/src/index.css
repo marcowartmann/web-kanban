@@ -1,1 +1,30 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+/* Enables `dark:` utilities for the few accent tweaks that need them. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Semantic surface tokens. Light values equal the pre-dark-theme colors,
+   so light mode is unchanged. */
+@theme {
+  --color-canvas: #f9fafb; /* was bg-gray-50 (page)   */
+  --color-surface: #ffffff; /* was bg-white (cards)    */
+}
+
+/* Dark theme: override surface tokens + invert Tailwind's gray ramp.
+   `:root[data-theme="dark"]` outranks `:root`, so these win when active.
+   `--color-white` is deliberately NOT overridden (text-white stays white). */
+:root[data-theme="dark"] {
+  --color-canvas: #0b0f16;
+  --color-surface: #1c2534;
+
+  --color-gray-50: #10161f;
+  --color-gray-100: #161e29;
+  --color-gray-200: #263041; /* borders   */
+  --color-gray-300: #364155;
+  --color-gray-400: #7d8ba3; /* most-used muted text */
+  --color-gray-500: #97a3b8;
+  --color-gray-600: #b6c1d2;
+  --color-gray-700: #ccd5e2; /* secondary text */
+  --color-gray-800: #e3e8ef;
+  --color-gray-900: #f2f5f9; /* primary text   */
+}
