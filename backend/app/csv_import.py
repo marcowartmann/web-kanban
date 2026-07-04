@@ -67,6 +67,21 @@ def kind_for_type(raw_type: str | None) -> tuple[ItemKind, str | None]:
     return ItemKind.FEATURE, f"Unknown Type '{raw_type}', treated as feature"
 
 
+def classify_risk_scope(kind: ItemKind, kategorie: str | None) -> str | None:
+    """ART/Team classification for a risk, derived from its kategorie text.
+
+    Returns None for non-risks and for risks whose kategorie names neither.
+    """
+    if kind != ItemKind.RISK or not kategorie:
+        return None
+    low = kategorie.lower()
+    if "art risk" in low:
+        return "art"
+    if "team risk" in low:
+        return "team"
+    return None
+
+
 @dataclass
 class ParsedItem:
     kind: ItemKind
@@ -128,6 +143,7 @@ def parse_items(rows: list[dict[str, str]]) -> ParsedImport:
         if type_warning:
             result.warnings.append(f"Row {index + 2}: {type_warning}")
         data = _row_to_data(row)
+        data["risk_scope"] = classify_risk_scope(kind, data.get("kategorie"))
 
         if kind == ItemKind.FEATURE:
             item = ParsedItem(kind=kind, data=data)

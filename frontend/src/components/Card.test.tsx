@@ -98,3 +98,25 @@ it("shows a related badge when related_count > 0", () => {
   render(<DndContext><Card card={c} onOpen={() => {}} /></DndContext>);
   expect(screen.getByText(/related 2/i)).toBeInTheDocument();
 });
+
+it("labels an ART risk", () => {
+  renderCard({
+    card: card({ id: 3, kind: "risk", type: "Risk", risk_scope: "art" }),
+    onOpen: vi.fn(),
+  });
+  expect(screen.getByText("ART")).toBeInTheDocument();
+});
+
+it("labels a team risk", () => {
+  renderCard({
+    card: card({ id: 4, kind: "risk", type: "Risk", risk_scope: "team" }),
+    onOpen: vi.fn(),
+  });
+  expect(screen.getByText("Team")).toBeInTheDocument();
+});
+
+it("shows no ART/Team pill for a feature", () => {
+  renderCard({ card: card({ risk_scope: null }), onOpen: vi.fn() });
+  expect(screen.queryByText("ART")).not.toBeInTheDocument();
+  expect(screen.queryByText("Team")).not.toBeInTheDocument();
+});

@@ -12,6 +12,7 @@ export interface Item {
   description: string | null;
   kategorie: string | null;
   art: string | null;
+  risk_scope?: "art" | "team" | null;
   sdi_prio: string | null;
   status: string | null;
   tshirt_size: string | null;
