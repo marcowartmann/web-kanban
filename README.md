@@ -71,16 +71,21 @@ Builds cross-compile to `linux/amd64` via `docker buildx` (QEMU), so this works
 from an Apple-Silicon Mac.
 
 **2. On the server**, copy the compose file, `.env.prod.example`, and the
-`nginx/` dir into one directory, then create `.env` **in that same directory**
-(Compose auto-loads `.env` from the current working directory):
+`nginx/` dir into one directory, then create `.env` **next to
+`docker-compose.prod.yml`**. Compose auto-loads `.env` from the compose file's
+directory (its "project directory") — *not* from your current working
+directory — so if `.env` lives elsewhere you get
+`POSTGRES_PASSWORD is missing a value` even though it is set. Keep them together,
+or pass `--env-file /path/to/.env` explicitly on every command.
 
 ```bash
+cd <dir with docker-compose.prod.yml>
 cp .env.prod.example .env
 ```
 
 Edit `.env` and set real, **non-empty** values for the three required secrets —
 the stack refuses to start until they are set (`POSTGRES_PASSWORD is missing a
-value` means one is still blank):
+value` means one is still blank *or the wrong `.env` is being read*):
 
 ```bash
 POSTGRES_PASSWORD=$(openssl rand -hex 24)
