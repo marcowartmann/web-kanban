@@ -27,6 +27,14 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
   };
   useEffect(reload, []);
 
+  // The last active local admin is the break-glass account if LDAP is down —
+  // the backend refuses to delete it; mirror that in the UI.
+  const localAdmins = users.filter(
+    (u) => u.role === "admin" && u.auth_provider === "local" && u.is_active,
+  );
+  const isLastLocalAdmin = (u: AuthUser) =>
+    localAdmins.length === 1 && localAdmins[0].id === u.id;
+
   const remove = async (u: AuthUser) => {
     setError(null);
     try {
@@ -37,7 +45,8 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
         if (e.detail.includes("deactivate instead")) setError(e.detail);
         else setForceDelete({ user: u, detail: e.detail });
       } else {
-        setError(e instanceof Error ? e.message : "Could not delete the user.");
+        const m = e instanceof Error ? /"detail"\s*:\s*"([^"]+)"/.exec(e.message) : null;
+        setError(m?.[1] ?? (e instanceof Error ? e.message : "Could not delete the user."));
       }
       return;
     }
@@ -135,7 +144,9 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
                       <button
                         aria-label={`delete user ${u.display_name}`}
                         onClick={() => void remove(u)}
-                        className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50"
+                        disabled={isLastLocalAdmin(u)}
+                        title={isLastLocalAdmin(u) ? "Protected: the last local admin cannot be deleted" : undefined}
+                        className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
                       >
                         Delete
                       </button>

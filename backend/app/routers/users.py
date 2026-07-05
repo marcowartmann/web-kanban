@@ -18,6 +18,24 @@ from app.schemas import (
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
 
+def _is_last_local_admin(db: Session, user: User) -> bool:
+    """True if `user` is the only remaining active, local admin — the break-glass
+    account that must survive so an LDAP outage can't lock everyone out of admin."""
+    if not (user.role == "admin" and user.auth_provider == "local" and user.is_active):
+        return False
+    others = db.scalar(
+        select(func.count())
+        .select_from(User)
+        .where(
+            User.id != user.id,
+            User.role == "admin",
+            User.auth_provider == "local",
+            User.is_active.is_(True),
+        )
+    )
+    return (others or 0) == 0
+
+
 def _get_or_404(db: Session, user_id: int) -> User:
     user = db.get(User, user_id)
     if user is None:
@@ -96,6 +114,13 @@ def update_user(
         changes.get("role") == "member" or changes.get("is_active") is False
     ):
         raise HTTPException(status_code=422, detail="Admins cannot demote or deactivate themselves")
+    if _is_last_local_admin(db, user) and (
+        changes.get("role") == "member" or changes.get("is_active") is False
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="Cannot demote or deactivate the last local admin — keep one as a fallback if LDAP is unavailable",
+        )
     audited = {}
     for key in ("email", "username", "display_name", "role", "is_active", "team_id"):
         if key in changes:
@@ -192,6 +217,11 @@ def convert_provider(
         raise HTTPException(status_code=422, detail="Admins cannot convert their own account")
     if user.username is None:
         raise HTTPException(status_code=422, detail="User needs a username before converting")
+    if payload.provider == "ldap" and _is_last_local_admin(db, user):
+        raise HTTPException(
+            status_code=422,
+            detail="Cannot convert the last local admin to LDAP — keep one local admin as a fallback",
+        )
     old_provider = user.auth_provider
     if payload.provider == "ldap":
         user.auth_provider = "ldap"
@@ -251,6 +281,11 @@ def delete_user(
     user = _get_or_404(db, user_id)
     if user.id == current.id:
         raise HTTPException(status_code=422, detail="Admins cannot delete themselves")
+    if _is_last_local_admin(db, user):
+        raise HTTPException(
+            status_code=422,
+            detail="Cannot delete the last local admin — keep one as a fallback if LDAP is unavailable",
+        )
     from app.models import Comment, Item
 
     comments = db.scalar(
