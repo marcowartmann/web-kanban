@@ -424,6 +424,27 @@ class BackupConfig(Base):
     )
 
 
+class LdapConfig(Base):
+    __tablename__ = "ldap_config"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)  # singleton row id=1
+    enabled: Mapped[bool] = mapped_column(default=False)
+    server_uri: Mapped[str] = mapped_column(String(512), default="ldaps://ldap.internal:636")
+    start_tls: Mapped[bool] = mapped_column(default=False)
+    ca_cert: Mapped[str | None] = mapped_column(Text)  # PEM content, optional
+    bind_dn: Mapped[str | None] = mapped_column(String(512))
+    bind_password_enc: Mapped[str | None] = mapped_column(Text)
+    base_dn: Mapped[str] = mapped_column(String(512), default="")
+    user_filter: Mapped[str] = mapped_column(
+        String(512), default="(&(objectClass=inetOrgPerson)(uid={uid}))"
+    )
+    attr_email: Mapped[str] = mapped_column(String(64), default="mail")
+    attr_display_name: Mapped[str] = mapped_column(String(64), default="cn")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now(), onupdate=utcnow
+    )
+
+
 class BackupRun(Base):
     __tablename__ = "backup_runs"
 

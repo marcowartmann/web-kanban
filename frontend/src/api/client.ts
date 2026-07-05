@@ -14,6 +14,7 @@ import type {
   ItemCreate,
   ItemUpdate,
   Lane,
+  LdapConfig,
   LinkRow,
   ObjectiveState,
   PersonOption,
@@ -438,4 +439,23 @@ export function runBackup(): Promise<BackupRun> {
 }
 export function getBackupRuns(): Promise<BackupRun[]> {
   return request<BackupRun[]>(`${API}/backup/runs`);
+}
+
+// --- LDAP authentication config ---
+export function getLdapConfig(): Promise<LdapConfig> {
+  return request<LdapConfig>(`${API}/ldap/config`);
+}
+export function saveLdapConfig(
+  body: Omit<LdapConfig, "has_password"> & { password?: string; clear_password?: boolean },
+): Promise<LdapConfig> {
+  return request<LdapConfig>(`${API}/ldap/config`, { ...json(body), method: "PUT" });
+}
+export function testLdap(
+  body: Partial<Omit<LdapConfig, "has_password">> & {
+    password?: string;
+    test_username?: string;
+    test_password?: string;
+  },
+): Promise<{ ok: boolean; message: string }> {
+  return request<{ ok: boolean; message: string }>(`${API}/ldap/test`, json(body));
 }

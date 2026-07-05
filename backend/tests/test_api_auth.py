@@ -81,12 +81,14 @@ class _FakeAuth:
         return self._identity if password == "good" else None
 
 
-def _use_ldap(identity, monkeypatch):
-    from app.config import settings
+def _use_ldap(identity, db):
     from app.ldap_auth import get_authenticator
+    from app.ldap_settings import get_ldap_config
     from app.main import app
 
-    monkeypatch.setattr(settings, "ldap_enabled", True)
+    cfg = get_ldap_config(db)
+    cfg.enabled = True
+    db.commit()
     app.dependency_overrides[get_authenticator] = lambda: _FakeAuth(identity)
 
 
@@ -100,7 +102,7 @@ def _clear_ldap_override():
 def test_ldap_login_provisions_and_authenticates(anon_client, db_session, monkeypatch):
     from app.ldap_auth import LdapIdentity
 
-    _use_ldap(LdapIdentity(uid="jdoe", email="jdoe@x.ch", display_name="John"), monkeypatch)
+    _use_ldap(LdapIdentity(uid="jdoe", email="jdoe@x.ch", display_name="John"), db_session)
     try:
         resp = anon_client.post(
             "/api/v1/auth/login",
@@ -116,7 +118,7 @@ def test_ldap_login_provisions_and_authenticates(anon_client, db_session, monkey
 def test_ldap_login_bad_password_is_401(anon_client, db_session, monkeypatch):
     from app.ldap_auth import LdapIdentity
 
-    _use_ldap(LdapIdentity(uid="jdoe", email=None, display_name="J"), monkeypatch)
+    _use_ldap(LdapIdentity(uid="jdoe", email=None, display_name="J"), db_session)
     try:
         resp = anon_client.post(
             "/api/v1/auth/login",

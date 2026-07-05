@@ -11,6 +11,7 @@ from app import scheduler
 from app.auth import ensure_initial_admin, require_user
 from app.config import settings
 from app.db import SessionLocal, get_db
+from app.ldap_settings import ensure_ldap_config
 from app.request_logging import RequestLoggingMiddleware, configure_access_logging
 
 
@@ -22,6 +23,9 @@ async def lifespan(app: FastAPI):
             logging.getLogger("uvicorn").info(
                 "auth bootstrap: initial admin is %s", settings.initial_admin_email
             )
+            # Seed the singleton LDAP config from env on first boot (idempotent;
+            # also seeded lazily on first access via get_ldap_config).
+            ensure_ldap_config(db)
     scheduler.start()
     try:
         yield
@@ -42,7 +46,7 @@ app.add_middleware(
 configure_access_logging()
 app.add_middleware(RequestLoggingMiddleware)
 
-from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments, pi_objectives, backup
+from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments, pi_objectives, backup, ldap_config
 
 app.include_router(auth.router)
 for protected in (
@@ -61,6 +65,7 @@ for protected in (
     departments.router,
     pi_objectives.router,
     backup.router,
+    ldap_config.router,
 ):
     app.include_router(protected, dependencies=[Depends(require_user)])
 
