@@ -104,21 +104,23 @@ export default function BoardView({
         </div>
       )}
       {canEditLanes && editing && <LaneEditor board={board} onChanged={onChanged} />}
-      <DndContext
-        sensors={sensors}
-        onDragEnd={(event) => void handleCardDragEnd(event, items, onChanged)}
-      >
-        <div className="flex min-h-0 flex-1 gap-4 overflow-auto p-6">
-          {columns.map((column) => (
-            <Column
-              key={column.status}
-              column={column}
-              onOpenCard={onOpenCard}
-              onOpenStories={onOpenStories}
-            />
-          ))}
-        </div>
-      </DndContext>
+      <div className="min-h-0 flex-1 overflow-auto p-6">
+        <DndContext
+          sensors={sensors}
+          onDragEnd={(event) => void handleCardDragEnd(event, items, onChanged)}
+        >
+          <div className="flex w-max gap-4">
+            {columns.map((column) => (
+              <Column
+                key={column.status}
+                column={column}
+                onOpenCard={onOpenCard}
+                onOpenStories={onOpenStories}
+              />
+            ))}
+          </div>
+        </DndContext>
+      </div>
     </div>
   );
 }
