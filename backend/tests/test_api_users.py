@@ -78,6 +78,41 @@ def test_convert_to_local_requires_password_then_sets_it(anon_client, db_session
     assert db_session.get(User, ldap_user.id).password_hash is not None
 
 
+def test_cannot_delete_last_local_admin(anon_client, db_session):
+    keeper = _seed(db_session, "keeper@x.ch", role="admin", username="keeper")
+    admin = _seed(db_session, "admin@x.ch", role="admin", username="adm")
+    _as(admin)  # act as a different admin so the self-delete guard isn't what fires
+    # Two local admins exist -> deleting one is allowed.
+    assert anon_client.delete(f"/api/v1/users/{keeper.id}").status_code == 204
+    # Now `admin` is the last local admin -> a third admin cannot delete it.
+    other = _seed(db_session, "other@x.ch", role="admin", username="oth")
+    _as(other)
+    # `other` is also a local admin, so admin isn't actually last — make other LDAP.
+    other.auth_provider = "ldap"
+    other.password_hash = None
+    db_session.commit()
+    _as(other)
+    resp = anon_client.delete(f"/api/v1/users/{admin.id}")
+    assert resp.status_code == 422
+    assert "last local admin" in resp.json()["detail"]
+
+
+def test_cannot_demote_deactivate_or_ldap_convert_last_local_admin(anon_client, db_session):
+    last = _seed(db_session, "last@x.ch", role="admin", username="last")
+    actor = _seed(db_session, "actor@x.ch", role="admin", username="actor")
+    actor.auth_provider = "ldap"  # actor is LDAP, so `last` is the only local admin
+    actor.password_hash = None
+    db_session.commit()
+    _as(actor)
+    assert anon_client.patch(f"/api/v1/users/{last.id}", json={"role": "member"}).status_code == 422
+    assert anon_client.patch(f"/api/v1/users/{last.id}", json={"is_active": False}).status_code == 422
+    conv = anon_client.post(f"/api/v1/users/{last.id}/convert-provider", json={"provider": "ldap"})
+    assert conv.status_code == 422
+    assert "last local admin" in conv.json()["detail"]
+    # A harmless edit (display name) on the same user still works.
+    assert anon_client.patch(f"/api/v1/users/{last.id}", json={"display_name": "Renamed"}).status_code == 200
+
+
 def test_convert_self_is_blocked(anon_client, db_session):
     admin = _seed(db_session, "admin@x.ch", role="admin", username="adm")
     _as(admin)
