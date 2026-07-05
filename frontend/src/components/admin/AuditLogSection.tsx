@@ -60,7 +60,7 @@ export default function AuditLogSection() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Filter by actor, entity, or event…"
-            className="w-64 rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+            className="w-64 rounded-lg border border-gray-300 bg-surface px-3 py-1.5 text-sm text-gray-900 transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
           />
           <div className="w-44">
             <PlainSelect
