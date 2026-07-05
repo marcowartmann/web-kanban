@@ -63,3 +63,11 @@ def test_unknown_uid_returns_none():
 
 def test_multiple_matches_return_none():
     assert _auth().authenticate("dupe", "pw") is None
+
+
+def test_real_connection_disables_referral_chasing():
+    # Active Directory returns referrals on searches; chasing them breaks auth.
+    # The production connection factory must disable auto_referrals.
+    s = Settings(ldap_enabled=True, ldap_server_uri="ldaps://dc.corp.example.com:636")
+    conn = LdapAuthenticator(s)._real_connection("svc@corp.example.com", "pw")
+    assert conn.auto_referrals is False
