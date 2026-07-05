@@ -52,30 +52,37 @@ it("opens the edit modal prefilled, and the add modal", async () => {
   expect(screen.getByText("Add user")).toBeInTheDocument();
 });
 
-it("guarded delete: confirms in a dialog and forces when the server reports an assignment conflict", async () => {
+it("delete asks for confirmation first, then deletes on confirm", async () => {
   mockData();
-  const del = vi
-    .spyOn(client, "deleteUser")
-    .mockRejectedValueOnce(new client.ConflictError("User 'Ben' is assigned to 2 items"))
-    .mockResolvedValueOnce(undefined as never);
+  const del = vi.spyOn(client, "deleteUser").mockResolvedValue(undefined as never);
 
   render(<UsersSection currentUserId={1} />);
   await userEvent.click(await screen.findByRole("button", { name: /delete user ben/i }));
   const dialog = await screen.findByRole("alertdialog", { name: "Delete user?" });
-  expect(dialog).toHaveTextContent("User 'Ben' is assigned to 2 items");
-  await userEvent.click(within(dialog).getByRole("button", { name: "Delete anyway" }));
-  await waitFor(() => expect(del).toHaveBeenNthCalledWith(2, 2, true));
-  expect(del).toHaveBeenNthCalledWith(1, 2);
+  expect(del).not.toHaveBeenCalled(); // nothing happens until confirmed
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+  await waitFor(() => expect(del).toHaveBeenCalledWith(2));
 });
 
-it("delete blocked by comments shows the detail line and never offers force", async () => {
+it("cancelling the confirm dialog does not delete", async () => {
+  mockData();
+  const del = vi.spyOn(client, "deleteUser").mockResolvedValue(undefined as never);
+  render(<UsersSection currentUserId={1} />);
+  await userEvent.click(await screen.findByRole("button", { name: /delete user ben/i }));
+  const dialog = await screen.findByRole("alertdialog", { name: "Delete user?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: /cancel/i }));
+  expect(del).not.toHaveBeenCalled();
+});
+
+it("a user linked to items is blocked: the server detail is shown after confirming", async () => {
   mockData();
   vi.spyOn(client, "deleteUser").mockRejectedValue(
-    new client.ConflictError("User 'Ben' has 4 comments — deactivate instead"),
+    new client.ConflictError("User 'Ben' is linked to 2 item(s) — reassign or deactivate instead"),
   );
 
   render(<UsersSection currentUserId={1} />);
   await userEvent.click(await screen.findByRole("button", { name: /delete user ben/i }));
-  expect(await screen.findByText("User 'Ben' has 4 comments — deactivate instead")).toBeInTheDocument();
-  expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  const dialog = await screen.findByRole("alertdialog", { name: "Delete user?" });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+  expect(await screen.findByText(/linked to 2 item\(s\)/i)).toBeInTheDocument();
 });

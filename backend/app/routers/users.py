@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.audit import log_event
@@ -274,7 +274,6 @@ def set_user_departments(
 @router.delete("/{user_id}", status_code=204)
 def delete_user(
     user_id: int,
-    force: bool = False,
     db: Session = Depends(get_db),
     current: User = Depends(require_admin),
 ) -> None:
@@ -294,22 +293,17 @@ def delete_user(
     if comments:
         raise HTTPException(
             status_code=409,
-            detail=f"User '{user.display_name}' has {comments} comments — deactivate instead",
+            detail=f"User '{user.display_name}' has {comments} comment(s) — reassign or deactivate instead",
         )
-    if not force:
-        assigned = db.scalar(
-            select(func.count()).select_from(Item).where(Item.assignee_id == user.id)
+    # A user linked to items is protected from deletion — reassign or deactivate.
+    assigned = db.scalar(
+        select(func.count()).select_from(Item).where(Item.assignee_id == user.id)
+    )
+    if assigned:
+        raise HTTPException(
+            status_code=409,
+            detail=f"User '{user.display_name}' is linked to {assigned} item(s) — reassign or deactivate instead",
         )
-        if assigned:
-            raise HTTPException(
-                status_code=409,
-                detail=f"User '{user.display_name}' is assigned to {assigned} items",
-            )
-    # Core UPDATE: bumps items.updated_at (Python onupdate) without an audit row,
-    # and deliberately does NOT bump version (a version bump here would spuriously
-    # 409 unrelated concurrent edits). SQLite tests don't enforce FK ondelete,
-    # hence the explicit null-out; on Postgres the FK's SET NULL also applies.
-    db.execute(update(Item).where(Item.assignee_id == user.id).values(assignee_id=None))
     log_event(
         db,
         actor=current,

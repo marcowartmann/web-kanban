@@ -50,24 +50,27 @@ def test_delete_with_comments_409_no_force(client, db_session):
         Comment(item_id=item["id"], author_id=person["id"], body="kept history")
     )
     db_session.commit()
-    for qs in ("", "?force=true"):
-        resp = client.delete(f"/api/v1/users/{person['id']}{qs}")
-        assert resp.status_code == 409
-        assert resp.json()["detail"] == "User 'Author P' has 1 comments — deactivate instead"
+    resp = client.delete(f"/api/v1/users/{person['id']}")
+    assert resp.status_code == 409
+    assert resp.json()["detail"] == "User 'Author P' has 1 comment(s) — reassign or deactivate instead"
 
 
-def test_delete_assigned_409_then_force_nulls(client, db_session):
+def test_delete_linked_to_items_is_blocked(client, db_session):
     person = _person(client, "Assigned P")
     item = Item(kind=ItemKind.FEATURE, title="A", position=0, assignee_id=person["id"])
     db_session.add(item)
     db_session.commit()
-    resp = client.delete(f"/api/v1/users/{person['id']}")
-    assert resp.status_code == 409
-    assert resp.json()["detail"] == "User 'Assigned P' is assigned to 1 items"
-    assert client.delete(f"/api/v1/users/{person['id']}?force=true").status_code == 204
+    # A user linked to items cannot be deleted — not even with a force flag.
+    for qs in ("", "?force=true"):
+        resp = client.delete(f"/api/v1/users/{person['id']}{qs}")
+        assert resp.status_code == 409
+        assert resp.json()["detail"] == "User 'Assigned P' is linked to 1 item(s) — reassign or deactivate instead"
     db_session.expire_all()
-    assert db_session.get(Item, item.id).assignee_id is None
-    assert db_session.get(User, person["id"]) is None
+    assert db_session.get(User, person["id"]) is not None  # still there
+    # Unassign, then deletion succeeds.
+    db_session.get(Item, item.id).assignee_id = None
+    db_session.commit()
+    assert client.delete(f"/api/v1/users/{person['id']}").status_code == 204
 
 
 def test_delete_is_audited(client, db_session):

@@ -179,10 +179,10 @@ describe("api client", () => {
     expect(people[0].display_name).toBe("P");
   });
 
-  it("deleteUser hits DELETE with optional force", async () => {
+  it("deleteUser hits DELETE", async () => {
     const spy = mockFetch(204, null);
-    await deleteUser(7, true);
-    expect(spy.mock.calls[0][0]).toBe("/api/v1/users/7?force=true");
+    await deleteUser(7);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/users/7");
     expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 });
