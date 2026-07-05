@@ -70,5 +70,8 @@ def health(db: Session = Depends(get_db)) -> JSONResponse:
     try:
         db.execute(text("SELECT 1"))
     except Exception:
+        # Log the real cause instead of swallowing it — otherwise a persistently
+        # failing health check gives no clue why (DB auth, DNS, pool state, …).
+        logging.getLogger("uvicorn").exception("health check: DB query failed")
         return JSONResponse(status_code=503, content={"status": "unavailable"})
     return JSONResponse(content={"status": "ok"})
