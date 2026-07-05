@@ -125,8 +125,8 @@ export default function TimelineView({
     }`;
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect
           label="Planning Interval"
           value={pi ?? undefined}
@@ -159,7 +159,7 @@ export default function TimelineView({
         )}
       </div>
 
-      <div className="overflow-x-auto p-4">
+      <div className="min-h-0 flex-1 overflow-auto p-4">
         <div className="flex items-center gap-2 pl-2">
           <div className="w-64 shrink-0 px-2">
             {mode === "feature" && (

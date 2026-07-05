@@ -87,8 +87,8 @@ export default function PIObjectivesBoard({
   const editorTeam = editing === "new" ? selectedTeam : editing ? { id: editing.team_id, name: editing.team_name } : null;
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect
           label="Planning Interval"
           value={pi || undefined}
@@ -115,7 +115,7 @@ export default function PIObjectivesBoard({
         )}
       </div>
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-3 gap-4 p-6">
+        <div className="grid min-h-0 flex-1 grid-cols-3 gap-4 overflow-auto p-6">
           {COLUMNS.map((col) => {
             const inColumn = objectives.filter((o) => o.state === col.key);
             return (

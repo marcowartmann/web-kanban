@@ -66,7 +66,7 @@ export default function Toolbar({
     !!filters.kinds?.length;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
+    <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
       <div className="relative">
         <FontAwesomeIcon
           icon={faMagnifyingGlass}
