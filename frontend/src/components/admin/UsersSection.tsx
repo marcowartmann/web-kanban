@@ -18,7 +18,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
   const [editing, setEditing] = useState<AuthUser | null>(null);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [forceDelete, setForceDelete] = useState<{ user: AuthUser; detail: string } | null>(null);
+  const [confirming, setConfirming] = useState<AuthUser | null>(null);
 
   const reload = () => {
     void listUsers().then(setUsers);
@@ -35,32 +35,27 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
   const isLastLocalAdmin = (u: AuthUser) =>
     localAdmins.length === 1 && localAdmins[0].id === u.id;
 
-  const remove = async (u: AuthUser) => {
+  const askDelete = (u: AuthUser) => {
     setError(null);
-    try {
-      await deleteUser(u.id);
-    } catch (e) {
-      if (e instanceof ConflictError) {
-        // Comment-guarded deletes are never forceable; everything else asks.
-        if (e.detail.includes("deactivate instead")) setError(e.detail);
-        else setForceDelete({ user: u, detail: e.detail });
-      } else {
-        const m = e instanceof Error ? /"detail"\s*:\s*"([^"]+)"/.exec(e.message) : null;
-        setError(m?.[1] ?? (e instanceof Error ? e.message : "Could not delete the user."));
-      }
-      return;
-    }
-    reload();
+    setConfirming(u);
   };
 
-  const forceRemove = async () => {
-    if (!forceDelete) return;
-    const { user } = forceDelete;
-    setForceDelete(null);
+  const doDelete = async () => {
+    if (!confirming) return;
+    const user = confirming;
+    setConfirming(null);
     try {
-      await deleteUser(user.id, true);
-    } catch (forced) {
-      setError(forced instanceof Error ? forced.message : "Could not delete the user.");
+      await deleteUser(user.id);
+    } catch (e) {
+      // A user linked to items/comments (or the last local admin) is blocked —
+      // surface the server's reason.
+      const detail =
+        e instanceof ConflictError
+          ? e.detail
+          : e instanceof Error
+            ? (/"detail"\s*:\s*"([^"]+)"/.exec(e.message)?.[1] ?? e.message)
+            : "Could not delete the user.";
+      setError(detail);
       return;
     }
     reload();
@@ -143,7 +138,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
                     {u.id !== currentUserId && (
                       <button
                         aria-label={`delete user ${u.display_name}`}
-                        onClick={() => void remove(u)}
+                        onClick={() => askDelete(u)}
                         disabled={isLastLocalAdmin(u)}
                         title={isLastLocalAdmin(u) ? "Protected: the last local admin cannot be deleted" : undefined}
                         className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
@@ -187,13 +182,13 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
           onClose={() => setEditing(null)}
         />
       )}
-      {forceDelete && (
+      {confirming && (
         <ConfirmDialog
           title="Delete user?"
-          message={forceDelete.detail}
-          confirmLabel="Delete anyway"
-          onConfirm={() => void forceRemove()}
-          onClose={() => setForceDelete(null)}
+          message={`Delete ${confirming.display_name}? This cannot be undone. A user linked to items or comments is protected — reassign or deactivate them instead.`}
+          confirmLabel="Delete"
+          onConfirm={() => void doDelete()}
+          onClose={() => setConfirming(null)}
         />
       )}
     </section>

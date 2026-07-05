@@ -338,8 +338,8 @@ export function updateUser(
   return request<AuthUser>(`${API}/users/${id}`, { ...json(payload), method: "PATCH" });
 }
 
-export function deleteUser(id: number, force = false): Promise<void> {
-  return request<void>(`${API}/users/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
+export function deleteUser(id: number): Promise<void> {
+  return request<void>(`${API}/users/${id}`, { method: "DELETE" });
 }
 
 export function convertUserProvider(
