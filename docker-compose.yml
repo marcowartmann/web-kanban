@@ -53,10 +53,12 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     healthcheck:
-      # 127.0.0.1 (not localhost): the probe runs inside this container and
-      # localhost may resolve to IPv6 ::1, where uvicorn (bound to IPv4 0.0.0.0)
-      # isn't listening. start_period keeps early boot failures from counting.
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).status == 200 else 1)"]
+      # 127.0.0.1 (not localhost) avoids IPv6 ::1 (uvicorn binds IPv4 0.0.0.0);
+      # ProxyHandler({}) makes the probe ignore any http(s)_proxy injected into
+      # the container (e.g. via the Docker daemon config) — otherwise the
+      # loopback request is routed through the proxy and fails. start_period
+      # keeps early boot failures from counting.
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.build_opener(urllib.request.ProxyHandler({})).open('http://127.0.0.1:8000/api/health', timeout=3).status == 200 else 1)"]
       interval: 5s
       timeout: 5s
       retries: 10
