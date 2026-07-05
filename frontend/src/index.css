@@ -27,4 +27,29 @@
   --color-gray-700: #ccd5e2; /* secondary text */
   --color-gray-800: #e3e8ef;
   --color-gray-900: #f2f5f9; /* primary text   */
+
+  /* Accent tints used as pill/badge/highlight backgrounds (bg-*-50 / bg-*-100).
+     Their default light pastels glow on the dark canvas, so remap only the
+     background shades (-50/-100) to dark, same-hue tints — the -700/-800 accent
+     text stays legible on them. -600/-700 are left untouched (solid buttons). */
+  --color-blue-50: #16223d;
+  --color-blue-100: #1d2c4d;
+  --color-blue-800: #bfdbfe; /* text on bg-blue-100 */
+  --color-sky-50: #0f2438;
+  --color-indigo-50: #1b1c48;
+  --color-indigo-100: #23245c;
+  --color-violet-50: #201640;
+  --color-violet-100: #2a1d54;
+  --color-emerald-50: #0e2a22;
+  --color-green-50: #0e2a1a;
+  --color-teal-50: #0c2a2a;
+  --color-cyan-50: #0c2a33;
+  --color-amber-50: #2c2009;
+  --color-amber-100: #3c2c0d;
+  --color-amber-800: #fde68a; /* text on bg-amber-100 */
+  --color-orange-50: #2c1b0d;
+  --color-rose-50: #301622;
+  --color-red-50: #301418;
+  --color-red-100: #401b20;
+  --color-red-800: #fecaca; /* text on bg-red-100 */
 }
