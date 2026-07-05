@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ConflictError, convertUserProvider, createUser, setUserDepartments, updateUser } from "../../api/client";
 import type { AuthUser, Department, Team } from "../../types";
+import PlainSelect from "../PlainSelect";
 import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass } from "../ui";
 
 /** Extracts the server's `detail` message from a thrown request error. */
@@ -146,30 +147,24 @@ export default function UserModal({
           </label>
           <label className="block">
             <span className={caption}>Team</span>
-            <select
-              value={teamId ?? ""}
-              onChange={(e) => setTeamId(e.target.value === "" ? null : Number(e.target.value))}
-              className={field}
-            >
-              <option value="">No team</option>
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+            <PlainSelect
+              ariaLabel="Team"
+              value={teams.find((t) => t.id === teamId)?.name ?? null}
+              options={teams.map((t) => t.name)}
+              onChange={(v) => setTeamId(v ? teams.find((t) => t.name === v)?.id ?? null : null)}
+              placeholder="No team"
+            />
           </label>
           <label className="block">
             <span className={caption}>Role</span>
-            <select
+            <PlainSelect
+              ariaLabel="Role"
               value={role}
-              onChange={(e) => setRole(e.target.value as "admin" | "member")}
+              options={["member", "admin"]}
+              onChange={(v) => v && setRole(v as "admin" | "member")}
               disabled={isSelf}
-              className={field}
-            >
-              <option value="member">member</option>
-              <option value="admin">admin</option>
-            </select>
+              clearable={false}
+            />
           </label>
           <label className="col-span-2 block">
             <span className={caption}>

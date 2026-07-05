@@ -12,6 +12,7 @@ import {
 import type { Container, Team } from "../../types";
 import ConfirmDialog from "../ConfirmDialog";
 import FilterSelect from "../FilterSelect";
+import PlainSelect from "../PlainSelect";
 import { captionClass } from "../ui";
 import {
   adminAddButtonClass,
@@ -219,19 +220,15 @@ export default function ContainersSection({
       </div>
 
       <div className="mb-4 flex gap-2">
-        <select
-          aria-label="Team for new container"
-          value={addTeamId}
-          onChange={(e) => setNewTeamId(e.target.value === "" ? "" : Number(e.target.value))}
-          className={`${adminInputClass} w-44`}
-        >
-          <option value="">Select team…</option>
-          {teams.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
+        <div className="w-44">
+          <PlainSelect
+            ariaLabel="Team for new container"
+            value={teams.find((t) => t.id === addTeamId)?.name ?? null}
+            options={teams.map((t) => t.name)}
+            onChange={(v) => setNewTeamId(v ? teams.find((t) => t.name === v)?.id ?? "" : "")}
+            placeholder="Select team…"
+          />
+        </div>
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}

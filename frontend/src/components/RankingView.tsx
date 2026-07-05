@@ -167,14 +167,14 @@ export default function RankingView({
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-4 flex flex-wrap gap-2">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 flex-wrap gap-2 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect label="Interval" value={pi} options={planningIntervals} onChange={setPi} />
         <FilterSelect label="Team" value={team} options={teams} onChange={setTeam} />
         <FilterSelect label="Container" value={container} options={[...new Set(containers.map((c) => c.name))]} onChange={setContainer} />
         <FilterSelect label="Department" value={department} options={departmentNames} onChange={setDepartment} />
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-auto p-6 lg:grid-cols-2">
         <section>
           <h2 className="mb-2 text-sm font-semibold text-gray-700">WSJF ranking</h2>
           <div data-testid="wsjf-list" className="space-y-1">

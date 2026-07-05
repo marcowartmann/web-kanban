@@ -95,9 +95,9 @@ export default function BoardView({
   const [editing, setEditing] = useState(false);
 
   return (
-    <div>
+    <div className="flex min-h-0 flex-1 flex-col">
       {canEditLanes && (
-        <div className="flex justify-end px-6 pt-3">
+        <div className="flex shrink-0 justify-end px-6 pt-3">
           <button onClick={() => setEditing((v) => !v)} className={btnSecondary}>
             {editing ? "Done" : "Edit lanes"}
           </button>
@@ -108,7 +108,7 @@ export default function BoardView({
         sensors={sensors}
         onDragEnd={(event) => void handleCardDragEnd(event, items, onChanged)}
       >
-        <div className="flex gap-4 overflow-x-auto p-6">
+        <div className="flex min-h-0 flex-1 gap-4 overflow-auto p-6">
           {columns.map((column) => (
             <Column
               key={column.status}

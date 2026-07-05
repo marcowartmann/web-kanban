@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getAuditEvents } from "../../api/client";
 import { faScroll } from "../../icons";
 import type { AuditEvent } from "../../types";
+import PlainSelect from "../PlainSelect";
 
 const PAGE = 50;
 
@@ -59,21 +60,17 @@ export default function AuditLogSection() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Filter by actor, entity, or event…"
-            className="w-64 rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+            className="w-64 rounded-lg border border-gray-300 bg-surface px-3 py-1.5 text-sm text-gray-900 transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
           />
-          <select
-            aria-label="Entity type"
-            value={entityType}
-            onChange={(e) => setEntityType(e.target.value)}
-            className="rounded-lg border border-gray-300 bg-surface px-2 py-1.5 text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
-          >
-            <option value="">All types</option>
-            {ENTITY_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+          <div className="w-44">
+            <PlainSelect
+              ariaLabel="Entity type"
+              value={entityType || null}
+              options={ENTITY_TYPES}
+              onChange={(v) => setEntityType(v ?? "")}
+              placeholder="All types"
+            />
+          </div>
         </div>
       </header>
 

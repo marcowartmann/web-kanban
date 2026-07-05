@@ -151,7 +151,7 @@ export default function CapacitySection({
                         value={values[key] ?? ""}
                         onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
                         onBlur={(e) => void commit(p.id, slot, e.target.value)}
-                        className="w-16 rounded-lg border border-gray-200 px-2 py-1.5 text-center text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+                        className="w-16 rounded-lg border border-gray-200 bg-surface px-2 py-1.5 text-center text-sm text-gray-900 transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
                       />
                     </td>
                   );

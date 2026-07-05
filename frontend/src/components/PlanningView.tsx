@@ -174,8 +174,8 @@ export default function PlanningView({
     }`;
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect
           label="Planning Interval"
           value={pi ?? undefined}
@@ -212,7 +212,7 @@ export default function PlanningView({
       </div>
 
       {groups && (
-        <div className="overflow-x-auto p-6">
+        <div className="min-h-0 flex-1 overflow-auto p-6">
           {showCapacity && <CapacityGrid rows={capacityRows} />}
           <DndContext sensors={sensors} onDragEnd={(e) => void handlePlanDragEnd(e, items, onChanged)}>
             <div className="flex gap-4">

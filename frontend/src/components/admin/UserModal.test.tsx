@@ -30,7 +30,8 @@ it("edit: saves only the changed fields", async () => {
   const email = screen.getByLabelText(/email/i);
   await userEvent.clear(email);
   await userEvent.type(email, "new@b.ch");
-  await userEvent.selectOptions(screen.getByLabelText(/team/i), "2");
+  await userEvent.click(screen.getByRole("combobox", { name: /team/i }));
+  await userEvent.click(screen.getByRole("option", { name: "Cloud" }));
   await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
   expect(update).toHaveBeenCalledWith(2, { email: "new@b.ch", team_id: 2 });
   expect(onSaved).toHaveBeenCalled();
@@ -70,7 +71,8 @@ it("create: save disabled until valid, then sends everything", async () => {
   await userEvent.type(screen.getByLabelText(/username/i), "cleo");
   await userEvent.type(screen.getByLabelText(/email/i), "c@b.ch");
   await userEvent.type(screen.getByLabelText(/^password$/i), "pw123456");
-  await userEvent.selectOptions(screen.getByLabelText(/team/i), "1");
+  await userEvent.click(screen.getByRole("combobox", { name: /team/i }));
+  await userEvent.click(screen.getByRole("option", { name: "Network" }));
   await userEvent.click(save);
   expect(create).toHaveBeenCalledWith({
     email: "c@b.ch",

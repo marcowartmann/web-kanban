@@ -121,8 +121,8 @@ export default function App() {
 
   return (
     <ObjectiveLinksContext.Provider value={objectiveLinks}>
-    <div className="min-h-screen bg-canvas">
-      <header className="flex items-center justify-between border-b border-gray-200 bg-surface px-6 py-4">
+    <div className="flex h-screen flex-col overflow-hidden bg-canvas">
+      <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-surface px-6 py-4">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold text-gray-900">JAMra</h1>
           <nav className="flex gap-0.5 rounded-lg bg-gray-100 p-0.5">
@@ -141,7 +141,9 @@ export default function App() {
       </header>
 
       {view === "admin" ? (
-        <AdminView onChanged={handleChanged} planningIntervals={planningIntervals} />
+        <div className="min-h-0 flex-1 overflow-auto">
+          <AdminView onChanged={handleChanged} planningIntervals={planningIntervals} />
+        </div>
       ) : view === "planning" ? (
         <PlanningView
           items={items}
