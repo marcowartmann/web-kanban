@@ -44,3 +44,7 @@ nginx/certs/*
 
 # Database dumps (may contain user password hashes — never commit)
 *.sql.gz
+
+# Real planning data (import via the UI; keep it out of git). Root-anchored so
+# the test fixture under backend/tests/fixtures/ is unaffected.
+/Team Planning*.csv
