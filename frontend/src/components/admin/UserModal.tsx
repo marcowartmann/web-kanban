@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ConflictError, createUser, setUserDepartments, updateUser } from "../../api/client";
+import { ConflictError, convertUserProvider, createUser, setUserDepartments, updateUser } from "../../api/client";
 import type { AuthUser, Department, Team } from "../../types";
 import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass } from "../ui";
 
@@ -90,8 +90,29 @@ export default function UserModal({
     }
   };
 
+  const convert = async (provider: "local" | "ldap") => {
+    if (busy || !user) return;
+    if (provider === "local" && password.length < 8) {
+      setError("Enter a password (min 8) in the field above to convert to local.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await convertUserProvider(user.id, provider, provider === "local" ? password : undefined);
+      onSaved();
+      onClose();
+    } catch (e) {
+      setError(errorDetail(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const field = `w-full ${inputClass}`;
   const caption = `mb-1 block ${captionClass}`;
+  const canConvert =
+    mode === "edit" && !isSelf && user && (user.auth_provider === "local" || user.auth_provider === "ldap");
 
   return (
     <div className={`${overlayClass} z-30`} onClick={onClose}>
@@ -195,6 +216,28 @@ export default function UserModal({
             </label>
           )}
         </div>
+        {canConvert && user && (
+          <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm text-gray-700">
+                Sign-in method: <strong>{user.auth_provider === "ldap" ? "LDAP" : "Local"}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => void convert(user.auth_provider === "local" ? "ldap" : "local")}
+                disabled={busy}
+                className={btnGhost}
+              >
+                {user.auth_provider === "local" ? "Convert to LDAP" : "Convert to Local"}
+              </button>
+            </div>
+            <p className="mt-1 text-[11px] text-gray-400">
+              {user.auth_provider === "local"
+                ? "Clears the local password; the user then signs in via LDAP with the same username. Keeps their role and assignments."
+                : "Sets a local password (enter one in the password field above) so the user can sign in locally."}
+            </p>
+          </div>
+        )}
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
         <div className="mt-5 flex justify-end gap-2">
           <button onClick={onClose} className={btnGhost}>

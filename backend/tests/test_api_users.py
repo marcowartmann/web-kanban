@@ -46,6 +46,45 @@ def test_admin_crud_and_duplicate(anon_client, db_session):
     assert patched.json()["is_active"] is False
 
 
+def test_convert_local_to_ldap_clears_password_and_revokes_sessions(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    member = _seed(db_session, "m@x.ch", username="jdoe")
+    create_session(db_session, member)
+    _as(admin)
+    resp = anon_client.post(f"/api/v1/users/{member.id}/convert-provider", json={"provider": "ldap"})
+    assert resp.status_code == 200
+    assert resp.json()["auth_provider"] == "ldap"
+    db_session.expire_all()
+    fresh = db_session.get(User, member.id)
+    assert fresh.password_hash is None
+    assert db_session.query(UserSession).filter_by(user_id=member.id).count() == 0
+
+
+def test_convert_to_local_requires_password_then_sets_it(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin")
+    ldap_user = _seed(db_session, "l@x.ch", username="lu", auth_provider="ldap")
+    ldap_user.password_hash = None
+    db_session.commit()
+    _as(admin)
+    missing = anon_client.post(f"/api/v1/users/{ldap_user.id}/convert-provider", json={"provider": "local"})
+    assert missing.status_code == 422
+    ok = anon_client.post(
+        f"/api/v1/users/{ldap_user.id}/convert-provider",
+        json={"provider": "local", "password": "newlocalpw1"},
+    )
+    assert ok.status_code == 200
+    assert ok.json()["auth_provider"] == "local"
+    db_session.expire_all()
+    assert db_session.get(User, ldap_user.id).password_hash is not None
+
+
+def test_convert_self_is_blocked(anon_client, db_session):
+    admin = _seed(db_session, "admin@x.ch", role="admin", username="adm")
+    _as(admin)
+    resp = anon_client.post(f"/api/v1/users/{admin.id}/convert-provider", json={"provider": "ldap"})
+    assert resp.status_code == 422
+
+
 def test_admin_password_reset_revokes_sessions(anon_client, db_session):
     admin = _seed(db_session, "admin@x.ch", role="admin")
     member = _seed(db_session, "m@x.ch")

@@ -395,6 +395,17 @@ class UserUpdate(BaseModel):
         return value if value is None else _password_fits_bcrypt(value)
 
 
+class UserConvertProvider(BaseModel):
+    provider: Literal["local", "ldap"]
+    # Required (min 8) when converting to local; ignored for ldap.
+    password: str | None = Field(default=None, min_length=8, max_length=72)
+
+    @field_validator("password")
+    @classmethod
+    def _check_password(cls, value: str | None) -> str | None:
+        return value if value is None else _password_fits_bcrypt(value)
+
+
 class AuditEventRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

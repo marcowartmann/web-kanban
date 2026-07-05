@@ -6,7 +6,14 @@ from app.audit import log_event
 from app.auth import hash_password, require_admin, require_user
 from app.db import get_db
 from app.models import Team, TeamDepartment, User, UserSession
-from app.schemas import PersonOption, UserCreate, UserDepartments, UserRead, UserUpdate
+from app.schemas import (
+    PersonOption,
+    UserConvertProvider,
+    UserCreate,
+    UserDepartments,
+    UserRead,
+    UserUpdate,
+)
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
@@ -163,6 +170,50 @@ def update_user(
     # Password reset and deactivation both invalidate every session of the user.
     if password is not None or changes.get("is_active") is False:
         db.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post("/{user_id}/convert-provider", response_model=UserRead)
+def convert_provider(
+    user_id: int,
+    payload: UserConvertProvider,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+) -> User:
+    """Switch a user between local and LDAP auth, keeping id/role/assignments.
+
+    -> ldap:  clears the password; the user then logs in via LDAP by username.
+    -> local: sets a new password (required).
+    """
+    user = _get_or_404(db, user_id)
+    if user.id == current.id:
+        raise HTTPException(status_code=422, detail="Admins cannot convert their own account")
+    if user.username is None:
+        raise HTTPException(status_code=422, detail="User needs a username before converting")
+    old_provider = user.auth_provider
+    if payload.provider == "ldap":
+        user.auth_provider = "ldap"
+        user.password_hash = None
+    else:  # local
+        if not payload.password:
+            raise HTTPException(status_code=422, detail="A password is required to convert to local")
+        user.auth_provider = "local"
+        user.password_hash = hash_password(payload.password)
+    # Any existing sessions were established under the old provider — revoke them.
+    db.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    log_event(
+        db,
+        actor=current,
+        event_type="user.updated",
+        entity_type="user",
+        entity_id=user.id,
+        entity_label=user.email or user.display_name,
+        field="auth_provider",
+        old_value=old_provider,
+        new_value=user.auth_provider,
+    )
     db.commit()
     db.refresh(user)
     return user
