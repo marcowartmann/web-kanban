@@ -184,3 +184,22 @@ cd frontend && npm install && npm run dev   # http://localhost:5173 (proxies /ap
 cd backend && pytest        # 25 tests
 cd frontend && npm run test # 19 tests
 ```
+
+## Security scanning (Trivy)
+
+[`scripts/scan.sh`](scripts/scan.sh) scans for vulnerabilities, Dockerfile/compose
+misconfigurations, and committed secrets using Trivy — run from its Docker image,
+so nothing needs installing.
+
+```bash
+scripts/scan.sh                                   # default images + the repo
+scripts/scan.sh web-kanban-backend web-kanban-frontend   # scan local pre-publish images
+SEVERITY=CRITICAL scripts/scan.sh                 # narrow the report
+FAIL=1 scripts/scan.sh                            # gate: non-zero exit on findings
+```
+
+It scans the repo filesystem (dependency CVEs from `pyproject.toml` /
+`package-lock.json`, Dockerfile/compose misconfig, secrets — skipping local
+artifact dirs like `nginx/certs` and `sftp/uploads`) and the two container
+images. Report-only by default (never fails); set `FAIL=1` to gate a publish.
+Run it before `scripts/publish.sh` to check what you're about to ship.
