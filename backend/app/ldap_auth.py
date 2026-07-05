@@ -25,7 +25,13 @@ class LdapAuthenticator:
             use_ssl=not self._c.ldap_start_tls,
             tls=ldap3.Tls(ca_certs_file=self._c.ldap_ca_cert_file or None),
         )
-        conn = ldap3.Connection(server, user=user or None, password=password or None)
+        # auto_referrals=False: Active Directory returns referral entries on
+        # searches under the domain root; chasing them makes the search return
+        # 0/other entries and breaks auth. Disabling it is required for AD and
+        # harmless for OpenLDAP.
+        conn = ldap3.Connection(
+            server, user=user or None, password=password or None, auto_referrals=False
+        )
         if self._c.ldap_start_tls:
             conn.start_tls()
         return conn
