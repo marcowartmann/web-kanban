@@ -34,7 +34,8 @@ it("filters reset the offset and refetch", async () => {
     .mockResolvedValue({ items: [ev(1, { entity_type: "auth", event_type: "auth.login", field: null })], total: 1 } as never);
   render(<AuditLogSection />);
   await screen.findByText(/auth.login/);
-  await userEvent.selectOptions(screen.getByLabelText(/entity type/i), "auth");
+  await userEvent.click(screen.getByRole("combobox", { name: /entity type/i }));
+  await userEvent.click(screen.getByRole("option", { name: "auth" }));
   expect(spy).toHaveBeenLastCalledWith({ limit: 50, offset: 0, q: "", entity_type: "auth" });
   await userEvent.type(screen.getByPlaceholderText(/filter by actor/i), "m");
   expect(spy).toHaveBeenLastCalledWith({ limit: 50, offset: 0, q: "m", entity_type: "auth" });

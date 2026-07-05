@@ -54,7 +54,8 @@ it("adds a container in the selected PI and team", async () => {
   render(<ContainersSection planningIntervals={["PI1-Q3"]} />);
   await screen.findByText("Operations");
 
-  fireEvent.change(screen.getByLabelText("Team for new container"), { target: { value: "1" } });
+  fireEvent.click(screen.getByRole("combobox", { name: "Team for new container" }));
+  fireEvent.click(within(screen.getByRole("listbox")).getByRole("option", { name: "Network" }));
   fireEvent.change(screen.getByPlaceholderText(/new container name/i), {
     target: { value: "Operational Stability" },
   });

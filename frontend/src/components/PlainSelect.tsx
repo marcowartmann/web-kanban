@@ -15,12 +15,17 @@ export default function PlainSelect({
   onChange,
   placeholder = "Select…",
   ariaLabel,
+  disabled = false,
+  clearable = true,
 }: {
   value: string | null;
   options: string[];
   onChange: (value: string | null) => void;
   placeholder?: string;
   ariaLabel?: string;
+  disabled?: boolean;
+  /** Show the placeholder/clear option (null). Set false for required fields. */
+  clearable?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -46,8 +51,9 @@ export default function PlainSelect({
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
+        disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-gray-300 bg-surface px-2.5 py-1.5 text-left text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-gray-300 bg-surface px-2.5 py-1.5 text-left text-sm transition focus:border-blue-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 ${
           value ? "text-gray-900" : "text-gray-400"
         }`}
       >
@@ -59,21 +65,23 @@ export default function PlainSelect({
           role="listbox"
           className={`absolute z-10 mt-1 max-h-48 w-full overflow-auto ${popoverClass}`}
         >
-          <li>
-            <button
-              type="button"
-              role="option"
-              aria-selected={value == null}
-              onClick={() => commit(null)}
-              className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition ${
-                value == null
-                  ? "bg-blue-50 font-medium text-blue-700"
-                  : "text-gray-400 hover:bg-gray-50"
-              }`}
-            >
-              <span className="truncate">{placeholder}</span>
-            </button>
-          </li>
+          {clearable && (
+            <li>
+              <button
+                type="button"
+                role="option"
+                aria-selected={value == null}
+                onClick={() => commit(null)}
+                className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition ${
+                  value == null
+                    ? "bg-blue-50 font-medium text-blue-700"
+                    : "text-gray-400 hover:bg-gray-50"
+                }`}
+              >
+                <span className="truncate">{placeholder}</span>
+              </button>
+            </li>
+          )}
           {options.map((o) => {
             const selected = o === value;
             return (
