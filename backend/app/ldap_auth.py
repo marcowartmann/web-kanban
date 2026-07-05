@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 
 import ldap3
+from fastapi import Depends
 from ldap3.core.exceptions import LDAPException
 from ldap3.utils.conv import escape_filter_chars
+from sqlalchemy.orm import Session
 
-from app.config import settings
+from app.db import get_db
 
 
 @dataclass(frozen=True)
@@ -20,10 +22,15 @@ class LdapAuthenticator:
         self._connect = connection_factory or self._real_connection
 
     def _real_connection(self, user, password):
+        # CA can come from a file path (env config) or inline PEM (DB config).
+        ca_data = getattr(self._c, "ldap_ca_cert_data", None) or None
         server = ldap3.Server(
             self._c.ldap_server_uri,
             use_ssl=not self._c.ldap_start_tls,
-            tls=ldap3.Tls(ca_certs_file=self._c.ldap_ca_cert_file or None),
+            tls=ldap3.Tls(
+                ca_certs_file=self._c.ldap_ca_cert_file or None,
+                ca_certs_data=ca_data,
+            ),
         )
         # auto_referrals=False: Active Directory returns referral entries on
         # searches under the domain root; chasing them makes the search return
@@ -71,5 +78,8 @@ class LdapAuthenticator:
         return str(value) if value else None
 
 
-def get_authenticator() -> LdapAuthenticator:
-    return LdapAuthenticator(settings)
+def get_authenticator(db: Session = Depends(get_db)) -> LdapAuthenticator:
+    # FastAPI dependency: build the authenticator from the DB-backed config.
+    from app.ldap_settings import get_ldap_config, to_runtime
+
+    return LdapAuthenticator(to_runtime(get_ldap_config(db)))

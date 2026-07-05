@@ -182,6 +182,19 @@ export interface BackupRun {
   message: string | null;
 }
 
+export interface LdapConfig {
+  enabled: boolean;
+  server_uri: string;
+  start_tls: boolean;
+  ca_cert: string | null;
+  bind_dn: string | null;
+  base_dn: string;
+  user_filter: string;
+  attr_email: string;
+  attr_display_name: string;
+  has_password: boolean;
+}
+
 export type ObjectiveState = "committed" | "uncommitted" | "out_of_scope";
 
 export interface PIObjective {

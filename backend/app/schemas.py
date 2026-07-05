@@ -524,3 +524,49 @@ class SftpTestRequest(BaseModel):
     sftp_username: str | None = None
     password: str | None = None
     remote_dir: str | None = None
+
+
+class LdapConfigRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    enabled: bool
+    server_uri: str
+    start_tls: bool
+    ca_cert: str | None
+    bind_dn: str | None
+    base_dn: str
+    user_filter: str
+    attr_email: str
+    attr_display_name: str
+    has_password: bool = False
+
+
+class LdapConfigUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    enabled: bool = False
+    server_uri: str = ""
+    start_tls: bool = False
+    ca_cert: str | None = None
+    bind_dn: str | None = None
+    password: str | None = None
+    clear_password: bool = False
+    base_dn: str = ""
+    user_filter: str = "(&(objectClass=inetOrgPerson)(uid={uid}))"
+    attr_email: str = "mail"
+    attr_display_name: str = "cn"
+
+
+class LdapTestRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    # Connection fields (fall back to the saved config when omitted/blank).
+    server_uri: str | None = None
+    start_tls: bool | None = None
+    ca_cert: str | None = None
+    bind_dn: str | None = None
+    password: str | None = None
+    base_dn: str | None = None
+    user_filter: str | None = None
+    attr_email: str | None = None
+    attr_display_name: str | None = None
+    # Optional: verify a real user login end-to-end.
+    test_username: str | None = None
+    test_password: str | None = None

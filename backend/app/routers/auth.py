@@ -18,6 +18,7 @@ from app.auth import (
 from app.config import settings
 from app.db import get_db
 from app.ldap_auth import LdapAuthenticator, get_authenticator
+from app.ldap_settings import get_ldap_config
 from app.models import User, UserSession
 from app.schemas import LoginRequest, PasswordChange, UserRead
 
@@ -54,7 +55,7 @@ def login(
             and verify_password(payload.password, candidate.password_hash)
         ):
             user = candidate
-    elif payload.method == "ldap" and settings.ldap_enabled:
+    elif payload.method == "ldap" and get_ldap_config(db).enabled:
         identity = authenticator.authenticate(username, payload.password)
         if identity is not None:
             resolved = find_or_provision_ldap_user(db, identity)
@@ -86,8 +87,8 @@ def login(
 
 
 @router.get("/config")
-def auth_config() -> dict:
-    return {"ldap_enabled": settings.ldap_enabled}
+def auth_config(db: Session = Depends(get_db)) -> dict:
+    return {"ldap_enabled": get_ldap_config(db).enabled}
 
 
 @router.post("/logout", status_code=204)
