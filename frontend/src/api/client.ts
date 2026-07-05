@@ -342,6 +342,14 @@ export function deleteUser(id: number, force = false): Promise<void> {
   return request<void>(`${API}/users/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
 }
 
+export function convertUserProvider(
+  id: number,
+  provider: "local" | "ldap",
+  password?: string,
+): Promise<AuthUser> {
+  return request<AuthUser>(`${API}/users/${id}/convert-provider`, json({ provider, password }));
+}
+
 export function getPersonOptions(): Promise<PersonOption[]> {
   return request<PersonOption[]>(`${API}/users/options`);
 }
