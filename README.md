@@ -145,13 +145,22 @@ Copy the `.sql.gz` to the **target** server, then restore into the prod stack:
 scripts/db-restore.sh dump.sql.gz docker-compose.prod.yml
 ```
 
-The restore stops the backend, loads the dump (a `--clean` dump drops and
-recreates every table), and restarts the backend (its `alembic upgrade head` is a
-no-op when the dump's migration version matches the image). **It replaces all
-data in the target**, including the bootstrap admin — afterwards log in with the
-source instance's credentials (user password hashes transfer; LDAP users still
-authenticate via LDAP). Dumps may contain password hashes and are gitignored
-(`*.sql.gz`) — keep them private.
+The restore stops the backend, **recreates the target database empty**, loads the
+dump, and restarts the backend (its `alembic upgrade head` is a no-op when the
+dump's migration version matches the image). Recreating the DB first means it
+works for **both** dump styles — the `db-dump.sh` output *and* the in-app Backup
+feature's `kanban-db-*.sql.gz` files (plain `pg_dump`, which have no `DROP`
+statements and would otherwise collide with the existing schema). To restore a
+Backup-feature dump, point the script at it:
+
+```bash
+scripts/db-restore.sh sftp/uploads/kanban-db-20260101T120000Z.sql.gz docker-compose.prod.yml
+```
+
+**It replaces all data in the target**, including the bootstrap admin — afterwards
+log in with the dump source's credentials (user password hashes transfer; LDAP
+users still authenticate via LDAP). Dumps may contain password hashes and are
+gitignored (`*.sql.gz`) — keep them private.
 
 ## Local development (without Docker for the app)
 
