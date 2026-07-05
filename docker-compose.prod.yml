@@ -36,6 +36,7 @@ services:
 
   backend:
     image: marcowartmannmw/jamra-backend:${IMAGE_TAG:-latest}
+    pull_policy: always
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kanban}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-kanban}
@@ -77,6 +78,7 @@ services:
 
   frontend:
     image: marcowartmannmw/jamra-frontend:${IMAGE_TAG:-latest}
+    pull_policy: always
     restart: unless-stopped
     depends_on:
       backend:
