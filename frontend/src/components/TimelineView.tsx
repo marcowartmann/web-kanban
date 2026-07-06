@@ -159,8 +159,8 @@ export default function TimelineView({
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-4">
-        <div className="flex items-center gap-2 pl-2">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pb-4">
+        <div className="sticky top-0 z-20 flex items-center gap-2 bg-canvas pb-2 pl-2 pt-4">
           <div className="w-64 shrink-0 px-2">
             {mode === "feature" && (
               <div className="relative">
