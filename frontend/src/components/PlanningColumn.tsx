@@ -35,7 +35,11 @@ export default function PlanningColumn({
         isOver ? "bg-blue-50 ring-2 ring-blue-300" : "bg-gray-100"
       }`}
     >
-      <h2 className="mb-3 flex items-center justify-between gap-2 text-sm font-semibold text-gray-700">
+      <h2
+        className={`sticky top-0 z-10 -mx-3 -mt-3 mb-3 flex items-center justify-between gap-2 rounded-t-xl px-3 pb-2 pt-3 text-sm font-semibold text-gray-700 ${
+          isOver ? "bg-blue-50" : "bg-gray-100"
+        }`}
+      >
         <span>{title}</span>
         <span className="flex items-center gap-2 text-xs font-normal text-gray-500">
           {load != null && capacity != null && (
