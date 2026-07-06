@@ -19,7 +19,14 @@ export default function Column({
         isOver ? "bg-blue-50 ring-2 ring-blue-300" : "bg-gray-100"
       }`}
     >
-      <h2 className="mb-3 flex items-center justify-between text-sm font-semibold text-gray-700">
+      {/* Sticky within the board's scroll container so the lane title + count
+          stay visible while the board scrolls. Negative margins + matching bg
+          extend the header to the column edges so cards scroll cleanly behind. */}
+      <h2
+        className={`sticky top-0 z-10 -mx-3 -mt-3 mb-3 flex items-center justify-between rounded-t-xl px-3 pb-2 pt-3 text-sm font-semibold text-gray-700 ${
+          isOver ? "bg-blue-50" : "bg-gray-100"
+        }`}
+      >
         <span>{column.status}</span>
         <span className="rounded-full bg-gray-200 px-2 text-xs">
           {column.cards.length}

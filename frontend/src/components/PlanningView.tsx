@@ -212,7 +212,7 @@ export default function PlanningView({
       </div>
 
       {groups && (
-        <div className="min-h-0 flex-1 overflow-auto p-6">
+        <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
           {showCapacity && <CapacityGrid rows={capacityRows} />}
           <DndContext sensors={sensors} onDragEnd={(e) => void handlePlanDragEnd(e, items, onChanged)}>
             <div className="flex gap-4">
