@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import CheckConstraint, Column, Enum, ForeignKey, Index, Integer, Numeric, String, Table, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.catalog.domain import Criticality, DependencyType, LifecycleState
 from app.db import Base
 # DateTime is app.timeutil's tz-normalizing TypeDecorator — never import DateTime
 # from sqlalchemy for a column, or SQLite reads it back naive.
@@ -458,3 +459,96 @@ class BackupRun(Base):
     db_file: Mapped[str | None] = mapped_column(String(255))
     snapshots_file: Mapped[str | None] = mapped_column(String(255))
     message: Mapped[str | None] = mapped_column(Text)
+
+
+class Art(Base):
+    __tablename__ = "arts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(64), unique=True)
+    description: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+
+class Product(Base):
+    __tablename__ = "products"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True)
+    description: Mapped[str | None] = mapped_column(Text)
+    art_id: Mapped[int] = mapped_column(
+        ForeignKey("arts.id", ondelete="RESTRICT"), index=True
+    )
+    team_id: Mapped[int | None] = mapped_column(
+        ForeignKey("teams.id", ondelete="SET NULL"), unique=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+    art: Mapped["Art"] = relationship()
+    team: Mapped["Team | None"] = relationship()
+
+
+class Service(Base):
+    __tablename__ = "services"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    description: Mapped[str | None] = mapped_column(Text)
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="RESTRICT"), index=True
+    )
+    parent_service_id: Mapped[int | None] = mapped_column(
+        ForeignKey("services.id", ondelete="RESTRICT"), index=True
+    )
+    owner_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
+    lifecycle_state: Mapped[LifecycleState] = mapped_column(
+        Enum(LifecycleState, native_enum=False),
+        default=LifecycleState.PLANNED,
+        server_default="planned",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+    product: Mapped["Product"] = relationship()
+    owner: Mapped["User | None"] = relationship()
+
+
+class ServiceDependency(Base):
+    __tablename__ = "service_dependencies"
+    __table_args__ = (
+        UniqueConstraint("from_service_id", "to_service_id", name="uq_service_dependency"),
+        CheckConstraint("from_service_id != to_service_id", name="ck_service_dep_no_self"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    from_service_id: Mapped[int] = mapped_column(
+        ForeignKey("services.id", ondelete="CASCADE"), index=True
+    )
+    to_service_id: Mapped[int] = mapped_column(
+        ForeignKey("services.id", ondelete="RESTRICT"), index=True
+    )
+    dep_type: Mapped[DependencyType] = mapped_column(Enum(DependencyType, native_enum=False))
+    criticality: Mapped[Criticality] = mapped_column(Enum(Criticality, native_enum=False))
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+    from_service: Mapped["Service"] = relationship(foreign_keys=[from_service_id])
+    to_service: Mapped["Service"] = relationship(foreign_keys=[to_service_id])

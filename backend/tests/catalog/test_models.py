@@ -1,0 +1,34 @@
+from app.catalog.domain import Criticality, DependencyType, LifecycleState
+from app.models import Art, Product, Service, ServiceDependency, Team
+
+
+def test_catalog_models_roundtrip(db_session):
+    art = Art(name="Platform ART")
+    team = Team(name="Network")
+    db_session.add_all([art, team])
+    db_session.flush()
+    product = Product(name="Network Product", art_id=art.id, team_id=team.id)
+    db_session.add(product)
+    db_session.flush()
+    parent = Service(name="Connectivity", product_id=product.id)
+    db_session.add(parent)
+    db_session.flush()
+    child = Service(
+        name="Campus LAN", product_id=product.id,
+        parent_service_id=parent.id, lifecycle_state=LifecycleState.ACTIVE,
+    )
+    db_session.add(child)
+    db_session.flush()
+    dep = ServiceDependency(
+        from_service_id=child.id, to_service_id=parent.id,
+        dep_type=DependencyType.REQUIRES, criticality=Criticality.CRITICAL,
+    )
+    db_session.add(dep)
+    db_session.commit()
+
+    assert product.art.name == "Platform ART"
+    assert product.team.name == "Network"
+    assert child.product.name == "Network Product"
+    assert dep.from_service.name == "Campus LAN"
+    assert dep.to_service.name == "Connectivity"
+    assert parent.lifecycle_state == LifecycleState.PLANNED
