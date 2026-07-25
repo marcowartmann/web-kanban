@@ -100,7 +100,14 @@ describe("api client", () => {
 
   it("throws on non-ok responses", async () => {
     mockFetch(404, "Item not found");
-    await expect(updateItem(1, { version: 1 })).rejects.toThrow("404");
+    await expect(updateItem(1, { version: 1 })).rejects.toThrow("Item not found");
+  });
+
+  it("surfaces the detail string from FastAPI error bodies", async () => {
+    mockFetch(422, { detail: "Team is already linked to another product" });
+    await expect(updateItem(1, { version: 1 })).rejects.toThrow(
+      "Team is already linked to another product",
+    );
   });
 
   it("getTeams fetches /api/v1/teams", async () => {

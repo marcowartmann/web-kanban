@@ -50,5 +50,6 @@ it("non-409 errors keep the generic Error shape", async () => {
   } as Response);
   const err = await renameTeam(9, "Z").catch((e: unknown) => e);
   expect(err).not.toBeInstanceOf(ConflictError);
-  expect((err as Error).message).toContain("404 Not Found");
+  // Non-409s surface the FastAPI detail string, not the raw status line.
+  expect((err as Error).message).toBe("Team not found");
 });

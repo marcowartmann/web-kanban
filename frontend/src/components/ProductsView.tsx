@@ -36,6 +36,10 @@ export default function ProductsView() {
     list.push(p);
     byArt.set(key, list);
   }
+  // Stable section order: alphabetical, orphans last (fetch order is not guaranteed).
+  const artGroups = [...byArt.entries()].sort(([a], [b]) =>
+    a === "No ART" ? 1 : b === "No ART" ? -1 : a.localeCompare(b),
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -47,7 +51,7 @@ export default function ProductsView() {
             No products yet. Admins can create them under Admin → Catalog.
           </div>
         ) : (
-          [...byArt.entries()].map(([artName, list]) => (
+          artGroups.map(([artName, list]) => (
             <section key={artName} className="mb-8">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
                 {artName}

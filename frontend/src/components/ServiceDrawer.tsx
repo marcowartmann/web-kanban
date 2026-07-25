@@ -27,11 +27,15 @@ const CRITICALITIES: DependencyCriticality[] = ["critical", "important", "option
 
 export default function ServiceDrawer({
   service,
+  parentOptions,
   onClose,
   onChanged,
 }: {
   service: CatalogService;
   productId: number;
+  /** Same-product services offered as parent, path-labeled, excluding this
+   *  service and its descendants (a service cannot be parented into its own subtree). */
+  parentOptions: { id: number; label: string }[];
   onClose: () => void;
   onChanged: () => Promise<void> | void;
 }) {
@@ -40,6 +44,9 @@ export default function ServiceDrawer({
   const [state, setState] = useState<string>(service.lifecycle_state);
   const [people, setPeople] = useState<PersonOption[]>([]);
   const [ownerName, setOwnerName] = useState<string | null>(service.owner_name);
+  const [parentLabel, setParentLabel] = useState<string | null>(
+    parentOptions.find((o) => o.id === service.parent_service_id)?.label ?? null,
+  );
   const [deps, setDeps] = useState<ServiceDependencies>({ outbound: [], inbound: [] });
   const [options, setOptions] = useState<ServiceOption[]>([]);
   const [depTarget, setDepTarget] = useState<string | null>(null);
@@ -73,6 +80,10 @@ export default function ServiceDrawer({
         const owner = people.find((p) => p.display_name === ownerName);
         changes.owner_user_id = owner ? owner.id : null;
       }
+      const parentId = parentLabel
+        ? parentOptions.find((o) => o.label === parentLabel)?.id ?? null
+        : null;
+      if (parentId !== service.parent_service_id) changes.parent_service_id = parentId;
       await updateService(service.id, changes);
       await onChanged();
       onClose();
@@ -154,12 +165,22 @@ export default function ServiceDrawer({
         />
       </div>
       <label className={captionClass}>Owner</label>
-      <div className="mb-4">
+      <div className="mb-3">
         <SearchableSelect
           ariaLabel="Service owner"
           value={ownerName}
           options={people.map((p) => p.display_name)}
           onChange={setOwnerName}
+        />
+      </div>
+      <label className={captionClass}>Parent</label>
+      <div className="mb-4">
+        <SearchableSelect
+          ariaLabel="Parent service"
+          value={parentLabel}
+          options={parentOptions.map((o) => o.label)}
+          onChange={setParentLabel}
+          placeholder="No parent (top-level)"
         />
       </div>
 

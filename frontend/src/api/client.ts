@@ -60,17 +60,17 @@ async function request<T>(url: string, init?: RequestInit, notify401 = true): Pr
   if (!resp.ok) {
     if (resp.status === 401 && notify401) onUnauthorized?.();
     const text = await resp.text();
-    if (resp.status === 409) {
-      let detail = text;
-      try {
-        const parsed = JSON.parse(text) as { detail?: unknown };
-        if (typeof parsed.detail === "string") detail = parsed.detail;
-      } catch {
-        // non-JSON body — keep the raw text
-      }
-      throw new ConflictError(detail);
+    // FastAPI errors carry {"detail": "..."} — surface that string instead of
+    // the raw JSON blob so error strips read like sentences.
+    let detail = text;
+    try {
+      const parsed = JSON.parse(text) as { detail?: unknown };
+      if (typeof parsed.detail === "string") detail = parsed.detail;
+    } catch {
+      // non-JSON body — keep the raw text
     }
-    throw new Error(`${resp.status} ${resp.statusText}: ${text}`);
+    if (resp.status === 409) throw new ConflictError(detail);
+    throw new Error(detail || `${resp.status} ${resp.statusText}`);
   }
   if (resp.status === 204) return undefined as T;
   return (await resp.json()) as T;

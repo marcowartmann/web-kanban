@@ -4,6 +4,18 @@ import type { CatalogService, LifecycleState, Product } from "../types";
 import ServiceDrawer from "./ServiceDrawer";
 import { btnPrimary, btnSecondary, inputClass } from "./ui";
 
+// Flat "Parent › Child" path labels for the drawer's parent picker.
+function flatten(nodes: CatalogService[], prefix = ""): { id: number; label: string }[] {
+  return nodes.flatMap((n) => {
+    const label = prefix ? `${prefix} › ${n.name}` : n.name;
+    return [{ id: n.id, label }, ...flatten(n.children, label)];
+  });
+}
+
+function subtreeIds(node: CatalogService): number[] {
+  return [node.id, ...node.children.flatMap(subtreeIds)];
+}
+
 const BADGE: Record<LifecycleState, string> = {
   planned: "bg-blue-50 text-blue-700",
   active: "bg-emerald-50 text-emerald-700",
@@ -15,10 +27,12 @@ function ServiceNode({
   service,
   depth,
   onOpen,
+  onAddChild,
 }: {
   service: CatalogService;
   depth: number;
   onOpen: (s: CatalogService) => void;
+  onAddChild: (s: CatalogService) => void;
 }) {
   const [open, setOpen] = useState(true);
   return (
@@ -36,6 +50,14 @@ function ServiceNode({
         <button onClick={() => onOpen(service)} className="flex-1 text-left text-sm font-medium text-gray-800">
           {service.name}
         </button>
+        <button
+          aria-label={`Add sub-service to ${service.name}`}
+          title="Add sub-service"
+          onClick={() => onAddChild(service)}
+          className="rounded-sm px-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+        >
+          +
+        </button>
         {service.owner_name && <span className="text-xs text-gray-400">{service.owner_name}</span>}
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BADGE[service.lifecycle_state]}`}>
           {service.lifecycle_state}
@@ -43,7 +65,7 @@ function ServiceNode({
       </div>
       {open &&
         service.children.map((c) => (
-          <ServiceNode key={c.id} service={c} depth={depth + 1} onOpen={onOpen} />
+          <ServiceNode key={c.id} service={c} depth={depth + 1} onOpen={onOpen} onAddChild={onAddChild} />
         ))}
     </div>
   );
@@ -58,7 +80,8 @@ export default function ProductDetail({
 }) {
   const [tree, setTree] = useState<CatalogService[]>([]);
   const [drawer, setDrawer] = useState<CatalogService | null>(null);
-  const [adding, setAdding] = useState(false);
+  // null = form closed; parentId null = add at root, otherwise sub-service.
+  const [addTarget, setAddTarget] = useState<{ parentId: number | null; parentName: string | null } | null>(null);
   const [newName, setNewName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -71,12 +94,16 @@ export default function ProductDetail({
   }, [load]);
 
   const addService = async () => {
-    if (!newName.trim()) return;
+    if (!newName.trim() || !addTarget) return;
     setError(null);
     try {
-      await createService({ name: newName.trim(), product_id: product.id });
+      await createService({
+        name: newName.trim(),
+        product_id: product.id,
+        ...(addTarget.parentId != null ? { parent_service_id: addTarget.parentId } : {}),
+      });
       setNewName("");
-      setAdding(false);
+      setAddTarget(null);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create service");
@@ -100,12 +127,20 @@ export default function ProductDetail({
               <p className="mt-1 max-w-2xl text-sm text-gray-600">{product.description}</p>
             )}
           </div>
-          <button onClick={() => setAdding((v) => !v)} className={btnSecondary}>
+          <button
+            onClick={() => setAddTarget((t) => (t ? null : { parentId: null, parentName: null }))}
+            className={btnSecondary}
+          >
             Add service
           </button>
         </div>
-        {adding && (
-          <div className="mb-4 flex max-w-md items-center gap-2">
+        {addTarget && (
+          <div className="mb-4 flex max-w-xl items-center gap-2">
+            {addTarget.parentName && (
+              <span className="shrink-0 text-xs text-gray-500">
+                Sub-service of <span className="font-medium">{addTarget.parentName}</span>
+              </span>
+            )}
             <input
               autoFocus
               placeholder="Service name"
@@ -125,7 +160,15 @@ export default function ProductDetail({
         {tree.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-400">No services yet.</div>
         ) : (
-          tree.map((s) => <ServiceNode key={s.id} service={s} depth={0} onOpen={setDrawer} />)
+          tree.map((s) => (
+            <ServiceNode
+              key={s.id}
+              service={s}
+              depth={0}
+              onOpen={setDrawer}
+              onAddChild={(svc) => setAddTarget({ parentId: svc.id, parentName: svc.name })}
+            />
+          ))
         )}
       </div>
       {drawer && (
@@ -133,6 +176,10 @@ export default function ProductDetail({
           key={drawer.id}
           service={drawer}
           productId={product.id}
+          parentOptions={(() => {
+            const excluded = new Set(subtreeIds(drawer));
+            return flatten(tree).filter((o) => !excluded.has(o.id));
+          })()}
           onClose={() => setDrawer(null)}
           onChanged={async () => {
             await load();

@@ -74,7 +74,11 @@ describe("ProductDetail", () => {
     expect(await screen.findByDisplayValue("Connectivity")).toBeInTheDocument();
     await userEvent.click(screen.getByText("Campus LAN"));
     expect(await screen.findByDisplayValue("Campus LAN")).toBeInTheDocument();
-    expect(screen.queryByDisplayValue("Connectivity")).not.toBeInTheDocument();
+    // "Connectivity" may appear exactly once — as Campus LAN's parent select
+    // value. A stale NAME field would produce a second match.
+    const conn = screen.queryAllByDisplayValue("Connectivity");
+    expect(conn).toHaveLength(1);
+    expect(conn[0]).toHaveAccessibleName("Parent service");
   });
 
   it("omits owner_user_id from the save payload when the owner field wasn't touched", async () => {
@@ -126,4 +130,53 @@ describe("ProductDetail", () => {
     expect(await screen.findByText("name already exists")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Service name")).toBeInTheDocument();
   });
+
+
+  it("creates a sub-service under a node", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    vi.mocked(createService).mockResolvedValue(tree[0]);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Add sub-service to Connectivity" }),
+    );
+    await userEvent.type(screen.getByPlaceholderText("Service name"), "Edge");
+    await userEvent.click(screen.getByRole("button", { name: "Create" }));
+    expect(createService).toHaveBeenCalledWith({
+      name: "Edge",
+      product_id: 1,
+      parent_service_id: 1,
+    });
+  });
+
+  it("shows the current parent in the drawer", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByText("Campus LAN"));
+    expect(await screen.findByRole("combobox", { name: "Parent service" })).toHaveValue(
+      "Connectivity",
+    );
+  });
+
+  it("clearing the parent saves parent_service_id null", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    vi.mocked(updateService).mockResolvedValue(tree[0]);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByText("Campus LAN"));
+    await userEvent.click(await screen.findByRole("button", { name: "Clear Parent service" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(vi.mocked(updateService).mock.calls.at(-1)?.[1]).toMatchObject({
+        parent_service_id: null,
+      }),
+    );
+  });
+
+  it("excludes self and descendants from parent options", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByText("Connectivity"));
+    await userEvent.click(await screen.findByRole("combobox", { name: "Parent service" }));
+    expect(await screen.findByText("No matches")).toBeInTheDocument();
+  });
+
 });

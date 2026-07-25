@@ -18,7 +18,7 @@ vi.mock("../../api/client", () => ({
   deleteProduct: vi.fn(),
 }));
 
-import { createArt, deleteProduct, getArts } from "../../api/client";
+import { createArt, createProduct, deleteProduct, getArts, updateArt, updateProduct } from "../../api/client";
 
 describe("CatalogSection", () => {
   it("lists ARTs and products", async () => {
@@ -50,4 +50,34 @@ describe("CatalogSection", () => {
     await userEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(deleteProduct).toHaveBeenCalledWith(1);
   });
+
+
+  it("renames an ART inline", async () => {
+    render(<CatalogSection />);
+    await userEvent.click(await screen.findByRole("button", { name: "Rename Platform ART" }));
+    const input = screen.getByRole("textbox", { name: "Rename Platform ART" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "P-ART{Enter}");
+    expect(updateArt).toHaveBeenCalledWith(1, { name: "P-ART" });
+  });
+
+  it("renames a product inline", async () => {
+    render(<CatalogSection />);
+    await userEvent.click(await screen.findByRole("button", { name: "Rename Network" }));
+    const input = screen.getByRole("textbox", { name: "Rename Network" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "Net{Enter}");
+    expect(updateProduct).toHaveBeenCalledWith(1, { name: "Net" });
+  });
+
+  it("keeps the typed product name when no ART is selected", async () => {
+    render(<CatalogSection />);
+    await screen.findByText("Network");
+    await userEvent.type(screen.getByPlaceholderText("New product name"), "Storage");
+    await userEvent.click(screen.getByRole("button", { name: "Add product" }));
+    expect(await screen.findByText("Select an ART for the new product")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("New product name")).toHaveValue("Storage");
+    expect(createProduct).not.toHaveBeenCalled();
+  });
+
 });

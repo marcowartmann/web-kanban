@@ -15,6 +15,8 @@ vi.mock("../api/client", () => ({
   getServiceOptions: vi.fn().mockResolvedValue([]),
 }));
 
+import { getProducts } from "../api/client";
+
 describe("ProductsView", () => {
   it("groups products by ART with service counts", async () => {
     render(<ProductsView />);
@@ -30,4 +32,21 @@ describe("ProductsView", () => {
     await userEvent.click(await screen.findByText("Network"));
     await waitFor(() => expect(screen.getByRole("button", { name: /back/i })).toBeInTheDocument());
   });
+
+
+  it("sorts ART groups alphabetically with No ART last", async () => {
+    vi.mocked(getProducts).mockResolvedValueOnce([
+      { id: 3, name: "Zed", description: null, art_id: 9, art_name: "Zulu ART",
+        team_id: null, team_name: null, service_count: 0 },
+      { id: 4, name: "Orphan", description: null, art_id: 0, art_name: null,
+        team_id: null, team_name: null, service_count: 0 },
+      { id: 5, name: "Alpha", description: null, art_id: 8, art_name: "Alpha ART",
+        team_id: null, team_name: null, service_count: 0 },
+    ]);
+    render(<ProductsView />);
+    await screen.findByText("Zed");
+    const headings = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(headings).toEqual(["Alpha ART", "Zulu ART", "No ART"]);
+  });
+
 });
