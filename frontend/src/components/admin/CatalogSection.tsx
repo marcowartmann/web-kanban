@@ -31,16 +31,21 @@ export default function CatalogSection() {
     setTeams(t);
   }, []);
   useEffect(() => {
-    void load();
+    void load().catch((e) => setError(e instanceof Error ? e.message : "Failed to load catalog"));
   }, [load]);
 
   const run = async (fn: () => Promise<unknown>) => {
     setError(null);
     try {
       await fn();
-      await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed");
+      return;
+    }
+    try {
+      await load();
+    } catch {
+      setError("Saved, but refreshing the list failed — reload the page.");
     }
   };
 

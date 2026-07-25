@@ -18,7 +18,7 @@ vi.mock("../../api/client", () => ({
   deleteProduct: vi.fn(),
 }));
 
-import { createArt, deleteProduct } from "../../api/client";
+import { createArt, deleteProduct, getArts } from "../../api/client";
 
 describe("CatalogSection", () => {
   it("lists ARTs and products", async () => {
@@ -35,6 +35,12 @@ describe("CatalogSection", () => {
     await userEvent.type(screen.getByPlaceholderText("New ART name"), "New ART");
     await userEvent.click(screen.getByRole("button", { name: "Add ART" }));
     expect(createArt).toHaveBeenCalledWith("New ART");
+  });
+
+  it("shows an error strip when the initial load fails", async () => {
+    vi.mocked(getArts).mockRejectedValueOnce(new Error("Network down"));
+    render(<CatalogSection />);
+    expect(await screen.findByText("Network down")).toBeInTheDocument();
   });
 
   it("asks for confirmation before deleting a product", async () => {
