@@ -42,9 +42,19 @@ def update_art(
     current: User = Depends(require_admin),
 ):
     check_writable(repo)
-    art = repo.update(art_id, payload.model_dump(exclude_unset=True))
-    log_event(db, actor=current, event_type="art.updated", entity_type="art",
-              entity_id=art.id, entity_label=art.name)
+    before = repo.get(art_id)
+    changes = payload.model_dump(exclude_unset=True)
+    art = repo.update(art_id, changes)
+    for key in ("name", "description"):
+        if key not in changes:
+            continue
+        old_value = getattr(before, key)
+        new_value = getattr(art, key)
+        if old_value == new_value:
+            continue
+        log_event(db, actor=current, event_type="art.updated", entity_type="art",
+                  entity_id=art.id, entity_label=art.name,
+                  field=key, old_value=old_value, new_value=new_value)
     db.commit()
     return art
 

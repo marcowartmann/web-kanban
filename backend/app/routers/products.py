@@ -48,9 +48,21 @@ def update_product(
     current: User = Depends(require_admin),
 ):
     check_writable(repo)
-    product = repo.update(product_id, payload.model_dump(exclude_unset=True))
-    log_event(db, actor=current, event_type="product.updated", entity_type="product",
-              entity_id=product.id, entity_label=product.name)
+    before = repo.get(product_id)
+    changes = payload.model_dump(exclude_unset=True)
+    product = repo.update(product_id, changes)
+    # ids mean nothing in the log — audit the ART/team by name, not id.
+    for key, field, old_value, new_value in (
+        ("name", "name", before.name, product.name),
+        ("description", "description", before.description, product.description),
+        ("art_id", "art", before.art_name, product.art_name),
+        ("team_id", "team", before.team_name, product.team_name),
+    ):
+        if key not in changes or old_value == new_value:
+            continue
+        log_event(db, actor=current, event_type="product.updated", entity_type="product",
+                  entity_id=product.id, entity_label=product.name,
+                  field=field, old_value=old_value, new_value=new_value)
     db.commit()
     return product
 

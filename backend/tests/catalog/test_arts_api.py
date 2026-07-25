@@ -20,6 +20,10 @@ def test_art_delete_with_products_409(client):
     assert client.delete(f"/api/v1/arts/{art_id}").status_code == 409
 
 
-def test_art_writes_admin_only(member_client):
+def test_art_writes_admin_only(client, member_client):
     assert member_client.post("/api/v1/arts", json={"name": "A"}).status_code == 403
     assert member_client.get("/api/v1/arts").status_code == 200
+
+    art_id = client.post("/api/v1/arts", json={"name": "B"}).json()["id"]
+    assert member_client.patch(f"/api/v1/arts/{art_id}", json={"name": "x"}).status_code == 403
+    assert member_client.delete(f"/api/v1/arts/{art_id}").status_code == 403
