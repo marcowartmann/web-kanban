@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from sqlalchemy import func, select
 
+from app.catalog.adapters.postgres import get_or_create_art_id
 from app.models import ItemKind
 
 # Column-name constants (CSV header strings)
@@ -176,11 +177,13 @@ def _insert_item(db, parsed_item, parent_id, position, assignee_ids):
     data = dict(parsed_item.data)
     raw = data.pop("assignee", None)
     name = str(raw).strip() if raw and str(raw).strip() else None
+    art_id = get_or_create_art_id(db, data.pop("art", None))
     item = Item(
         kind=parsed_item.kind,
         parent_id=parent_id,
         position=position,
         assignee_id=assignee_ids.get(name) if name else None,
+        art_id=art_id,
         **data,
     )
     db.add(item)

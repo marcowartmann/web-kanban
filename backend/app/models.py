@@ -53,7 +53,9 @@ class Item(Base):
     title: Mapped[str] = mapped_column(String(512))
     description: Mapped[str | None] = mapped_column(Text)
     kategorie: Mapped[str | None] = mapped_column(String(256))
-    art: Mapped[str | None] = mapped_column(String(64))
+    art_id: Mapped[int | None] = mapped_column(
+        ForeignKey("arts.id", ondelete="SET NULL"), index=True
+    )
     risk_scope: Mapped[str | None] = mapped_column(String(16))  # "art" | "team" | NULL (risks only)
     sdi_prio: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str | None] = mapped_column(String(64), index=True)
@@ -102,6 +104,7 @@ class Item(Base):
 
     assignee_user: Mapped["User | None"] = relationship(foreign_keys=[assignee_id])
     department: Mapped["TeamDepartment | None"] = relationship()
+    art_ref: Mapped["Art | None"] = relationship(lazy="joined")
 
     @property
     def assignee(self) -> str | None:
@@ -110,6 +113,10 @@ class Item(Base):
     @property
     def department_name(self) -> str | None:
         return self.department.name if self.department else None
+
+    @property
+    def art(self) -> str | None:
+        return self.art_ref.name if self.art_ref else None
 
 
 class ItemLink(Base):

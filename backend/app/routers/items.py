@@ -5,6 +5,7 @@ from sqlalchemy.orm.exc import StaleDataError
 
 from app.audit import ITEM_TRACKED_FIELDS, diff_item_changes, log_event
 from app.auth import require_user
+from app.catalog.adapters.postgres import get_or_create_art_id
 from app.db import get_db
 from app.links import RELATIONS
 from app.models import AuditEvent, Container, Item, ItemKind, ItemLink, TeamDepartment, User
@@ -201,7 +202,9 @@ def create_item(
             db, payload.department_id,
             kind=payload.kind, leading_team=payload.leading_team,
         )
-    item = Item(**payload.model_dump())
+    data = payload.model_dump()
+    art_name = data.pop("art", None)
+    item = Item(**data, art_id=get_or_create_art_id(db, art_name))
     recompute(item)
     db.add(item)
     db.flush()

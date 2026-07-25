@@ -238,6 +238,18 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
         warnings.append(
             f"Cleared department for {cleared_departments} item(s) whose department no longer exists"
         )
+    # ART: rows carry art_id (new snapshots) or a legacy "art" name string
+    # (snapshots from before migration 0026). Resolve names, clear dangling ids.
+    from app.catalog.adapters.postgres import get_or_create_art_id
+    from app.models import Art
+
+    existing_art_ids = set(db.scalars(select(Art.id)))
+    for raw, row in zip(raw_items, item_rows):
+        if row.get("art_id") is not None and row["art_id"] not in existing_art_ids:
+            row["art_id"] = None
+        if row.get("art_id") is None and raw.get("art"):
+            row["art_id"] = get_or_create_art_id(db, raw["art"])
+            existing_art_ids.add(row["art_id"])
     if item_rows:
         db.execute(insert(Item.__table__), [{**r, "parent_id": None} for r in item_rows])
         for row in item_rows:
