@@ -63,7 +63,7 @@ async def _catalog_in_use(request: Request, exc: CatalogInUse) -> JSONResponse:
     return JSONResponse(status_code=409, content={"detail": str(exc)})
 
 
-from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments, pi_objectives, backup, ldap_config, arts, products
+from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments, pi_objectives, backup, ldap_config, arts, products, services
 
 app.include_router(auth.router)
 for protected in (
@@ -85,6 +85,7 @@ for protected in (
     ldap_config.router,
     arts.router,
     products.router,
+    services.router,
 ):
     app.include_router(protected, dependencies=[Depends(require_user)])
 

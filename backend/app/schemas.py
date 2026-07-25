@@ -629,3 +629,70 @@ class ProductUpdate(BaseModel):
     description: str | None = None
     art_id: int | None = None
     team_id: int | None = None
+
+
+# --- Catalog: services + dependencies ---------------------------------------
+
+class ServiceRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    description: str | None = None
+    product_id: int
+    parent_service_id: int | None = None
+    owner_user_id: int | None = None
+    owner_name: str | None = None
+    lifecycle_state: LifecycleState
+    children: list["ServiceRead"] = []
+
+
+class ServiceCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    product_id: int
+    description: str | None = None
+    parent_service_id: int | None = None
+    owner_user_id: int | None = None
+    lifecycle_state: LifecycleState = LifecycleState.PLANNED
+
+
+class ServiceUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = None
+    parent_service_id: int | None = None
+    owner_user_id: int | None = None
+    lifecycle_state: LifecycleState | None = None
+
+
+class ServiceOption(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    product_id: int
+    product_name: str | None = None
+
+
+class DependencyCreate(BaseModel):
+    to_service_id: int
+    dep_type: DependencyType
+    criticality: Criticality
+    note: str | None = None
+
+
+class DependencyRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    from_service_id: int
+    to_service_id: int
+    from_service_name: str | None = None
+    to_service_name: str | None = None
+    from_product_name: str | None = None
+    to_product_name: str | None = None
+    dep_type: DependencyType
+    criticality: Criticality
+    note: str | None = None
+
+
+class ServiceDependenciesRead(BaseModel):
+    outbound: list[DependencyRead]
+    inbound: list[DependencyRead]
