@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy import func, select
 
+from app import models as m
 from app.catalog.adapters.postgres import (
     PostgresArtRepository,
     PostgresProductRepository,
@@ -246,3 +247,45 @@ def test_remove_dependency_wrong_from_service(repos):
     )
     with pytest.raises(CatalogNotFound):
         services.remove_dependency(c.id, dep.id)
+
+
+def test_product_update_refreshes_stale_art_relationship(repos, db_session):
+    # Regression: SQLAlchemy does not auto-refresh an already-loaded
+    # relationship when its FK column changes underneath it. Holding a live
+    # reference to the ORM row -- as any long-lived cache, or a non-refcounting
+    # runtime, would -- prevents the "before" get() from being masked by a
+    # GC-forced re-SELECT, exposing the staleness for real.
+    arts, products, _ = repos
+    art1 = arts.create(name="ART One")
+    art2 = arts.create(name="ART Two")
+    product = products.create(name="Network", art_id=art1.id)
+
+    held_row = db_session.get(m.Product, product.id)
+    assert held_row.art.name == "ART One"  # loads + caches the relationship
+
+    products.get(product.id)
+    updated = products.update(product.id, {"art_id": art2.id})
+
+    assert updated.art_name == "ART Two"
+    assert held_row.art_id == art2.id
+
+
+def test_service_update_refreshes_stale_owner_relationship(repos, db_session):
+    _, _, services = repos
+    _, product = _seed(repos)
+    user1 = m.User(email="u1@x.com", display_name="User One",
+                    password_hash=None, role="member")
+    user2 = m.User(email="u2@x.com", display_name="User Two",
+                    password_hash=None, role="member")
+    db_session.add_all([user1, user2])
+    db_session.flush()
+    svc = services.create(name="Svc", product_id=product.id, owner_user_id=user1.id)
+
+    held_row = db_session.get(m.Service, svc.id)
+    assert held_row.owner.display_name == "User One"  # loads + caches the relationship
+
+    services.get(svc.id)
+    updated = services.update(svc.id, {"owner_user_id": user2.id})
+
+    assert updated.owner_name == "User Two"
+    assert held_row.owner_user_id == user2.id

@@ -181,6 +181,10 @@ class PostgresProductRepository:
             if key in changes:
                 setattr(row, key, changes[key])
         self.db.flush()
+        # flush() does not refresh an already-loaded relationship when its FK
+        # column changes underneath it -- expire so the mapping below re-reads
+        # art/team via a fresh SELECT instead of serving stale cached names.
+        self.db.expire(row, ["art", "team"])
         return _to_product(row, self._service_count(product_id))
 
     def delete(self, product_id: int) -> None:
@@ -307,6 +311,9 @@ class PostgresServiceRepository:
             if key in changes:
                 setattr(row, key, changes[key])
         self.db.flush()
+        # See PostgresProductRepository.update: expire the cached relationship
+        # so a changed owner_user_id is reflected in the mapped owner_name.
+        self.db.expire(row, ["owner"])
         return _to_service(row)
 
     def delete(self, service_id: int) -> None:

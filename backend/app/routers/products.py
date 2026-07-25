@@ -51,14 +51,20 @@ def update_product(
     before = repo.get(product_id)
     changes = payload.model_dump(exclude_unset=True)
     product = repo.update(product_id, changes)
-    # ids mean nothing in the log — audit the ART/team by name, not id.
-    for key, field, old_value, new_value in (
-        ("name", "name", before.name, product.name),
-        ("description", "description", before.description, product.description),
-        ("art_id", "art", before.art_name, product.art_name),
-        ("team_id", "team", before.team_name, product.team_name),
+    # Change detection is gated on the underlying id — two different
+    # ARTs/teams can share a display name, and comparing names would then
+    # silently swallow a real FK change. The resolved names are still what
+    # gets logged, since ids mean nothing to a human reading the audit log.
+    for key, field, changed, old_value, new_value in (
+        ("name", "name", before.name != product.name, before.name, product.name),
+        ("description", "description", before.description != product.description,
+         before.description, product.description),
+        ("art_id", "art", before.art_id != product.art_id,
+         before.art_name, product.art_name),
+        ("team_id", "team", before.team_id != product.team_id,
+         before.team_name, product.team_name),
     ):
-        if key not in changes or old_value == new_value:
+        if key not in changes or not changed:
             continue
         log_event(db, actor=current, event_type="product.updated", entity_type="product",
                   entity_id=product.id, entity_label=product.name,

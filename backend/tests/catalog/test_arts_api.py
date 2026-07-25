@@ -1,3 +1,6 @@
+from app.models import AuditEvent
+
+
 def test_art_crud_as_admin(client):
     r = client.post("/api/v1/arts", json={"name": "Platform ART", "description": "d"})
     assert r.status_code == 201
@@ -27,3 +30,26 @@ def test_art_writes_admin_only(client, member_client):
     art_id = client.post("/api/v1/arts", json={"name": "B"}).json()["id"]
     assert member_client.patch(f"/api/v1/arts/{art_id}", json={"name": "x"}).status_code == 403
     assert member_client.delete(f"/api/v1/arts/{art_id}").status_code == 403
+
+
+def test_art_update_logs_field_level_audit(client, db_session):
+    art_id = client.post(
+        "/api/v1/arts",
+        json={"name": "Platform ART", "description": "old desc"},
+    ).json()["id"]
+    db_session.query(AuditEvent).filter_by(event_type="art.updated").delete()
+    db_session.commit()
+
+    r = client.patch(
+        f"/api/v1/arts/{art_id}",
+        json={"name": "Platform ART v2", "description": "old desc"},
+    )
+    assert r.status_code == 200
+
+    events = db_session.query(AuditEvent).filter_by(event_type="art.updated").all()
+    by_field = {e.field: e for e in events}
+
+    assert by_field["name"].old_value == "Platform ART"
+    assert by_field["name"].new_value == "Platform ART v2"
+    # description was PATCHed but unchanged (same value) -> no event emitted
+    assert "description" not in by_field
