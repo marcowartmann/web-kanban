@@ -514,7 +514,7 @@ class Service(Base):
         ForeignKey("users.id", ondelete="SET NULL")
     )
     lifecycle_state: Mapped[LifecycleState] = mapped_column(
-        Enum(LifecycleState, native_enum=False),
+        Enum(LifecycleState, native_enum=False, values_callable=lambda e: [m.value for m in e], length=16),
         default=LifecycleState.PLANNED,
         server_default="planned",
     )
@@ -543,8 +543,12 @@ class ServiceDependency(Base):
     to_service_id: Mapped[int] = mapped_column(
         ForeignKey("services.id", ondelete="RESTRICT"), index=True
     )
-    dep_type: Mapped[DependencyType] = mapped_column(Enum(DependencyType, native_enum=False))
-    criticality: Mapped[Criticality] = mapped_column(Enum(Criticality, native_enum=False))
+    dep_type: Mapped[DependencyType] = mapped_column(
+        Enum(DependencyType, native_enum=False, values_callable=lambda e: [m.value for m in e], length=16)
+    )
+    criticality: Mapped[Criticality] = mapped_column(
+        Enum(Criticality, native_enum=False, values_callable=lambda e: [m.value for m in e], length=16)
+    )
     note: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, server_default=func.now()
