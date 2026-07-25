@@ -164,3 +164,20 @@ def test_service_update_clearing_parent_is_audited(client, db_session, product_i
     assert "parent" in by_field
     assert by_field["parent"].old_value == "Parent"
     assert by_field["parent"].new_value is None
+
+
+def test_dependency_removed_audit_carries_target(member_client, product_id, db_session):
+    a = member_client.post("/api/v1/services",
+                           json={"name": "A", "product_id": product_id}).json()["id"]
+    b = member_client.post("/api/v1/services",
+                           json={"name": "B", "product_id": product_id}).json()["id"]
+    dep_id = member_client.post(f"/api/v1/services/{a}/dependencies", json={
+        "to_service_id": b, "dep_type": "uses", "criticality": "optional",
+    }).json()["id"]
+    assert member_client.delete(
+        f"/api/v1/services/{a}/dependencies/{dep_id}").status_code == 204
+    event = db_session.query(AuditEvent).filter_by(
+        event_type="service.dependency_removed").one()
+    assert event.entity_label == "A"
+    assert event.field == "depends_on"
+    assert event.old_value == "B"

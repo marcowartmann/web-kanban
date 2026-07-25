@@ -78,3 +78,35 @@ def test_snapshot_restore_clears_dangling_art_id(client, db_session):
     restore_from_snapshot(db_session, data)
     db_session.commit()
     assert db_session.get(Item, 1).art is None
+
+
+def test_snapshot_restore_warns_about_cleared_art(client, db_session):
+    from app.snapshots import restore_from_snapshot
+
+    data = {
+        "items": [{"id": 1, "kind": "feature", "title": "Old", "art_id": 999,
+                   "position": 0, "version": 1, "parent_id": None,
+                   "created_at": "2026-01-01T00:00:00+00:00",
+                   "updated_at": "2026-01-01T00:00:00+00:00"}],
+        "comments": [], "links": [],
+    }
+    _, _, _, warnings = restore_from_snapshot(db_session, data)
+    db_session.commit()
+    assert "Cleared ART for 1 item(s) whose ART no longer exists" in warnings
+
+
+def test_snapshot_restore_rescued_art_does_not_warn(client, db_session):
+    from app.snapshots import restore_from_snapshot
+
+    data = {
+        "items": [{"id": 1, "kind": "feature", "title": "Old", "art_id": 999,
+                   "art": "Rescued ART",
+                   "position": 0, "version": 1, "parent_id": None,
+                   "created_at": "2026-01-01T00:00:00+00:00",
+                   "updated_at": "2026-01-01T00:00:00+00:00"}],
+        "comments": [], "links": [],
+    }
+    _, _, _, warnings = restore_from_snapshot(db_session, data)
+    db_session.commit()
+    assert not any("Cleared ART" in w for w in warnings)
+    assert db_session.get(Item, 1).art == "Rescued ART"

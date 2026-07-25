@@ -162,7 +162,13 @@ def remove_dependency(
     current: User = Depends(require_user),
 ):
     check_writable(repo)
+    # Look the edge up before it is gone so the audit names both ends
+    # (a bare "dependency removed" tells the log reader nothing).
+    outbound, _ = repo.list_dependencies(service_id)
+    dep = next((d for d in outbound if d.id == dep_id), None)
     repo.remove_dependency(service_id, dep_id)
     log_event(db, actor=current, event_type="service.dependency_removed",
-              entity_type="service", entity_id=service_id)
+              entity_type="service", entity_id=service_id,
+              entity_label=dep.from_service_name if dep else None,
+              field="depends_on", old_value=dep.to_service_name if dep else None)
     db.commit()

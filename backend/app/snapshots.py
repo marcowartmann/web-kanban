@@ -244,12 +244,20 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
     from app.models import Art
 
     existing_art_ids = set(db.scalars(select(Art.id)))
+    cleared_arts = 0
     for raw, row in zip(raw_items, item_rows):
-        if row.get("art_id") is not None and row["art_id"] not in existing_art_ids:
+        had_dangling = row.get("art_id") is not None and row["art_id"] not in existing_art_ids
+        if had_dangling:
             row["art_id"] = None
         if row.get("art_id") is None and raw.get("art"):
             row["art_id"] = get_or_create_art_id(db, raw["art"])
             existing_art_ids.add(row["art_id"])
+        if had_dangling and row["art_id"] is None:
+            cleared_arts += 1
+    if cleared_arts:
+        warnings.append(
+            f"Cleared ART for {cleared_arts} item(s) whose ART no longer exists"
+        )
     if item_rows:
         db.execute(insert(Item.__table__), [{**r, "parent_id": None} for r in item_rows])
         for row in item_rows:
