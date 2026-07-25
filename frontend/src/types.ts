@@ -296,3 +296,63 @@ export interface Comment {
   created_at: string;
   updated_at: string | null;
 }
+
+// --- Catalog ---------------------------------------------------------------
+
+export type LifecycleState = "planned" | "active" | "deprecated" | "retired";
+export type DependencyType = "requires" | "uses";
+export type DependencyCriticality = "critical" | "important" | "optional";
+
+export interface Art {
+  id: number;
+  name: string;
+  description: string | null;
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  description: string | null;
+  art_id: number;
+  art_name: string | null;
+  team_id: number | null;
+  team_name: string | null;
+  service_count: number;
+}
+
+export interface CatalogService {
+  id: number;
+  name: string;
+  description: string | null;
+  product_id: number;
+  parent_service_id: number | null;
+  owner_user_id: number | null;
+  owner_name: string | null;
+  lifecycle_state: LifecycleState;
+  children: CatalogService[];
+}
+
+export interface ServiceOption {
+  id: number;
+  name: string;
+  product_id: number;
+  product_name: string | null;
+}
+
+export interface ServiceDependencyRead {
+  id: number;
+  from_service_id: number;
+  to_service_id: number;
+  from_service_name: string | null;
+  to_service_name: string | null;
+  from_product_name: string | null;
+  to_product_name: string | null;
+  dep_type: DependencyType;
+  criticality: DependencyCriticality;
+  note: string | null;
+}
+
+export interface ServiceDependencies {
+  outbound: ServiceDependencyRead[];
+  inbound: ServiceDependencyRead[];
+}

@@ -2,6 +2,25 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createItem, createLink, deleteLink, getBoards, getTeams, importCsv, listItems, listLinks, listSnapshots, previewImport, reorderLanes, restoreSnapshot, updateItem } from "./client";
 import { createPlanningInterval, deletePlanningInterval, getPlanningIntervals } from "./client";
 import { deleteUser, getPersonOptions } from "./client";
+import {
+  addServiceDependency,
+  createArt,
+  createProduct,
+  createService,
+  deleteArt,
+  deleteProduct,
+  deleteService,
+  getArts,
+  getProduct,
+  getProductServices,
+  getProducts,
+  getServiceDependencies,
+  getServiceOptions,
+  removeServiceDependency,
+  updateArt,
+  updateProduct,
+  updateService,
+} from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -183,6 +202,138 @@ describe("api client", () => {
     const spy = mockFetch(204, null);
     await deleteUser(7);
     expect(spy.mock.calls[0][0]).toBe("/api/v1/users/7");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getArts fetches /api/v1/arts", async () => {
+    const spy = mockFetch(200, [{ id: 1, name: "ART1", description: null }]);
+    const arts = await getArts();
+    expect(spy).toHaveBeenCalledWith("/api/v1/arts", undefined);
+    expect(arts[0].name).toBe("ART1");
+  });
+
+  it("createArt posts name + description", async () => {
+    const spy = mockFetch(201, { id: 1, name: "ART1", description: "d" });
+    await createArt("ART1", "d");
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/arts");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "ART1", description: "d" });
+  });
+
+  it("createArt defaults description to null when omitted", async () => {
+    const spy = mockFetch(201, { id: 1, name: "ART1", description: null });
+    await createArt("ART1");
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({ name: "ART1", description: null });
+  });
+
+  it("updateArt PATCHes changes", async () => {
+    const spy = mockFetch(200, { id: 1, name: "ART2", description: null });
+    await updateArt(1, { name: "ART2" });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/arts/1");
+    expect(init?.method).toBe("PATCH");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "ART2" });
+  });
+
+  it("deleteArt sends DELETE", async () => {
+    const spy = mockFetch(204, null);
+    await deleteArt(1);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/arts/1");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getProducts GETs /api/v1/products", async () => {
+    const spy = mockFetch(200, []);
+    await getProducts();
+    expect(spy).toHaveBeenCalledWith("/api/v1/products", undefined);
+  });
+
+  it("getProduct fetches by id", async () => {
+    const spy = mockFetch(200, { id: 3, name: "P" });
+    await getProduct(3);
+    expect(spy).toHaveBeenCalledWith("/api/v1/products/3", undefined);
+  });
+
+  it("createProduct posts payload", async () => {
+    const spy = mockFetch(201, { id: 1, name: "P", art_id: 2 });
+    await createProduct({ name: "P", art_id: 2 });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/products");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "P", art_id: 2 });
+  });
+
+  it("updateProduct PATCHes changes", async () => {
+    const spy = mockFetch(200, { id: 1, name: "P2" });
+    await updateProduct(1, { name: "P2" });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/products/1");
+    expect(init?.method).toBe("PATCH");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "P2" });
+  });
+
+  it("deleteProduct sends DELETE", async () => {
+    const spy = mockFetch(204, null);
+    await deleteProduct(1);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/products/1");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getProductServices fetches the nested tree", async () => {
+    const spy = mockFetch(200, []);
+    await getProductServices(4);
+    expect(spy).toHaveBeenCalledWith("/api/v1/products/4/services", undefined);
+  });
+
+  it("getServiceOptions GETs /api/v1/services", async () => {
+    const spy = mockFetch(200, []);
+    await getServiceOptions();
+    expect(spy).toHaveBeenCalledWith("/api/v1/services", undefined);
+  });
+
+  it("createService POSTs payload", async () => {
+    const spy = mockFetch(201, { id: 1 });
+    await createService({ name: "S", product_id: 2 });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/services");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "S", product_id: 2 });
+  });
+
+  it("updateService PATCHes changes", async () => {
+    const spy = mockFetch(200, { id: 1 });
+    await updateService(1, { lifecycle_state: "active" });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/services/1");
+    expect(init?.method).toBe("PATCH");
+    expect(JSON.parse(init?.body as string)).toEqual({ lifecycle_state: "active" });
+  });
+
+  it("deleteService sends DELETE", async () => {
+    const spy = mockFetch(204, null);
+    await deleteService(1);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/services/1");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getServiceDependencies fetches outbound/inbound", async () => {
+    const spy = mockFetch(200, { outbound: [], inbound: [] });
+    await getServiceDependencies(5);
+    expect(spy).toHaveBeenCalledWith("/api/v1/services/5/dependencies", undefined);
+  });
+
+  it("addServiceDependency POSTs to nested route", async () => {
+    const spy = mockFetch(201, { id: 1 });
+    await addServiceDependency(5, { to_service_id: 6, dep_type: "requires", criticality: "critical" });
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/services/5/dependencies");
+    expect(spy.mock.calls[0][1]?.method).toBe("POST");
+  });
+
+  it("removeServiceDependency DELETEs", async () => {
+    const spy = mockFetch(204, null);
+    await removeServiceDependency(5, 9);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/services/5/dependencies/9");
     expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 });

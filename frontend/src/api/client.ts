@@ -1,13 +1,17 @@
 import type {
+  Art,
   AuditEvent,
   AuthUser,
   BackupConfig,
   BackupRun,
   Board,
   Capacity,
+  CatalogService,
   Comment,
   Container,
   Department,
+  DependencyCriticality,
+  DependencyType,
   ImportPreview,
   ImportResult,
   Item,
@@ -15,13 +19,18 @@ import type {
   ItemUpdate,
   Lane,
   LdapConfig,
+  LifecycleState,
   LinkRow,
   ObjectiveState,
   PersonOption,
   PIObjective,
   PlanningInterval,
+  Product,
   RelationOption,
   RestoreResult,
+  ServiceDependencies,
+  ServiceDependencyRead,
+  ServiceOption,
   SnapshotInfo,
   Team,
 } from "../types";
@@ -466,4 +475,114 @@ export function testLdap(
   },
 ): Promise<{ ok: boolean; message: string }> {
   return request<{ ok: boolean; message: string }>(`${API}/ldap/test`, json(body));
+}
+
+// --- Catalog ---------------------------------------------------------------
+
+export function getArts(): Promise<Art[]> {
+  return request<Art[]>(`${API}/arts`);
+}
+
+export function createArt(name: string, description?: string | null): Promise<Art> {
+  return request<Art>(`${API}/arts`, json({ name, description: description ?? null }));
+}
+
+export function updateArt(
+  id: number,
+  changes: Partial<Pick<Art, "name" | "description">>,
+): Promise<Art> {
+  return request<Art>(`${API}/arts/${id}`, { ...json(changes), method: "PATCH" });
+}
+
+export function deleteArt(id: number): Promise<void> {
+  return request<void>(`${API}/arts/${id}`, { method: "DELETE" });
+}
+
+export function getProducts(): Promise<Product[]> {
+  return request<Product[]>(`${API}/products`);
+}
+
+export function getProduct(id: number): Promise<Product> {
+  return request<Product>(`${API}/products/${id}`);
+}
+
+export function createProduct(payload: {
+  name: string;
+  art_id: number;
+  description?: string | null;
+  team_id?: number | null;
+}): Promise<Product> {
+  return request<Product>(`${API}/products`, json(payload));
+}
+
+export function updateProduct(
+  id: number,
+  changes: Partial<{
+    name: string;
+    description: string | null;
+    art_id: number;
+    team_id: number | null;
+  }>,
+): Promise<Product> {
+  return request<Product>(`${API}/products/${id}`, { ...json(changes), method: "PATCH" });
+}
+
+export function deleteProduct(id: number): Promise<void> {
+  return request<void>(`${API}/products/${id}`, { method: "DELETE" });
+}
+
+export function getProductServices(productId: number): Promise<CatalogService[]> {
+  return request<CatalogService[]>(`${API}/products/${productId}/services`);
+}
+
+export function getServiceOptions(): Promise<ServiceOption[]> {
+  return request<ServiceOption[]>(`${API}/services`);
+}
+
+export function createService(payload: {
+  name: string;
+  product_id: number;
+  description?: string | null;
+  parent_service_id?: number | null;
+  owner_user_id?: number | null;
+  lifecycle_state?: LifecycleState;
+}): Promise<CatalogService> {
+  return request<CatalogService>(`${API}/services`, json(payload));
+}
+
+export function updateService(
+  id: number,
+  changes: Partial<{
+    name: string;
+    description: string | null;
+    parent_service_id: number | null;
+    owner_user_id: number | null;
+    lifecycle_state: LifecycleState;
+  }>,
+): Promise<CatalogService> {
+  return request<CatalogService>(`${API}/services/${id}`, { ...json(changes), method: "PATCH" });
+}
+
+export function deleteService(id: number): Promise<void> {
+  return request<void>(`${API}/services/${id}`, { method: "DELETE" });
+}
+
+export function getServiceDependencies(id: number): Promise<ServiceDependencies> {
+  return request<ServiceDependencies>(`${API}/services/${id}/dependencies`);
+}
+
+export function addServiceDependency(
+  id: number,
+  payload: {
+    to_service_id: number;
+    dep_type: DependencyType;
+    criticality: DependencyCriticality;
+    note?: string | null;
+  },
+): Promise<ServiceDependencyRead> {
+  return request<ServiceDependencyRead>(`${API}/services/${id}/dependencies`, json(payload));
+}
+
+export function removeServiceDependency(id: number, depId: number): Promise<void> {
+  return request<void>(`${API}/services/${id}/dependencies/${depId}`, { method: "DELETE" });
 }
