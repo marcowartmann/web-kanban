@@ -1,7 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app import scheduler
 from app.auth import ensure_initial_admin, require_user
+from app.catalog.domain import CatalogInUse, CatalogNotFound, CatalogRuleViolation
 from app.config import settings
 from app.db import SessionLocal, get_db
 from app.ldap_settings import ensure_ldap_config
@@ -46,7 +47,23 @@ app.add_middleware(
 configure_access_logging()
 app.add_middleware(RequestLoggingMiddleware)
 
-from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments, pi_objectives, backup, ldap_config
+
+@app.exception_handler(CatalogNotFound)
+async def _catalog_not_found(request: Request, exc: CatalogNotFound) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+@app.exception_handler(CatalogRuleViolation)
+async def _catalog_rule_violation(request: Request, exc: CatalogRuleViolation) -> JSONResponse:
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
+@app.exception_handler(CatalogInUse)
+async def _catalog_in_use(request: Request, exc: CatalogInUse) -> JSONResponse:
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+from app.routers import auth, imports, items, boards, teams, capacities, containers, links, planning_intervals, users, audit, comments, features_ranking, departments, pi_objectives, backup, ldap_config, arts, products
 
 app.include_router(auth.router)
 for protected in (
@@ -66,6 +83,8 @@ for protected in (
     pi_objectives.router,
     backup.router,
     ldap_config.router,
+    arts.router,
+    products.router,
 ):
     app.include_router(protected, dependencies=[Depends(require_user)])
 

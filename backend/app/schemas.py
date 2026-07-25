@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.catalog.domain import Criticality, DependencyType, LifecycleState
 from app.models import ItemKind, ObjectiveState
 
 
@@ -581,3 +582,50 @@ class LdapTestRequest(BaseModel):
     # Optional: verify a real user login end-to-end.
     test_username: str | None = None
     test_password: str | None = None
+
+
+# --- Catalog: ARTs, products ------------------------------------------------
+
+class ArtRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    description: str | None = None
+
+
+class ArtCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=64)
+    description: str | None = None
+
+
+class ArtUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, min_length=1, max_length=64)
+    description: str | None = None
+
+
+class ProductRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    description: str | None = None
+    art_id: int
+    art_name: str | None = None
+    team_id: int | None = None
+    team_name: str | None = None
+    service_count: int = 0
+
+
+class ProductCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    art_id: int
+    description: str | None = None
+    team_id: int | None = None
+
+
+class ProductUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = None
+    art_id: int | None = None
+    team_id: int | None = None
