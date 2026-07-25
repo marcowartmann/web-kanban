@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import func, select
 
 from app.catalog.adapters.postgres import (
     PostgresArtRepository,
@@ -13,7 +14,7 @@ from app.catalog.domain import (
     DependencyType,
     LifecycleState,
 )
-from app.models import Team
+from app.models import ServiceDependency, Team
 
 
 @pytest.fixture()
@@ -115,7 +116,7 @@ def test_service_parent_rules(repos):
         services.update(s1.id, {"parent_service_id": c.id})
 
 
-def test_service_delete_guards(repos):
+def test_service_delete_guards(repos, db_session):
     _, _, services = repos
     _, product = _seed(repos)
     parent = services.create(name="P", product_id=product.id)
@@ -130,6 +131,7 @@ def test_service_delete_guards(repos):
     with pytest.raises(CatalogInUse):
         services.delete(dep_target.id)  # inbound dependency blocks
     services.delete(child.id)  # outbound dependency is removed with the service
+    assert db_session.scalar(select(func.count()).select_from(ServiceDependency)) == 0
 
 
 def test_dependencies(repos):
@@ -166,3 +168,81 @@ def test_list_all_carries_product_name(repos):
     _, product = _seed(repos)
     services.create(name="A", product_id=product.id)
     assert services.list_all()[0].product_name == "Network"
+
+
+def test_product_duplicate_name(repos):
+    _, products, _ = repos
+    art, product = _seed(repos)  # product.name == "Network"
+    with pytest.raises(CatalogRuleViolation):
+        products.create(name="Network", art_id=art.id)
+    other = products.create(name="Other", art_id=art.id)
+    with pytest.raises(CatalogRuleViolation):
+        products.update(other.id, {"name": "Network"})
+
+
+def test_product_art_id_rules(repos):
+    _, products, _ = repos
+    art, product = _seed(repos)
+    with pytest.raises(CatalogRuleViolation):
+        products.create(name="X", art_id=99999)
+    with pytest.raises(CatalogRuleViolation):
+        products.update(product.id, {"art_id": None})
+    with pytest.raises(CatalogRuleViolation):
+        products.update(product.id, {"art_id": 99999})
+
+
+def test_product_team_id_rules(repos):
+    _, products, _ = repos
+    art, product = _seed(repos)
+    with pytest.raises(CatalogRuleViolation):
+        products.create(name="X", art_id=art.id, team_id=99999)
+    with pytest.raises(CatalogRuleViolation):
+        products.update(product.id, {"team_id": 99999})
+
+
+def test_service_unknown_product_id(repos):
+    _, _, services = repos
+    with pytest.raises(CatalogRuleViolation):
+        services.create(name="X", product_id=99999)
+
+
+def test_service_owner_user_id_rules(repos):
+    _, _, services = repos
+    _, product = _seed(repos)
+    with pytest.raises(CatalogRuleViolation):
+        services.create(name="X", product_id=product.id, owner_user_id=99999)
+    svc = services.create(name="Y", product_id=product.id)
+    with pytest.raises(CatalogRuleViolation):
+        services.update(svc.id, {"owner_user_id": 99999})
+
+
+def test_service_unknown_parent(repos):
+    _, _, services = repos
+    _, product = _seed(repos)
+    with pytest.raises(CatalogRuleViolation):
+        services.create(name="X", product_id=product.id, parent_service_id=99999)
+
+
+def test_add_dependency_unknown_to_service(repos):
+    _, _, services = repos
+    _, product = _seed(repos)
+    a = services.create(name="A", product_id=product.id)
+    with pytest.raises(CatalogRuleViolation):
+        services.add_dependency(
+            from_service_id=a.id, to_service_id=99999,
+            dep_type=DependencyType.USES, criticality=Criticality.OPTIONAL,
+        )
+
+
+def test_remove_dependency_wrong_from_service(repos):
+    _, _, services = repos
+    _, product = _seed(repos)
+    a = services.create(name="A", product_id=product.id)
+    b = services.create(name="B", product_id=product.id)
+    c = services.create(name="C", product_id=product.id)
+    dep = services.add_dependency(
+        from_service_id=a.id, to_service_id=b.id,
+        dep_type=DependencyType.USES, criticality=Criticality.OPTIONAL,
+    )
+    with pytest.raises(CatalogNotFound):
+        services.remove_dependency(c.id, dep.id)
