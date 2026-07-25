@@ -1,11 +1,12 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
-import { faBox, faBoxArchive, faCalendarDays, faCloudArrowUp, faFileImport, faLock, faScroll, faUser, faUsers } from "../../icons";
+import { faBox, faBoxArchive, faCalendarDays, faCloudArrowUp, faFileImport, faLock, faScroll, faSitemap, faUser, faUsers } from "../../icons";
 import { useAuth } from "../../auth/AuthContext";
 import AuditLogSection from "./AuditLogSection";
 import BackupSection from "./BackupSection";
 import CapacitySection from "./CapacitySection";
+import CatalogSection from "./CatalogSection";
 import ContainersSection from "./ContainersSection";
 import DepartmentsSection from "./DepartmentsSection";
 import ImportSection from "./ImportSection";
@@ -15,13 +16,14 @@ import SnapshotsSection from "./SnapshotsSection";
 import TeamsSection from "./TeamsSection";
 import UsersSection from "./UsersSection";
 
-type AdminSection = "users" | "teams" | "intervals" | "containers" | "import" | "snapshots" | "backup" | "ldap" | "audit";
+type AdminSection = "users" | "teams" | "intervals" | "containers" | "catalog" | "import" | "snapshots" | "backup" | "ldap" | "audit";
 
 const SECTIONS: { id: AdminSection; label: string; icon: IconDefinition }[] = [
   { id: "users", label: "Users", icon: faUser },
   { id: "teams", label: "Teams & Capacity", icon: faUsers },
   { id: "intervals", label: "Planning Intervals", icon: faCalendarDays },
   { id: "containers", label: "Containers", icon: faBox },
+  { id: "catalog", label: "Catalog", icon: faSitemap },
   { id: "import", label: "Import CSV", icon: faFileImport },
   { id: "snapshots", label: "Snapshots", icon: faBoxArchive },
   { id: "backup", label: "Backup", icon: faCloudArrowUp },
@@ -88,6 +90,7 @@ export default function AdminView({
           {section === "containers" && (
             <ContainersSection planningIntervals={planningIntervals} />
           )}
+          {section === "catalog" && <CatalogSection />}
           {section === "import" && <ImportSection onImported={onChanged} />}
           {section === "snapshots" && <SnapshotsSection onChanged={onChanged} />}
           {section === "backup" && <BackupSection />}

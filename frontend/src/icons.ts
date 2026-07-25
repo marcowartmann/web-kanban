@@ -32,4 +32,5 @@ export {
   faBuilding,
   faChartColumn,
   faCloudArrowUp,
+  faSitemap,
 } from "@fortawesome/pro-duotone-svg-icons";
