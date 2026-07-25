@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { CatalogService, Product } from "../types";
@@ -29,7 +29,13 @@ vi.mock("../api/client", () => ({
   removeServiceDependency: vi.fn(),
 }));
 
-import { getProductServices } from "../api/client";
+import {
+  createService,
+  getProductServices,
+  getServiceDependencies,
+  removeServiceDependency,
+  updateService,
+} from "../api/client";
 
 const product: Product = {
   id: 1, name: "Network", description: "core", art_id: 1, art_name: "Platform ART",
@@ -58,6 +64,66 @@ describe("ProductDetail", () => {
     vi.mocked(getProductServices).mockResolvedValue([]);
     render(<ProductDetail product={product} onBack={() => {}} />);
     await userEvent.click(await screen.findByRole("button", { name: /add service/i }));
+    expect(screen.getByPlaceholderText("Service name")).toBeInTheDocument();
+  });
+
+  it("resets drawer state when switching to a different service", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByText("Connectivity"));
+    expect(await screen.findByDisplayValue("Connectivity")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("Campus LAN"));
+    expect(await screen.findByDisplayValue("Campus LAN")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("Connectivity")).not.toBeInTheDocument();
+  });
+
+  it("omits owner_user_id from the save payload when the owner field wasn't touched", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    vi.mocked(getServiceDependencies).mockResolvedValue({ outbound: [], inbound: [] });
+    vi.mocked(updateService).mockResolvedValue(tree[0]);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByText("Connectivity"));
+    await userEvent.click(await screen.findByRole("button", { name: "Save" }));
+    await waitFor(() => expect(updateService).toHaveBeenCalled());
+    expect(vi.mocked(updateService).mock.calls[0][1]).not.toHaveProperty("owner_user_id");
+  });
+
+  it("surfaces an error in the drawer when removing a dependency fails", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    vi.mocked(getServiceDependencies).mockResolvedValue({
+      outbound: [
+        {
+          id: 10,
+          from_service_id: 1,
+          to_service_id: 2,
+          from_service_name: "Connectivity",
+          to_service_name: "Campus LAN",
+          from_product_name: "Network",
+          to_product_name: "Network",
+          dep_type: "requires",
+          criticality: "important",
+          note: null,
+        },
+      ],
+      inbound: [],
+    });
+    vi.mocked(removeServiceDependency).mockRejectedValue(new Error("dependency in use"));
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByText("Connectivity"));
+    await userEvent.click(
+      await screen.findByRole("button", { name: /remove dependency on campus lan/i }),
+    );
+    expect(await screen.findByText("dependency in use")).toBeInTheDocument();
+  });
+
+  it("keeps the add-service form open and shows an error when creation fails", async () => {
+    vi.mocked(getProductServices).mockResolvedValue([]);
+    vi.mocked(createService).mockRejectedValue(new Error("name already exists"));
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByRole("button", { name: /add service/i }));
+    await userEvent.type(screen.getByPlaceholderText("Service name"), "Dup");
+    await userEvent.click(screen.getByRole("button", { name: "Create" }));
+    expect(await screen.findByText("name already exists")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Service name")).toBeInTheDocument();
   });
 });

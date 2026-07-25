@@ -64,13 +64,16 @@ export default function ServiceDrawer({
   const save = async () => {
     setError(null);
     try {
-      const owner = people.find((p) => p.display_name === ownerName);
-      await updateService(service.id, {
+      const changes: Parameters<typeof updateService>[1] = {
         name,
         description: description || null,
         lifecycle_state: state as CatalogService["lifecycle_state"],
-        owner_user_id: owner ? owner.id : null,
-      });
+      };
+      if (ownerName !== service.owner_name) {
+        const owner = people.find((p) => p.display_name === ownerName);
+        changes.owner_user_id = owner ? owner.id : null;
+      }
+      await updateService(service.id, changes);
       await onChanged();
       onClose();
     } catch (e) {
@@ -92,6 +95,16 @@ export default function ServiceDrawer({
       await loadDeps();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not add dependency");
+    }
+  };
+
+  const removeDep = async (depId: number) => {
+    setError(null);
+    try {
+      await removeServiceDependency(service.id, depId);
+      await loadDeps();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not remove dependency");
     }
   };
 
@@ -162,7 +175,7 @@ export default function ServiceDrawer({
             <span className="rounded-full bg-amber-50 px-1.5 text-xs text-amber-700">{d.criticality}</span>
             <button
               aria-label={`Remove dependency on ${d.to_service_name}`}
-              onClick={() => void removeServiceDependency(service.id, d.id).then(loadDeps)}
+              onClick={() => void removeDep(d.id)}
               className="text-xs text-gray-400 hover:text-red-600"
             >
               ✕

@@ -60,6 +60,7 @@ export default function ProductDetail({
   const [drawer, setDrawer] = useState<CatalogService | null>(null);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(
     () => getProductServices(product.id).then(setTree),
@@ -71,10 +72,15 @@ export default function ProductDetail({
 
   const addService = async () => {
     if (!newName.trim()) return;
-    await createService({ name: newName.trim(), product_id: product.id });
-    setNewName("");
-    setAdding(false);
-    await load();
+    setError(null);
+    try {
+      await createService({ name: newName.trim(), product_id: product.id });
+      setNewName("");
+      setAdding(false);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not create service");
+    }
   };
 
   return (
@@ -113,6 +119,9 @@ export default function ProductDetail({
             </button>
           </div>
         )}
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        )}
         {tree.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-400">No services yet.</div>
         ) : (
@@ -121,6 +130,7 @@ export default function ProductDetail({
       </div>
       {drawer && (
         <ServiceDrawer
+          key={drawer.id}
           service={drawer}
           productId={product.id}
           onClose={() => setDrawer(null)}
