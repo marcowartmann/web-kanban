@@ -1,6 +1,6 @@
 import pytest
 
-from app.models import AuditEvent
+from app.models import AuditEvent, User
 
 
 @pytest.fixture()
@@ -115,3 +115,52 @@ def test_service_update_logs_field_level_audit(client, db_session, product_id):
     assert by_field["parent"].new_value == "Parent"
     assert by_field["lifecycle_state"].old_value == "planned"
     assert by_field["lifecycle_state"].new_value == "active"
+
+
+def test_service_update_owner_reassignment_same_display_name_is_audited(
+    client, db_session, product_id
+):
+    # Two distinct users sharing a display_name: reassigning owner between
+    # them changes the FK (owner_user_id) but not the resolved name, so an
+    # "owner" audit event must still fire — name-based comparison would miss it.
+    ada1 = User(display_name="Ada", password_hash=None, role="member")
+    ada2 = User(display_name="Ada", password_hash=None, role="member")
+    db_session.add_all([ada1, ada2])
+    db_session.commit()
+
+    sid = client.post(
+        "/api/v1/services",
+        json={"name": "Connectivity", "product_id": product_id, "owner_user_id": ada1.id},
+    ).json()["id"]
+    db_session.query(AuditEvent).filter_by(event_type="service.updated").delete()
+    db_session.commit()
+
+    r = client.patch(f"/api/v1/services/{sid}", json={"owner_user_id": ada2.id})
+    assert r.status_code == 200
+
+    events = db_session.query(AuditEvent).filter_by(event_type="service.updated").all()
+    by_field = {e.field: e for e in events}
+    assert "owner" in by_field
+    assert by_field["owner"].old_value == "Ada"
+    assert by_field["owner"].new_value == "Ada"
+
+
+def test_service_update_clearing_parent_is_audited(client, db_session, product_id):
+    parent_id = client.post(
+        "/api/v1/services", json={"name": "Parent", "product_id": product_id}
+    ).json()["id"]
+    sid = client.post(
+        "/api/v1/services",
+        json={"name": "Child", "product_id": product_id, "parent_service_id": parent_id},
+    ).json()["id"]
+    db_session.query(AuditEvent).filter_by(event_type="service.updated").delete()
+    db_session.commit()
+
+    r = client.patch(f"/api/v1/services/{sid}", json={"parent_service_id": None})
+    assert r.status_code == 200
+
+    events = db_session.query(AuditEvent).filter_by(event_type="service.updated").all()
+    by_field = {e.field: e for e in events}
+    assert "parent" in by_field
+    assert by_field["parent"].old_value == "Parent"
+    assert by_field["parent"].new_value is None

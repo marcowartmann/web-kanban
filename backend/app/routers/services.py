@@ -73,27 +73,34 @@ def update_service(
     changes = payload.model_dump(exclude_unset=True)
     service = repo.update(service_id, changes)
 
-    # ids mean nothing in the log — audit owner/parent by name, not id.
-    for key, field, old_value, new_value in (
-        ("name", "name", before.name, service.name),
-        ("description", "description", before.description, service.description),
-        ("owner_user_id", "owner", before.owner_name, service.owner_name),
+    # Change detection is gated on the underlying id — two different owners
+    # (or parents) can share a display name, and comparing names would then
+    # silently swallow a real FK change. The resolved names are still what
+    # gets logged, since ids mean nothing to a human reading the audit log.
+    for key, field, changed, old_value, new_value in (
+        ("name", "name", before.name != service.name, before.name, service.name),
+        ("description", "description", before.description != service.description,
+         before.description, service.description),
+        ("owner_user_id", "owner", before.owner_user_id != service.owner_user_id,
+         before.owner_name, service.owner_name),
         ("lifecycle_state", "lifecycle_state",
+         before.lifecycle_state != service.lifecycle_state,
          before.lifecycle_state.value, service.lifecycle_state.value),
     ):
-        if key not in changes or old_value == new_value:
+        if key not in changes or not changed:
             continue
         log_event(db, actor=current, event_type="service.updated", entity_type="service",
                   entity_id=service.id, entity_label=service.name,
                   field=field, old_value=old_value, new_value=new_value)
 
-    if "parent_service_id" in changes:
+    if "parent_service_id" in changes and before.parent_service_id != service.parent_service_id:
+        # Old parent id relies on the child-delete guard (a service with
+        # children can't be deleted) to still be resolvable here.
         old_parent = repo.get(before.parent_service_id).name if before.parent_service_id else None
         new_parent = repo.get(service.parent_service_id).name if service.parent_service_id else None
-        if old_parent != new_parent:
-            log_event(db, actor=current, event_type="service.updated", entity_type="service",
-                      entity_id=service.id, entity_label=service.name,
-                      field="parent", old_value=old_parent, new_value=new_parent)
+        log_event(db, actor=current, event_type="service.updated", entity_type="service",
+                  entity_id=service.id, entity_label=service.name,
+                  field="parent", old_value=old_parent, new_value=new_parent)
 
     db.commit()
     return service
