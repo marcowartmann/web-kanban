@@ -20,13 +20,15 @@ def upgrade() -> None:
         "WHERE art IS NOT NULL AND trim(art) <> '' "
         "ON CONFLICT (name) DO NOTHING"
     ))
-    op.add_column("items", sa.Column(
-        "art_id", sa.Integer, sa.ForeignKey("arts.id", ondelete="SET NULL"), nullable=True
-    ))
+    op.add_column("items", sa.Column("art_id", sa.Integer, nullable=True))
     conn.execute(sa.text(
         "UPDATE items SET art_id = arts.id FROM arts WHERE trim(items.art) = arts.name"
     ))
     op.create_index("ix_items_art_id", "items", ["art_id"])
+    op.create_foreign_key(
+        "fk_items_art_id", "items", "arts",
+        ["art_id"], ["id"], ondelete="SET NULL",
+    )
     op.drop_column("items", "art")
 
 
@@ -36,5 +38,6 @@ def downgrade() -> None:
     conn.execute(sa.text(
         "UPDATE items SET art = arts.name FROM arts WHERE items.art_id = arts.id"
     ))
+    op.drop_constraint("fk_items_art_id", "items", type_="foreignkey")
     op.drop_index("ix_items_art_id", table_name="items")
     op.drop_column("items", "art_id")
