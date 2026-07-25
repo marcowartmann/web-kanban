@@ -8,6 +8,7 @@ import StoryBoardModal from "./components/StoryBoardModal";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
+import ProductsView from "./components/ProductsView";
 import RankingView from "./components/RankingView";
 import TimelineView from "./components/TimelineView";
 import ThemeToggle from "./components/ThemeToggle";
@@ -19,7 +20,7 @@ import { ObjectiveLinksContext } from "./objectives/links";
 import { statusOptionsByKind } from "./lib/boardLanes";
 import type { Container, Department, PersonOption, Team } from "./types";
 
-type View = "board" | "admin" | "planning" | "timeline" | "ranking";
+type View = "board" | "admin" | "planning" | "timeline" | "ranking" | "products";
 
 export default function App() {
   const { user, setUser } = useAuth();
@@ -130,6 +131,7 @@ export default function App() {
             {navButton("planning", "Planning")}
             {navButton("timeline", "Timeline")}
             {navButton("ranking", "Ranking")}
+            {navButton("products", "Products")}
             {isAdmin && navButton("admin", "Admin")}
           </nav>
         </div>
@@ -173,6 +175,8 @@ export default function App() {
           onOpenCard={openItem}
           onChanged={handleChanged}
         />
+      ) : view === "products" ? (
+        <ProductsView />
       ) : loading && !activeBoard ? (
         <div className="p-8 text-gray-500">Loading board…</div>
       ) : error ? (
