@@ -7,8 +7,11 @@ from sqlalchemy.orm import Session
 from app.catalog import ports
 from app.catalog.adapters.postgres import (
     PostgresArtRepository,
+    PostgresComponentRepository,
     PostgresProductRepository,
     PostgresServiceRepository,
+    PostgresSystemRepository,
+    PostgresVendorRepository,
 )
 from app.db import get_db
 
@@ -23,3 +26,15 @@ def get_product_repo(db: Session = Depends(get_db)) -> ports.ProductRepository:
 
 def get_service_repo(db: Session = Depends(get_db)) -> ports.ServiceRepository:
     return PostgresServiceRepository(db)
+
+
+def get_vendor_repo(db: Session = Depends(get_db)) -> ports.VendorRepository:
+    return PostgresVendorRepository(db)
+
+
+def get_component_repo(db: Session = Depends(get_db)) -> ports.ComponentRepository:
+    return PostgresComponentRepository(db)
+
+
+def get_system_repo(db: Session = Depends(get_db)) -> ports.SystemRepository:
+    return PostgresSystemRepository(db)
