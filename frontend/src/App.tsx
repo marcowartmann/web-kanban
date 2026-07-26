@@ -12,6 +12,7 @@ import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
 import ProductsView from "./components/ProductsView";
 import RankingView from "./components/RankingView";
+import RoadmapView from "./components/RoadmapView";
 import TimelineView from "./components/TimelineView";
 import ThemeToggle from "./components/ThemeToggle";
 import UserMenu from "./components/UserMenu";
@@ -22,7 +23,16 @@ import { ObjectiveLinksContext } from "./objectives/links";
 import { statusOptionsByKind } from "./lib/boardLanes";
 import type { Container, Department, PersonOption, Team } from "./types";
 
-type View = "board" | "admin" | "planning" | "timeline" | "ranking" | "products" | "lifecycle" | "contracts";
+type View =
+  | "board"
+  | "admin"
+  | "planning"
+  | "timeline"
+  | "ranking"
+  | "products"
+  | "lifecycle"
+  | "contracts"
+  | "roadmap";
 
 export default function App() {
   const { user, setUser } = useAuth();
@@ -136,6 +146,7 @@ export default function App() {
             {navButton("products", "Products")}
             {navButton("lifecycle", "Lifecycle")}
             {navButton("contracts", "Contracts")}
+            {navButton("roadmap", "Roadmap")}
             {isAdmin && navButton("admin", "Admin")}
           </nav>
         </div>
@@ -185,6 +196,8 @@ export default function App() {
         <LifecycleView />
       ) : view === "contracts" ? (
         <ContractsView />
+      ) : view === "roadmap" ? (
+        <RoadmapView />
       ) : loading && !activeBoard ? (
         <div className="p-8 text-gray-500">Loading board…</div>
       ) : error ? (
