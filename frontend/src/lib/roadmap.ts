@@ -108,3 +108,32 @@ export function barGeometry(
 
   return { leftPct: clampedLeftPct, widthPct };
 }
+
+/** Greedy interval partitioning: overlapping items land on separate rows so
+ *  lane bars never cover each other. Items are considered in (start, id)
+ *  order; a row is reusable once its last bar ends strictly before the next
+ *  bar starts (same-day touch still stacks — the bars would share pixels).
+ *  rowCount is never 0 so an empty lane keeps its single-row height. */
+export function assignRows(
+  items: { id: number; start_date: string; end_date: string }[],
+): { rows: Map<number, number>; rowCount: number } {
+  const rows = new Map<number, number>();
+  const rowEnds: number[] = []; // per row: end ms of its latest bar
+  const ordered = [...items].sort((a, b) => {
+    const d = parseUTCDate(a.start_date) - parseUTCDate(b.start_date);
+    return d !== 0 ? d : a.id - b.id;
+  });
+  for (const item of ordered) {
+    const start = parseUTCDate(item.start_date);
+    const end = parseUTCDate(item.end_date);
+    let row = rowEnds.findIndex((rowEnd) => start > rowEnd);
+    if (row === -1) {
+      row = rowEnds.length;
+      rowEnds.push(end);
+    } else {
+      rowEnds[row] = end;
+    }
+    rows.set(item.id, row);
+  }
+  return { rows, rowCount: Math.max(rowEnds.length, 1) };
+}

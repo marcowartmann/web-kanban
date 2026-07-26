@@ -170,4 +170,28 @@ describe("RoadmapView", () => {
     await userEvent.click(screen.getByText("Wi-Fi 7 APs (#42)"));
     expect(linkRoadmapFeature).toHaveBeenCalledWith(9, 42);
   });
+
+
+  it("stacks overlapping items on separate rows", async () => {
+    vi.mocked(getProductRoadmap).mockResolvedValue([
+      {
+        id: 1, name: "Campus", product_id: 1, position: 0,
+        items: [
+          { id: 9, title: "Wi-Fi 7 rollout", description: null, stream_id: 1,
+            status: "committed", start_date: "2026-01-01", end_date: "2026-06-30",
+            features: [] },
+          { id: 10, title: "Switch refresh", description: null, stream_id: 1,
+            status: "planned", start_date: "2026-03-01", end_date: "2026-09-30",
+            features: [] },
+        ],
+      },
+    ]);
+    render(<RoadmapView />);
+    const a = (await screen.findByText("Wi-Fi 7 rollout")).closest("button")!;
+    const b = (await screen.findByText("Switch refresh")).closest("button")!;
+    expect(a.style.top).not.toBe(b.style.top);
+    expect(a.style.top).toBe("8px");
+    expect(b.style.top).toBe("40px");
+  });
+
 });

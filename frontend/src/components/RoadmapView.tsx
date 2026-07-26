@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createStream, deleteStream, getProductRoadmap, getProducts, updateStream } from "../api/client";
-import { axisRange, barGeometry } from "../lib/roadmap";
+import { assignRows, axisRange, barGeometry } from "../lib/roadmap";
 import type { Product, RoadmapItem, RoadmapStatus, Stream } from "../types";
 import ConfirmDialog from "./ConfirmDialog";
 import FilterSelect from "./FilterSelect";
 import RoadmapItemDrawer from "./RoadmapItemDrawer";
 import { btnDangerGhost, btnGhost, btnSecondary, inputClass } from "./ui";
+
+// Bar stacking: each overlap row is 32px tall (24px bar + 8px gap), lanes
+// carry 8px padding above and below the rows.
+const BAR_ROW_PX = 32;
+const BAR_PAD_PX = 8;
 
 const STATUS_CLASSES: Record<RoadmapStatus, string> = {
   idea: "bg-gray-200 text-gray-700",
@@ -197,7 +202,9 @@ export default function RoadmapView() {
               </div>
             </div>
 
-            {streams.map((stream, index) => (
+            {streams.map((stream, index) => {
+              const laneRows = assignRows(stream.items);
+              return (
               <div key={stream.id} className="flex border-b border-gray-100 py-1.5">
                 <div className="flex w-56 shrink-0 flex-col gap-1 pr-3">
                   {renaming?.id === stream.id ? (
@@ -248,17 +255,27 @@ export default function RoadmapView() {
                     </button>
                   </div>
                 </div>
-                <div className="relative min-h-[3rem] flex-1">
+                <div
+                  className="relative flex-1"
+                  style={{ minHeight: `${laneRows.rowCount * BAR_ROW_PX + 2 * BAR_PAD_PX}px` }}
+                >
                   {gridlines}
                   {stream.items.map((item) => {
                     const g = barGeometry(item, range);
+                    // Overlapping ranges stack on separate rows so every bar
+                    // stays readable and clickable.
+                    const row = laneRows.rows.get(item.id) ?? 0;
                     return (
                       <button
                         key={item.id}
                         title={`${item.title}: ${item.start_date} → ${item.end_date}`}
                         onClick={() => openEdit(item)}
-                        className={`absolute top-1/2 h-6 -translate-y-1/2 truncate rounded px-2 text-left text-xs font-medium ${STATUS_CLASSES[item.status]}`}
-                        style={{ left: `${g.leftPct}%`, width: `${g.widthPct}%` }}
+                        className={`absolute h-6 truncate rounded px-2 text-left text-xs font-medium ${STATUS_CLASSES[item.status]}`}
+                        style={{
+                          left: `${g.leftPct}%`,
+                          width: `${g.widthPct}%`,
+                          top: `${BAR_PAD_PX + row * BAR_ROW_PX}px`,
+                        }}
                       >
                         {item.title}
                       </button>
@@ -272,7 +289,8 @@ export default function RoadmapView() {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </>
         )}
 
