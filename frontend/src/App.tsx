@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import BoardTabs from "./components/BoardTabs";
 import BoardView from "./components/BoardView";
 import PIObjectivesBoard from "./components/PIObjectivesBoard";
+import ContractsView from "./components/ContractsView";
 import ItemDrawer from "./components/ItemDrawer";
 import LifecycleView from "./components/LifecycleView";
 import NewItemBar from "./components/NewItemBar";
@@ -21,7 +22,7 @@ import { ObjectiveLinksContext } from "./objectives/links";
 import { statusOptionsByKind } from "./lib/boardLanes";
 import type { Container, Department, PersonOption, Team } from "./types";
 
-type View = "board" | "admin" | "planning" | "timeline" | "ranking" | "products" | "lifecycle";
+type View = "board" | "admin" | "planning" | "timeline" | "ranking" | "products" | "lifecycle" | "contracts";
 
 export default function App() {
   const { user, setUser } = useAuth();
@@ -134,6 +135,7 @@ export default function App() {
             {navButton("ranking", "Ranking")}
             {navButton("products", "Products")}
             {navButton("lifecycle", "Lifecycle")}
+            {navButton("contracts", "Contracts")}
             {isAdmin && navButton("admin", "Admin")}
           </nav>
         </div>
@@ -181,6 +183,8 @@ export default function App() {
         <ProductsView />
       ) : view === "lifecycle" ? (
         <LifecycleView />
+      ) : view === "contracts" ? (
+        <ContractsView />
       ) : loading && !activeBoard ? (
         <div className="p-8 text-gray-500">Loading board…</div>
       ) : error ? (
