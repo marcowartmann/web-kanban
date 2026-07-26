@@ -619,6 +619,8 @@ class Component(Base):
     end_of_sale: Mapped[date | None] = mapped_column(Date)
     end_of_support: Mapped[date | None] = mapped_column(Date)
     end_of_life: Mapped[date | None] = mapped_column(Date)
+    yearly_run_cost: Mapped[float | None] = mapped_column(Numeric)
+    replacement_budget: Mapped[float | None] = mapped_column(Numeric)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, server_default=func.now()
     )
@@ -676,3 +678,40 @@ class SystemComponent(Base):
 
     system: Mapped["System"] = relationship(back_populates="memberships")
     component: Mapped["Component"] = relationship()
+
+
+contract_components = Table(
+    "contract_components",
+    Base.metadata,
+    Column("contract_id", Integer, ForeignKey("support_contracts.id", ondelete="CASCADE"), primary_key=True),
+    Column("component_id", Integer, ForeignKey("components.id", ondelete="RESTRICT"), primary_key=True),
+)
+
+
+class SupportContract(Base):
+    __tablename__ = "support_contracts"
+    __table_args__ = (UniqueConstraint("product_id", "name", name="uq_contract_product_name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    contract_no: Mapped[str | None] = mapped_column(String(64))
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="RESTRICT"), index=True
+    )
+    vendor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("vendors.id", ondelete="SET NULL"), index=True
+    )
+    start_date: Mapped[date | None] = mapped_column(Date)
+    end_date: Mapped[date | None] = mapped_column(Date)
+    yearly_cost: Mapped[float | None] = mapped_column(Numeric)
+    notice_period_days: Mapped[int | None] = mapped_column(Integer)
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+    product: Mapped["Product"] = relationship()
+    vendor: Mapped["Vendor | None"] = relationship()
