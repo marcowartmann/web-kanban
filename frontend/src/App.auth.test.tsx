@@ -36,7 +36,7 @@ it("admins reach Import CSV inside the Admin section", async () => {
   // Import is no longer in the board header; it lives in Admin.
   expect(screen.queryByText(/import csv/i)).not.toBeInTheDocument();
   await userEvent.click(await screen.findByRole("link", { name: "Admin" }));
-  expect(await screen.findByRole("button", { name: /import csv/i })).toBeInTheDocument();
+  expect(await screen.findByRole("link", { name: /import csv/i })).toBeInTheDocument();
 });
 
 it("members see neither the Admin tab nor Import", async () => {

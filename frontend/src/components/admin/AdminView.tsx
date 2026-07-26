@@ -1,6 +1,7 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
+import { Navigate, NavLink, useParams } from "react-router";
 import { faBox, faBoxArchive, faCalendarDays, faCloudArrowUp, faFileImport, faLock, faScroll, faSitemap, faUser, faUsers } from "../../icons";
 import { useAuth } from "../../auth/AuthContext";
 import AuditLogSection from "./AuditLogSection";
@@ -39,9 +40,14 @@ export default function AdminView({
   planningIntervals?: string[];
 }) {
   const { user } = useAuth();
-  const [section, setSection] = useState<AdminSection>("users");
+  const params = useParams();
+  const section = SECTIONS.some((s) => s.id === params.section)
+    ? (params.section as AdminSection)
+    : null;
   // Bumped on team changes so the capacity grid remounts with fresh teams/people.
   const [capacityKey, setCapacityKey] = useState(0);
+
+  if (!section) return <Navigate to="/admin/users" replace />;
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -56,17 +62,19 @@ export default function AdminView({
           <ul className="flex flex-col gap-0.5">
             {SECTIONS.map((s) => (
               <li key={s.id}>
-                <button
-                  onClick={() => setSection(s.id)}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
-                    section === s.id
-                      ? "bg-blue-50 font-medium text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
+                <NavLink
+                  to={`/admin/${s.id}`}
+                  className={({ isActive }) =>
+                    `flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
+                      isActive
+                        ? "bg-blue-50 font-medium text-blue-700"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`
+                  }
                 >
                   <FontAwesomeIcon icon={s.icon} fixedWidth aria-hidden className="text-gray-400" />
                   {s.label}
-                </button>
+                </NavLink>
               </li>
             ))}
           </ul>

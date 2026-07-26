@@ -61,3 +61,18 @@ it("members deep-linking to /admin are redirected to the Board", async () => {
   expect(await screen.findByRole("link", { name: "Board" })).toHaveAttribute("aria-current", "page");
   expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument();
 });
+
+it("/admin redirects to the Users section", async () => {
+  renderAt("/admin");
+  expect(await screen.findByRole("link", { name: "Users" })).toHaveAttribute("aria-current", "page");
+});
+
+it("/admin/import deep-links to the Import section", async () => {
+  renderAt("/admin/import");
+  expect(await screen.findByRole("heading", { name: /import csv/i })).toBeInTheDocument();
+});
+
+it("unknown admin sections fall back to Users", async () => {
+  renderAt("/admin/bogus");
+  expect(await screen.findByRole("link", { name: "Users" })).toHaveAttribute("aria-current", "page");
+});

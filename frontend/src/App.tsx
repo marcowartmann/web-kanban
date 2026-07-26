@@ -247,7 +247,11 @@ export function AppShell() {
         <Route path="/contracts" element={<ContractsView />} />
         <Route path="/roadmap" element={<RoadmapView />} />
         <Route
-          path="/admin/*"
+          path="/admin"
+          element={isAdmin ? <Navigate to="/admin/users" replace /> : <Navigate to="/board" replace />}
+        />
+        <Route
+          path="/admin/:section"
           element={
             isAdmin ? (
               <div className="min-h-0 flex-1 overflow-auto">
