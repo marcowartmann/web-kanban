@@ -7,7 +7,9 @@ LeanIX, Jira)."""
 from __future__ import annotations
 
 import enum
+from collections.abc import Iterable
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 
 
 class LifecycleState(str, enum.Enum):
@@ -108,3 +110,90 @@ def validate_parent(*, service_id: int | None, product_id: int, parent: Service 
 def validate_dependency(from_service_id: int, to_service_id: int) -> None:
     if from_service_id == to_service_id:
         raise CatalogRuleViolation("A service cannot depend on itself")
+
+
+class LifecycleStage(str, enum.Enum):
+    PLAN = "plan"
+    BUILD = "build"
+    OPERATE = "operate"
+    PHASE_OUT = "phase_out"
+    RETIRED = "retired"
+
+
+class RiskLevel(str, enum.Enum):
+    OK = "ok"
+    WARNING = "warning"
+    DANGER = "danger"
+
+
+RISK_WARNING_DAYS = 365
+
+_RISK_ORDER = {RiskLevel.OK: 0, RiskLevel.WARNING: 1, RiskLevel.DANGER: 2}
+
+
+@dataclass
+class Vendor:
+    id: int | None
+    name: str
+    notes: str | None = None
+
+
+@dataclass
+class Component:
+    id: int | None
+    name: str
+    product_id: int
+    model: str | None = None
+    description: str | None = None
+    vendor_id: int | None = None
+    lifecycle_stage: LifecycleStage = LifecycleStage.PLAN
+    quantity: int | None = None
+    eos_announced: date | None = None
+    end_of_sale: date | None = None
+    end_of_support: date | None = None
+    end_of_life: date | None = None
+    # read-side enrichments filled by adapters
+    vendor_name: str | None = None
+    product_name: str | None = None
+    risk: RiskLevel = RiskLevel.OK
+
+
+@dataclass
+class SystemMember:
+    component: Component
+    quantity: int | None = None
+
+
+@dataclass
+class System:
+    id: int | None
+    name: str
+    product_id: int
+    description: str | None = None
+    lifecycle_stage: LifecycleStage = LifecycleStage.PLAN
+    members: list[SystemMember] = field(default_factory=list)
+    # read-side enrichments
+    product_name: str | None = None
+    risk: RiskLevel = RiskLevel.OK
+
+
+@dataclass
+class ServiceTech:
+    components: list[Component] = field(default_factory=list)
+    systems: list[System] = field(default_factory=list)
+    risk: RiskLevel = RiskLevel.OK
+
+
+def component_risk(*, end_of_support: date | None, end_of_life: date | None,
+                   today: date) -> RiskLevel:
+    """danger once support/life has ended; warning inside the 365-day window."""
+    dates = [d for d in (end_of_support, end_of_life) if d is not None]
+    if any(d <= today for d in dates):
+        return RiskLevel.DANGER
+    if any(d <= today + timedelta(days=RISK_WARNING_DAYS) for d in dates):
+        return RiskLevel.WARNING
+    return RiskLevel.OK
+
+
+def worst_risk(levels: Iterable[RiskLevel]) -> RiskLevel:
+    return max(levels, key=lambda lv: _RISK_ORDER[lv], default=RiskLevel.OK)
