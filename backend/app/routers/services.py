@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.audit import log_event
 from app.auth import require_user
 from app.catalog import ports
-from app.catalog.factory import get_product_repo, get_service_repo
+from app.catalog.factory import get_component_repo, get_product_repo, get_service_repo, get_system_repo
 from app.catalog.http import check_writable
 from app.db import get_db
 from app.models import User
@@ -15,7 +15,10 @@ from app.schemas import (
     ServiceDependenciesRead,
     ServiceOption,
     ServiceRead,
+    ServiceTechRead,
     ServiceUpdate,
+    TechComponentLink,
+    TechSystemLink,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["services"])
@@ -172,3 +175,93 @@ def remove_dependency(
               entity_label=dep.from_service_name if dep else None,
               field="depends_on", old_value=dep.to_service_name if dep else None)
     db.commit()
+
+
+@router.get("/services/{service_id}/tech", response_model=ServiceTechRead)
+def service_tech(service_id: int,
+                 repo: ports.ServiceRepository = Depends(get_service_repo)):
+    return repo.list_tech(service_id)
+
+
+@router.post("/services/{service_id}/tech/components",
+             response_model=ServiceTechRead, status_code=201)
+def link_tech_component(
+    service_id: int,
+    payload: TechComponentLink,
+    repo: ports.ServiceRepository = Depends(get_service_repo),
+    components: ports.ComponentRepository = Depends(get_component_repo),
+    db: Session = Depends(get_db),
+    current: User = Depends(require_user),
+):
+    check_writable(repo)
+    repo.add_tech_component(service_id, payload.component_id)
+    service = repo.get(service_id)
+    component = components.get(payload.component_id)
+    log_event(db, actor=current, event_type="service.tech_linked", entity_type="service",
+              entity_id=service_id, entity_label=service.name,
+              field="component", new_value=component.name)
+    db.commit()
+    return repo.list_tech(service_id)
+
+
+@router.delete("/services/{service_id}/tech/components/{component_id}",
+               response_model=ServiceTechRead)
+def unlink_tech_component(
+    service_id: int,
+    component_id: int,
+    repo: ports.ServiceRepository = Depends(get_service_repo),
+    components: ports.ComponentRepository = Depends(get_component_repo),
+    db: Session = Depends(get_db),
+    current: User = Depends(require_user),
+):
+    check_writable(repo)
+    component = components.get(component_id)
+    repo.remove_tech_component(service_id, component_id)
+    service = repo.get(service_id)
+    log_event(db, actor=current, event_type="service.tech_unlinked", entity_type="service",
+              entity_id=service_id, entity_label=service.name,
+              field="component", old_value=component.name)
+    db.commit()
+    return repo.list_tech(service_id)
+
+
+@router.post("/services/{service_id}/tech/systems",
+             response_model=ServiceTechRead, status_code=201)
+def link_tech_system(
+    service_id: int,
+    payload: TechSystemLink,
+    repo: ports.ServiceRepository = Depends(get_service_repo),
+    systems: ports.SystemRepository = Depends(get_system_repo),
+    db: Session = Depends(get_db),
+    current: User = Depends(require_user),
+):
+    check_writable(repo)
+    repo.add_tech_system(service_id, payload.system_id)
+    service = repo.get(service_id)
+    system = systems.get(payload.system_id)
+    log_event(db, actor=current, event_type="service.tech_linked", entity_type="service",
+              entity_id=service_id, entity_label=service.name,
+              field="system", new_value=system.name)
+    db.commit()
+    return repo.list_tech(service_id)
+
+
+@router.delete("/services/{service_id}/tech/systems/{system_id}",
+               response_model=ServiceTechRead)
+def unlink_tech_system(
+    service_id: int,
+    system_id: int,
+    repo: ports.ServiceRepository = Depends(get_service_repo),
+    systems: ports.SystemRepository = Depends(get_system_repo),
+    db: Session = Depends(get_db),
+    current: User = Depends(require_user),
+):
+    check_writable(repo)
+    system = systems.get(system_id)
+    repo.remove_tech_system(service_id, system_id)
+    service = repo.get(service_id)
+    log_event(db, actor=current, event_type="service.tech_unlinked", entity_type="service",
+              entity_id=service_id, entity_label=service.name,
+              field="system", old_value=system.name)
+    db.commit()
+    return repo.list_tech(service_id)

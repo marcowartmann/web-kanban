@@ -789,3 +789,18 @@ class SystemUpdate(BaseModel):
 class SystemMemberSet(BaseModel):
     component_id: int
     quantity: int | None = Field(default=None, ge=0)
+
+
+class ServiceTechRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    components: list[ComponentRead] = []
+    systems: list[SystemRead] = []
+    risk: RiskLevel
+
+
+class TechComponentLink(BaseModel):
+    component_id: int
+
+
+class TechSystemLink(BaseModel):
+    system_id: int
