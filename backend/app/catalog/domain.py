@@ -257,3 +257,46 @@ def contract_status(*, end_date: date | None, notice_period_days: int | None,
     if end_date <= today + timedelta(days=window):
         return ContractStatus.EXPIRING
     return ContractStatus.ACTIVE
+
+
+class RoadmapStatus(str, enum.Enum):
+    IDEA = "idea"
+    PLANNED = "planned"
+    COMMITTED = "committed"
+    DONE = "done"
+    CANCELLED = "cancelled"
+
+
+@dataclass
+class LinkedFeature:
+    id: int
+    title: str
+    status: str | None = None
+
+
+@dataclass
+class RoadmapItem:
+    id: int | None
+    title: str
+    stream_id: int
+    start_date: date
+    end_date: date
+    description: str | None = None
+    status: RoadmapStatus = RoadmapStatus.IDEA
+    # read-side enrichment filled by adapters
+    features: list[LinkedFeature] = field(default_factory=list)
+
+
+@dataclass
+class Stream:
+    id: int | None
+    name: str
+    product_id: int
+    position: int = 0
+    # read-side enrichment filled by adapters
+    items: list[RoadmapItem] = field(default_factory=list)
+
+
+def validate_date_range(start_date: date, end_date: date) -> None:
+    if start_date > end_date:
+        raise CatalogRuleViolation("start_date must not be after end_date")
