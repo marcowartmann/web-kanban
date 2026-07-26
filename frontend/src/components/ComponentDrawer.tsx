@@ -4,9 +4,10 @@ import type { Component, LifecycleStage } from "../types";
 import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
 import ContractBadge from "./ContractBadge";
+import DrawerShell from "./DrawerShell";
 import PlainSelect from "./PlainSelect";
 import SearchableSelect from "./SearchableSelect";
-import { btnDangerGhost, btnPrimary, btnSecondary, captionClass, inputClass } from "./ui";
+import { captionClass, inputClass } from "./ui";
 
 const STAGES: LifecycleStage[] = ["plan", "build", "operate", "phase_out", "retired"];
 
@@ -111,18 +112,15 @@ export default function ComponentDrawer({
   };
 
   return (
-    <aside
-      aria-label="Component drawer"
-      className="fixed inset-y-0 right-0 z-40 flex w-[26rem] flex-col overflow-y-auto border-l border-gray-200 bg-surface p-5 shadow-2xl"
+    <DrawerShell
+      title={component == null ? "New component" : "Edit component"}
+      onClose={onClose}
+      footer={{
+        onDelete: component == null ? undefined : () => setConfirmDelete(true),
+        onCancel: onClose,
+        onSave: () => void save(),
+      }}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">
-          {component == null ? "New component" : "Edit component"}
-        </h2>
-        <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600">
-          ✕
-        </button>
-      </div>
       {error && (
         <div className="mb-3">
           <Banner tone="error">{error}</Banner>
@@ -244,23 +242,6 @@ export default function ComponentDrawer({
         </>
       )}
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-        {component != null ? (
-          <button onClick={() => setConfirmDelete(true)} className={btnDangerGhost}>
-            Delete
-          </button>
-        ) : (
-          <span />
-        )}
-        <div className="flex gap-2">
-          <button onClick={onClose} className={btnSecondary}>
-            Cancel
-          </button>
-          <button onClick={() => void save()} className={btnPrimary}>
-            Save
-          </button>
-        </div>
-      </div>
       {confirmDelete && component != null && (
         <ConfirmDialog
           title="Delete component"
@@ -270,6 +251,6 @@ export default function ComponentDrawer({
           onClose={() => setConfirmDelete(false)}
         />
       )}
-    </aside>
+    </DrawerShell>
   );
 }

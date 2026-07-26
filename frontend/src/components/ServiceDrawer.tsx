@@ -29,10 +29,11 @@ import type {
 import Badge from "./Badge";
 import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
+import DrawerShell from "./DrawerShell";
 import PlainSelect from "./PlainSelect";
 import RiskBadge from "./RiskBadge";
 import SearchableSelect from "./SearchableSelect";
-import { btnDangerGhost, btnPrimary, btnSecondary, captionClass, inputClass } from "./ui";
+import { btnSecondary, captionClass, inputClass } from "./ui";
 
 const STATES = ["planned", "active", "deprecated", "retired"];
 const DEP_TYPES: DependencyType[] = ["requires", "uses"];
@@ -198,19 +199,16 @@ export default function ServiceDrawer({
   };
 
   return (
-    <aside
-      aria-label="Service drawer"
-      className="fixed inset-y-0 right-0 z-40 flex w-[26rem] flex-col overflow-y-auto border-l border-gray-200 bg-surface p-5 shadow-2xl"
+    <DrawerShell
+      title="Edit service"
+      headerExtra={<RiskBadge risk={tech.risk} />}
+      onClose={onClose}
+      footer={{
+        onDelete: () => setConfirmDelete(true),
+        onCancel: onClose,
+        onSave: () => void save(),
+      }}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-base font-semibold text-gray-900">Edit service</h2>
-          <RiskBadge risk={tech.risk} />
-        </div>
-        <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600">
-          ✕
-        </button>
-      </div>
       {error && (
         <div className="mb-3">
           <Banner tone="error">{error}</Banner>
@@ -377,19 +375,6 @@ export default function ServiceDrawer({
         />
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-        <button onClick={() => setConfirmDelete(true)} className={btnDangerGhost}>
-          Delete
-        </button>
-        <div className="flex gap-2">
-          <button onClick={onClose} className={btnSecondary}>
-            Cancel
-          </button>
-          <button onClick={() => void save()} className={btnPrimary}>
-            Save
-          </button>
-        </div>
-      </div>
       {confirmDelete && (
         <ConfirmDialog
           title="Delete service"
@@ -399,6 +384,6 @@ export default function ServiceDrawer({
           onClose={() => setConfirmDelete(false)}
         />
       )}
-    </aside>
+    </DrawerShell>
   );
 }

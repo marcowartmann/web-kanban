@@ -3,9 +3,10 @@ import { createSystem, deleteSystem, removeSystemMember, setSystemMember, update
 import type { CatalogSystem, Component, LifecycleStage } from "../types";
 import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
+import DrawerShell from "./DrawerShell";
 import PlainSelect from "./PlainSelect";
 import SearchableSelect from "./SearchableSelect";
-import { btnDangerGhost, btnPrimary, btnSecondary, captionClass, inputClass } from "./ui";
+import { captionClass, inputClass } from "./ui";
 
 const STAGES: LifecycleStage[] = ["plan", "build", "operate", "phase_out", "retired"];
 
@@ -126,18 +127,15 @@ export default function SystemDrawer({
   };
 
   return (
-    <aside
-      aria-label="System drawer"
-      className="fixed inset-y-0 right-0 z-40 flex w-[26rem] flex-col overflow-y-auto border-l border-gray-200 bg-surface p-5 shadow-2xl"
+    <DrawerShell
+      title={system == null ? "New system" : "Edit system"}
+      onClose={onClose}
+      footer={{
+        onDelete: system == null ? undefined : () => setConfirmDelete(true),
+        onCancel: onClose,
+        onSave: () => void save(),
+      }}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">
-          {system == null ? "New system" : "Edit system"}
-        </h2>
-        <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600">
-          ✕
-        </button>
-      </div>
       {error && (
         <div className="mb-3">
           <Banner tone="error">{error}</Banner>
@@ -217,23 +215,6 @@ export default function SystemDrawer({
         </>
       )}
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-        {system != null ? (
-          <button onClick={() => setConfirmDelete(true)} className={btnDangerGhost}>
-            Delete
-          </button>
-        ) : (
-          <span />
-        )}
-        <div className="flex gap-2">
-          <button onClick={onClose} className={btnSecondary}>
-            Cancel
-          </button>
-          <button onClick={() => void save()} className={btnPrimary}>
-            Save
-          </button>
-        </div>
-      </div>
       {confirmDelete && system != null && (
         <ConfirmDialog
           title="Delete system"
@@ -243,6 +224,6 @@ export default function SystemDrawer({
           onClose={() => setConfirmDelete(false)}
         />
       )}
-    </aside>
+    </DrawerShell>
   );
 }

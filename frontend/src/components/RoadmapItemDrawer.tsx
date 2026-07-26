@@ -10,9 +10,10 @@ import {
 import type { LinkedFeature, RoadmapItem, RoadmapStatus, Stream } from "../types";
 import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
+import DrawerShell from "./DrawerShell";
 import PlainSelect from "./PlainSelect";
 import SearchableSelect from "./SearchableSelect";
-import { btnDangerGhost, btnPrimary, btnSecondary, captionClass, inputClass } from "./ui";
+import { captionClass, inputClass } from "./ui";
 
 const STATUSES: RoadmapStatus[] = ["idea", "planned", "committed", "done", "cancelled"];
 
@@ -136,18 +137,15 @@ export default function RoadmapItemDrawer({
   };
 
   return (
-    <aside
-      aria-label="Roadmap item drawer"
-      className="fixed inset-y-0 right-0 z-40 flex w-[26rem] flex-col overflow-y-auto border-l border-gray-200 bg-surface p-5 shadow-2xl"
+    <DrawerShell
+      title={item == null ? "New roadmap item" : "Edit roadmap item"}
+      onClose={onClose}
+      footer={{
+        onDelete: item == null ? undefined : () => setConfirmDelete(true),
+        onCancel: onClose,
+        onSave: () => void save(),
+      }}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">
-          {item == null ? "New roadmap item" : "Edit roadmap item"}
-        </h2>
-        <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600">
-          ✕
-        </button>
-      </div>
       {error && (
         <div className="mb-3">
           <Banner tone="error">{error}</Banner>
@@ -245,23 +243,6 @@ export default function RoadmapItemDrawer({
         </>
       )}
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-        {item != null ? (
-          <button onClick={() => setConfirmDelete(true)} className={btnDangerGhost}>
-            Delete
-          </button>
-        ) : (
-          <span />
-        )}
-        <div className="flex gap-2">
-          <button onClick={onClose} className={btnSecondary}>
-            Cancel
-          </button>
-          <button onClick={() => void save()} className={btnPrimary}>
-            Save
-          </button>
-        </div>
-      </div>
       {confirmDelete && item != null && (
         <ConfirmDialog
           title="Delete roadmap item"
@@ -271,6 +252,6 @@ export default function RoadmapItemDrawer({
           onClose={() => setConfirmDelete(false)}
         />
       )}
-    </aside>
+    </DrawerShell>
   );
 }
