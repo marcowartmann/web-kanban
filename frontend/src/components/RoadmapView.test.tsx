@@ -37,18 +37,44 @@ vi.mock("../api/client", () => ({
   createStream: vi.fn(),
   updateStream: vi.fn(),
   deleteStream: vi.fn(),
+  createRoadmapItem: vi.fn(),
+  updateRoadmapItem: vi.fn(),
+  deleteRoadmapItem: vi.fn(),
+  linkRoadmapFeature: vi.fn(),
+  unlinkRoadmapFeature: vi.fn(),
+  listItems: vi.fn(),
 }));
 
-import { createStream, getProductRoadmap, getProducts, updateStream } from "../api/client";
+import {
+  createRoadmapItem,
+  createStream,
+  deleteRoadmapItem,
+  getProductRoadmap,
+  getProducts,
+  linkRoadmapFeature,
+  listItems,
+  unlinkRoadmapFeature,
+  updateRoadmapItem,
+  updateStream,
+} from "../api/client";
+
+const itemFixture = streams[0].items[0];
 
 describe("RoadmapView", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(getProducts).mockResolvedValue(products);
     vi.mocked(getProductRoadmap).mockResolvedValue(streams);
     vi.mocked(createStream).mockResolvedValue(
       { id: 3, name: "Datacenter", product_id: 1, position: 2, items: [] },
     );
     vi.mocked(updateStream).mockResolvedValue(streams[0]);
+    vi.mocked(createRoadmapItem).mockResolvedValue(itemFixture);
+    vi.mocked(updateRoadmapItem).mockResolvedValue(itemFixture);
+    vi.mocked(deleteRoadmapItem).mockResolvedValue(undefined);
+    vi.mocked(linkRoadmapFeature).mockResolvedValue(itemFixture);
+    vi.mocked(unlinkRoadmapFeature).mockResolvedValue(itemFixture);
+    vi.mocked(listItems).mockResolvedValue([]);
   });
 
   it("renders lanes with status-colored bars and month axis", async () => {
@@ -84,5 +110,46 @@ describe("RoadmapView", () => {
     await userEvent.clear(input);
     await userEvent.type(input, "Campus LAN{Enter}");
     expect(updateStream).toHaveBeenCalledWith(1, { name: "Campus LAN" });
+  });
+
+  it("creates an item from a lane's Add item button", async () => {
+    vi.mocked(createRoadmapItem).mockResolvedValue(itemFixture);
+    render(<RoadmapView />);
+    await screen.findByText("Campus");
+    await userEvent.click(screen.getAllByRole("button", { name: "Add item" })[0]);
+    await userEvent.type(screen.getByLabelText("Title"), "New thing");
+    await userEvent.type(screen.getByLabelText("Start date"), "2026-09-01");
+    await userEvent.type(screen.getByLabelText("End date"), "2026-12-31");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(vi.mocked(createRoadmapItem).mock.calls[0][0]).toMatchObject({
+      title: "New thing", stream_id: 1,
+      start_date: "2026-09-01", end_date: "2026-12-31",
+    });
+  });
+
+  it("blocks save when dates are inverted", async () => {
+    render(<RoadmapView />);
+    await screen.findByText("Campus");
+    await userEvent.click(screen.getAllByRole("button", { name: "Add item" })[0]);
+    await userEvent.type(screen.getByLabelText("Title"), "Bad");
+    await userEvent.type(screen.getByLabelText("Start date"), "2026-12-31");
+    await userEvent.type(screen.getByLabelText("End date"), "2026-01-01");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByText("Start date must not be after end date")).toBeInTheDocument();
+    expect(createRoadmapItem).not.toHaveBeenCalled();
+  });
+
+  it("links a feature in edit mode", async () => {
+    vi.mocked(listItems).mockResolvedValue([
+      { id: 42, title: "Wi-Fi 7 APs", status: "New" } as never,
+    ]);
+    vi.mocked(linkRoadmapFeature).mockResolvedValue({
+      ...itemFixture, features: [{ id: 42, title: "Wi-Fi 7 APs", status: "New" }],
+    });
+    render(<RoadmapView />);
+    await userEvent.click(await screen.findByText("Wi-Fi 7 rollout"));
+    await userEvent.click(await screen.findByRole("combobox", { name: "Link feature" }));
+    await userEvent.click(screen.getByText("Wi-Fi 7 APs (#42)"));
+    expect(linkRoadmapFeature).toHaveBeenCalledWith(9, 42);
   });
 });
