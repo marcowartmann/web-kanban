@@ -68,8 +68,9 @@ layout element wrapping `/board`, `/planning`, `/timeline`, `/ranking`: it owns
 `useBoard`, the people/teams/containers/departments fetches, `ObjectiveLinksContext`,
 the `panels` stack, `StoryBoardModal`, the ItemDrawer overlay, and `handleChanged`, and
 exposes them to child routes via `useOutletContext<WorkContext>()` (typed in
-`shell/WorkLayout.tsx`). Catalog views and Admin are already self-contained and mount
-directly.
+`shell/WorkLayout.tsx`). Catalog views are self-contained and mount directly; the Admin
+routes also nest under WorkLayout because AdminView consumes the shared
+`planningIntervals` and `onChanged` (board refresh) from it.
 
 `App.tsx` shrinks to: providers → `LoginPage` gate → `BrowserRouter` → flex row of
 `Sidebar` + `<main className="flex min-h-0 flex-1 flex-col">` → `Routes`.
