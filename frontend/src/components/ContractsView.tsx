@@ -4,10 +4,12 @@ import PageHeader from "../shell/PageHeader";
 import type { SupportContract } from "../types";
 import Banner from "./Banner";
 import ContractBadge from "./ContractBadge";
+import ContractDrawer from "./ContractDrawer";
 import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import { SkeletonRows } from "./Skeleton";
 import TogglePill from "./TogglePill";
+import { tdClass, thClass } from "./ui";
 
 export default function ContractsView() {
   const [rows, setRows] = useState<SupportContract[]>([]);
@@ -15,6 +17,9 @@ export default function ContractsView() {
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<string | null>(null);
   const [onlyExpiring, setOnlyExpiring] = useState(false);
+  const [editing, setEditing] = useState<SupportContract | null>(null);
+
+  const reload = () => getContracts().then(setRows);
 
   useEffect(() => {
     void getContracts()
@@ -66,28 +71,36 @@ export default function ContractsView() {
         ) : (
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                <th className="px-3 py-2 border-b border-gray-100">Contract</th>
-                <th className="px-3 py-2 border-b border-gray-100">Product</th>
-                <th className="px-3 py-2 border-b border-gray-100">Vendor</th>
-                <th className="px-3 py-2 border-b border-gray-100">End date</th>
-                <th className="px-3 py-2 border-b border-gray-100">Status</th>
-                <th className="px-3 py-2 border-b border-gray-100">Yearly cost</th>
+              <tr>
+                <th className={thClass}>Contract</th>
+                <th className={thClass}>Product</th>
+                <th className={thClass}>Vendor</th>
+                <th className={thClass}>End date</th>
+                <th className={thClass}>Status</th>
+                <th className={`${thClass} text-right`}>Yearly cost</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id}>
-                  <td className="px-3 py-2 border-b border-gray-100">
-                    <div className="font-medium text-gray-800">{c.name}</div>
+                <tr key={c.id} onClick={() => setEditing(c)} className="cursor-pointer transition hover:bg-gray-50">
+                  <td className={tdClass}>
+                    <button
+                      className="text-left font-medium text-gray-800 hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditing(c);
+                      }}
+                    >
+                      {c.name}
+                    </button>
                   </td>
-                  <td className="px-3 py-2 border-b border-gray-100">{c.product_name ?? "—"}</td>
-                  <td className="px-3 py-2 border-b border-gray-100">{c.vendor_name ?? "—"}</td>
-                  <td className="px-3 py-2 border-b border-gray-100">{c.end_date ?? "—"}</td>
-                  <td className="px-3 py-2 border-b border-gray-100">
+                  <td className={tdClass}>{c.product_name ?? "—"}</td>
+                  <td className={tdClass}>{c.vendor_name ?? "—"}</td>
+                  <td className={tdClass}>{c.end_date ?? "—"}</td>
+                  <td className={tdClass}>
                     {c.status === "active" ? "—" : <ContractBadge status={c.status} />}
                   </td>
-                  <td className="px-3 py-2 border-b border-gray-100">
+                  <td className={`${tdClass} text-right tabular-nums`}>
                     {c.yearly_cost != null ? c.yearly_cost.toLocaleString() : "—"}
                   </td>
                 </tr>
@@ -96,6 +109,16 @@ export default function ContractsView() {
           </table>
         )}
       </div>
+      {editing && (
+        <ContractDrawer
+          contract={editing}
+          productId={editing.product_id}
+          onClose={() => setEditing(null)}
+          onChanged={async () => {
+            await reload();
+          }}
+        />
+      )}
     </div>
   );
 }

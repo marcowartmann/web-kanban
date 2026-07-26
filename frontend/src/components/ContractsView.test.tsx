@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SupportContract } from "../types";
 import ContractsView from "./ContractsView";
 
@@ -15,8 +15,15 @@ const rows: SupportContract[] = [
     notice_period_days: null, notes: null, status: "active", components: [] },
 ];
 
-vi.mock("../api/client", () => ({ getContracts: vi.fn() }));
-import { getContracts } from "../api/client";
+vi.mock("../api/client", () => ({
+  getContracts: vi.fn(),
+  getLifecycle: vi.fn().mockResolvedValue([]),
+  getVendors: vi.fn().mockResolvedValue([{ id: 1, name: "Cisco", notes: null }]),
+  updateContract: vi.fn(),
+}));
+import { getContracts, updateContract } from "../api/client";
+
+afterEach(() => vi.clearAllMocks());
 
 describe("ContractsView", () => {
   it("shows loading state while fetching", () => {
@@ -52,5 +59,21 @@ describe("ContractsView", () => {
     vi.mocked(getContracts).mockRejectedValue(new Error("Network down"));
     render(<ContractsView />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Network down");
+  });
+
+  it("clicking a row opens the contract drawer for editing", async () => {
+    vi.mocked(getContracts).mockResolvedValue(rows);
+    render(<ContractsView />);
+    await userEvent.click(await screen.findByRole("button", { name: "Dead" }));
+    expect(await screen.findByRole("heading", { name: "Edit contract" })).toBeInTheDocument();
+  });
+
+  it("saving from the drawer refetches the list", async () => {
+    vi.mocked(getContracts).mockResolvedValue(rows);
+    vi.mocked(updateContract).mockResolvedValue(rows[0]);
+    render(<ContractsView />);
+    await userEvent.click(await screen.findByRole("button", { name: "Dead" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Save" }));
+    await waitFor(() => expect(getContracts).toHaveBeenCalledTimes(2));
   });
 });

@@ -4,11 +4,13 @@ import PageHeader from "../shell/PageHeader";
 import type { Component } from "../types";
 import Badge from "./Badge";
 import Banner from "./Banner";
+import ComponentDrawer from "./ComponentDrawer";
 import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import RiskBadge from "./RiskBadge";
 import { SkeletonRows } from "./Skeleton";
 import TogglePill from "./TogglePill";
+import { tdClass, thClass } from "./ui";
 
 export default function LifecycleView() {
   const [rows, setRows] = useState<Component[]>([]);
@@ -16,6 +18,9 @@ export default function LifecycleView() {
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<string | null>(null);
   const [onlyAtRisk, setOnlyAtRisk] = useState(false);
+  const [editing, setEditing] = useState<Component | null>(null);
+
+  const reload = () => getLifecycle().then(setRows);
 
   useEffect(() => {
     void getLifecycle()
@@ -67,41 +72,57 @@ export default function LifecycleView() {
         ) : (
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                <th className="px-3 py-2 border-b border-gray-100">Component</th>
-                <th className="px-3 py-2 border-b border-gray-100">Product</th>
-                <th className="px-3 py-2 border-b border-gray-100">Vendor</th>
-                <th className="px-3 py-2 border-b border-gray-100">Stage</th>
-                <th className="px-3 py-2 border-b border-gray-100">End of Sale</th>
-                <th className="px-3 py-2 border-b border-gray-100">End of Support</th>
-                <th className="px-3 py-2 border-b border-gray-100">End of Life</th>
-                <th className="px-3 py-2 border-b border-gray-100">Risk</th>
+              <tr>
+                <th className={thClass}>Component</th>
+                <th className={thClass}>Product</th>
+                <th className={thClass}>Vendor</th>
+                <th className={thClass}>Stage</th>
+                <th className={thClass}>End of Sale</th>
+                <th className={thClass}>End of Support</th>
+                <th className={thClass}>End of Life</th>
+                <th className={thClass}>Risk</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id}>
-                  <td className="px-3 py-2 border-b border-gray-100">
-                    <div className="font-medium text-gray-800">{c.name}</div>
+                <tr key={c.id} onClick={() => setEditing(c)} className="cursor-pointer transition hover:bg-gray-50">
+                  <td className={tdClass}>
+                    <button
+                      className="text-left font-medium text-gray-800 hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditing(c);
+                      }}
+                    >
+                      {c.name}
+                    </button>
                     {c.model && <div className="text-xs text-gray-400">{c.model}</div>}
                   </td>
-                  <td className="px-3 py-2 border-b border-gray-100">{c.product_name ?? "—"}</td>
-                  <td className="px-3 py-2 border-b border-gray-100">{c.vendor_name ?? "—"}</td>
-                  <td className="px-3 py-2 border-b border-gray-100">
+                  <td className={tdClass}>{c.product_name ?? "—"}</td>
+                  <td className={tdClass}>{c.vendor_name ?? "—"}</td>
+                  <td className={tdClass}>
                     <Badge tone="gray">{c.lifecycle_stage}</Badge>
                   </td>
-                  <td className="px-3 py-2 border-b border-gray-100">{c.end_of_sale ?? "—"}</td>
-                  <td className="px-3 py-2 border-b border-gray-100">{c.end_of_support ?? "—"}</td>
-                  <td className="px-3 py-2 border-b border-gray-100">{c.end_of_life ?? "—"}</td>
-                  <td className="px-3 py-2 border-b border-gray-100">
-                    {c.risk === "ok" ? "—" : <RiskBadge risk={c.risk} />}
-                  </td>
+                  <td className={tdClass}>{c.end_of_sale ?? "—"}</td>
+                  <td className={tdClass}>{c.end_of_support ?? "—"}</td>
+                  <td className={tdClass}>{c.end_of_life ?? "—"}</td>
+                  <td className={tdClass}>{c.risk === "ok" ? "—" : <RiskBadge risk={c.risk} />}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
+      {editing && (
+        <ComponentDrawer
+          component={editing}
+          productId={editing.product_id}
+          onClose={() => setEditing(null)}
+          onChanged={async () => {
+            await reload();
+          }}
+        />
+      )}
     </div>
   );
 }

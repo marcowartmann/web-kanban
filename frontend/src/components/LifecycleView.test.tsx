@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Component } from "../types";
 import LifecycleView from "./LifecycleView";
 
@@ -17,8 +17,14 @@ const rows: Component[] = [
     yearly_run_cost: null, replacement_budget: null, risk: "ok", contracts: [] },
 ];
 
-vi.mock("../api/client", () => ({ getLifecycle: vi.fn() }));
-import { getLifecycle } from "../api/client";
+vi.mock("../api/client", () => ({
+  getLifecycle: vi.fn(),
+  getVendors: vi.fn().mockResolvedValue([{ id: 1, name: "Cisco", notes: null }]),
+  updateComponent: vi.fn(),
+}));
+import { getLifecycle, updateComponent } from "../api/client";
+
+afterEach(() => vi.clearAllMocks());
 
 describe("LifecycleView", () => {
   it("shows loading state while fetching", () => {
@@ -51,5 +57,21 @@ describe("LifecycleView", () => {
     vi.mocked(getLifecycle).mockRejectedValue(new Error("Network down"));
     render(<LifecycleView />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Network down");
+  });
+
+  it("clicking a row opens the component drawer for editing", async () => {
+    vi.mocked(getLifecycle).mockResolvedValue(rows);
+    render(<LifecycleView />);
+    await userEvent.click(await screen.findByRole("button", { name: "Dead" }));
+    expect(await screen.findByRole("heading", { name: "Edit component" })).toBeInTheDocument();
+  });
+
+  it("saving from the drawer refetches the list", async () => {
+    vi.mocked(getLifecycle).mockResolvedValue(rows);
+    vi.mocked(updateComponent).mockResolvedValue(rows[0]);
+    render(<LifecycleView />);
+    await userEvent.click(await screen.findByRole("button", { name: "Dead" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Save" }));
+    await waitFor(() => expect(getLifecycle).toHaveBeenCalledTimes(2));
   });
 });

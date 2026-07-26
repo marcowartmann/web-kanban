@@ -7,7 +7,7 @@ import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
 import EmptyState from "../EmptyState";
 import { SkeletonRows } from "../Skeleton";
-import { btnPrimary, btnSecondary } from "../ui";
+import { btnPrimary, btnSecondary, thClass } from "../ui";
 import AdminCard from "./AdminCard";
 
 export default function SnapshotsSection({ onChanged }: { onChanged: () => void }) {
@@ -137,13 +137,13 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-700">
             <thead>
-              <tr className="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-400">
-                <th className="py-2 pr-3 font-medium">Created</th>
-                <th className="py-2 pr-3 font-medium">By</th>
-                <th className="py-2 pr-3 font-medium">Items</th>
-                <th className="py-2 pr-3 font-medium">Comments</th>
-                <th className="py-2 pr-3 font-medium">Links</th>
-                <th className="py-2 font-medium" aria-hidden />
+              <tr>
+                <th className={thClass}>Created</th>
+                <th className={thClass}>By</th>
+                <th className={thClass}>Items</th>
+                <th className={thClass}>Comments</th>
+                <th className={thClass}>Links</th>
+                <th className={thClass} aria-hidden />
               </tr>
             </thead>
             <tbody>

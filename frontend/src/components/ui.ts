@@ -42,6 +42,10 @@ export const popoverClass =
 export const closeButtonClass =
   "rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700";
 
+export const thClass =
+  "px-3 py-2 border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wide text-gray-400";
+export const tdClass = "px-3 py-2 border-b border-gray-100";
+
 /** Z ladder: content popovers < drawer overlays < modals < ConfirmDialog. */
 export const zPopover = "z-20";
 export const zDrawer = "z-40";

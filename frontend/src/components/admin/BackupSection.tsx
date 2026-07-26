@@ -12,7 +12,7 @@ import type { BackupConfig, BackupRun } from "../../types";
 import Banner from "../Banner";
 import EmptyState from "../EmptyState";
 import PlainSelect from "../PlainSelect";
-import { btnPrimary, btnSecondary } from "../ui";
+import { btnPrimary, btnSecondary, thClass } from "../ui";
 import { adminCardClass, adminInputClass } from "./AdminCard";
 
 const FREQ = [
@@ -167,12 +167,12 @@ export default function BackupSection() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-700">
             <thead>
-              <tr className="border-b border-gray-200 text-xs uppercase tracking-wide text-gray-400">
-                <th className="py-2 pr-3 font-medium">Started</th>
-                <th className="py-2 pr-3 font-medium">Trigger</th>
-                <th className="py-2 pr-3 font-medium">Status</th>
-                <th className="py-2 pr-3 font-medium">Files</th>
-                <th className="py-2 font-medium">Message</th>
+              <tr>
+                <th className={thClass}>Started</th>
+                <th className={thClass}>Trigger</th>
+                <th className={thClass}>Status</th>
+                <th className={thClass}>Files</th>
+                <th className={thClass}>Message</th>
               </tr>
             </thead>
             <tbody>
