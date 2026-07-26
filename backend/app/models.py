@@ -1,10 +1,10 @@
 import enum
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, Column, Enum, ForeignKey, Index, Integer, Numeric, String, Table, Text, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, Column, Date, Enum, ForeignKey, Index, Integer, Numeric, String, Table, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.catalog.domain import Criticality, DependencyType, LifecycleState
+from app.catalog.domain import Criticality, DependencyType, LifecycleStage, LifecycleState
 from app.db import Base
 # DateTime is app.timeutil's tz-normalizing TypeDecorator — never import DateTime
 # from sqlalchemy for a column, or SQLite reads it back naive.
@@ -563,3 +563,116 @@ class ServiceDependency(Base):
 
     from_service: Mapped["Service"] = relationship(foreign_keys=[from_service_id])
     to_service: Mapped["Service"] = relationship(foreign_keys=[to_service_id])
+
+
+service_components = Table(
+    "service_components",
+    Base.metadata,
+    Column("service_id", Integer, ForeignKey("services.id", ondelete="CASCADE"), primary_key=True),
+    Column("component_id", Integer, ForeignKey("components.id", ondelete="RESTRICT"), primary_key=True),
+)
+
+service_systems = Table(
+    "service_systems",
+    Base.metadata,
+    Column("service_id", Integer, ForeignKey("services.id", ondelete="CASCADE"), primary_key=True),
+    Column("system_id", Integer, ForeignKey("systems.id", ondelete="RESTRICT"), primary_key=True),
+)
+
+
+class Vendor(Base):
+    __tablename__ = "vendors"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True)
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+
+class Component(Base):
+    __tablename__ = "components"
+    __table_args__ = (UniqueConstraint("product_id", "name", name="uq_component_product_name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    model: Mapped[str | None] = mapped_column(String(64))
+    description: Mapped[str | None] = mapped_column(Text)
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="RESTRICT"), index=True
+    )
+    vendor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("vendors.id", ondelete="SET NULL"), index=True
+    )
+    lifecycle_stage: Mapped[LifecycleStage] = mapped_column(
+        Enum(LifecycleStage, native_enum=False,
+             values_callable=lambda e: [m.value for m in e], length=16),
+        default=LifecycleStage.PLAN,
+        server_default="plan",
+    )
+    quantity: Mapped[int | None] = mapped_column(Integer)
+    eos_announced: Mapped[date | None] = mapped_column(Date)
+    end_of_sale: Mapped[date | None] = mapped_column(Date)
+    end_of_support: Mapped[date | None] = mapped_column(Date)
+    end_of_life: Mapped[date | None] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+    product: Mapped["Product"] = relationship()
+    vendor: Mapped["Vendor | None"] = relationship()
+
+
+class System(Base):
+    __tablename__ = "systems"
+    __table_args__ = (UniqueConstraint("product_id", "name", name="uq_system_product_name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    description: Mapped[str | None] = mapped_column(Text)
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="RESTRICT"), index=True
+    )
+    lifecycle_stage: Mapped[LifecycleStage] = mapped_column(
+        Enum(LifecycleStage, native_enum=False,
+             values_callable=lambda e: [m.value for m in e], length=16),
+        default=LifecycleStage.PLAN,
+        server_default="plan",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+    product: Mapped["Product"] = relationship()
+    memberships: Mapped[list["SystemComponent"]] = relationship(
+        cascade="all, delete-orphan", back_populates="system"
+    )
+
+
+class SystemComponent(Base):
+    __tablename__ = "system_components"
+    __table_args__ = (
+        UniqueConstraint("system_id", "component_id", name="uq_system_component"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    system_id: Mapped[int] = mapped_column(
+        ForeignKey("systems.id", ondelete="CASCADE"), index=True
+    )
+    component_id: Mapped[int] = mapped_column(
+        ForeignKey("components.id", ondelete="RESTRICT"), index=True
+    )
+    quantity: Mapped[int | None] = mapped_column(Integer)
+
+    system: Mapped["System"] = relationship(back_populates="memberships")
+    component: Mapped["Component"] = relationship()
