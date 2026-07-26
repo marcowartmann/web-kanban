@@ -1,11 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
-import { createService, getProductComponents, getProductServices, getProductSystems } from "../api/client";
-import type { CatalogService, CatalogSystem, Component, LifecycleState, Product } from "../types";
+import {
+  createService,
+  getProductComponents,
+  getProductContracts,
+  getProductServices,
+  getProductSystems,
+} from "../api/client";
+import type { CatalogService, CatalogSystem, Component, LifecycleState, Product, SupportContract } from "../types";
 import ComponentDrawer from "./ComponentDrawer";
+import ContractBadge from "./ContractBadge";
+import ContractDrawer from "./ContractDrawer";
 import RiskBadge from "./RiskBadge";
 import ServiceDrawer from "./ServiceDrawer";
 import SystemDrawer from "./SystemDrawer";
 import { btnPrimary, btnSecondary, inputClass } from "./ui";
+
+/** Sums non-null numbers; returns null (renders "—") when every input is null. */
+function sumOrNull(values: (number | null)[]): number | null {
+  const present = values.filter((v): v is number => v != null);
+  return present.length === 0 ? null : present.reduce((a, b) => a + b, 0);
+}
 
 // Flat "Parent › Child" path labels for the drawer's parent picker.
 function flatten(nodes: CatalogService[], prefix = ""): { id: number; label: string }[] {
@@ -89,6 +103,26 @@ function SystemRow({ system, onOpen }: { system: CatalogSystem; onOpen: (s: Cata
   );
 }
 
+function ContractRow({
+  contract,
+  onOpen,
+}: {
+  contract: SupportContract;
+  onOpen: (c: SupportContract) => void;
+}) {
+  return (
+    <div className="mb-1.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-surface px-3 py-2">
+      <button onClick={() => onOpen(contract)} className="flex-1 text-left text-sm font-medium text-gray-800">
+        {contract.name}
+      </button>
+      {contract.vendor_name && <span className="text-xs text-gray-400">{contract.vendor_name}</span>}
+      <span className="text-xs text-gray-500">{contract.end_date ?? "—"}</span>
+      <ContractBadge status={contract.status} />
+      <span className="w-20 text-right text-xs text-gray-500">{contract.yearly_cost ?? "—"}</span>
+    </div>
+  );
+}
+
 function ComponentRow({ component, onOpen }: { component: Component; onOpen: (c: Component) => void }) {
   return (
     <div className="mb-1.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-surface px-3 py-2">
@@ -113,7 +147,7 @@ export default function ProductDetail({
   product: Product;
   onBack: () => void;
 }) {
-  const [tab, setTab] = useState<"services" | "systems" | "components">("services");
+  const [tab, setTab] = useState<"services" | "systems" | "components" | "contracts">("services");
   const [tree, setTree] = useState<CatalogService[]>([]);
   const [drawer, setDrawer] = useState<CatalogService | null>(null);
   // null = form closed; parentId null = add at root, otherwise sub-service.
@@ -129,6 +163,10 @@ export default function ProductDetail({
   const [systemDrawerOpen, setSystemDrawerOpen] = useState(false);
   const [editingSystem, setEditingSystem] = useState<CatalogSystem | null>(null);
 
+  const [contracts, setContracts] = useState<SupportContract[]>([]);
+  const [contractDrawerOpen, setContractDrawerOpen] = useState(false);
+  const [editingContract, setEditingContract] = useState<SupportContract | null>(null);
+
   const load = useCallback(
     () => getProductServices(product.id).then(setTree),
     [product.id],
@@ -141,9 +179,10 @@ export default function ProductDetail({
     () => getProductComponents(product.id).then(setComponents),
     [product.id],
   );
-  // The Systems tab's drawer needs the product's components too (member picker).
+  // The Systems tab's drawer needs the product's components too (member
+  // picker), and the Contracts tab's totals footer sums their run costs.
   useEffect(() => {
-    if (tab === "components" || tab === "systems") void loadComponents();
+    if (tab === "components" || tab === "systems" || tab === "contracts") void loadComponents();
   }, [tab, loadComponents]);
 
   const loadSystems = useCallback(
@@ -153,6 +192,14 @@ export default function ProductDetail({
   useEffect(() => {
     if (tab === "systems") void loadSystems();
   }, [tab, loadSystems]);
+
+  const loadContracts = useCallback(
+    () => getProductContracts(product.id).then(setContracts),
+    [product.id],
+  );
+  useEffect(() => {
+    if (tab === "contracts") void loadContracts();
+  }, [tab, loadContracts]);
 
   const pill = (active: boolean) =>
     `rounded-full border px-3 py-1 text-sm font-medium transition ${
@@ -225,6 +272,17 @@ export default function ProductDetail({
               Add component
             </button>
           )}
+          {tab === "contracts" && (
+            <button
+              onClick={() => {
+                setEditingContract(null);
+                setContractDrawerOpen(true);
+              }}
+              className={btnSecondary}
+            >
+              Add contract
+            </button>
+          )}
         </div>
 
         <div className="mb-5 flex gap-2">
@@ -236,6 +294,9 @@ export default function ProductDetail({
           </button>
           <button onClick={() => setTab("components")} className={pill(tab === "components")}>
             Components
+          </button>
+          <button onClick={() => setTab("contracts")} className={pill(tab === "contracts")}>
+            Contracts
           </button>
         </div>
 
@@ -317,6 +378,39 @@ export default function ProductDetail({
             )}
           </>
         )}
+
+        {tab === "contracts" && (
+          <>
+            {contracts.length === 0 ? (
+              <div className="py-12 text-center text-sm text-gray-400">No contracts yet.</div>
+            ) : (
+              contracts.map((c) => (
+                <ContractRow
+                  key={c.id}
+                  contract={c}
+                  onOpen={(con) => {
+                    setEditingContract(con);
+                    setContractDrawerOpen(true);
+                  }}
+                />
+              ))
+            )}
+            <div className="mt-4 flex flex-col gap-1 border-t border-gray-200 pt-3 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>Contract costs / yr</span>
+                <span>{sumOrNull(contracts.map((c) => c.yearly_cost))?.toLocaleString() ?? "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Run costs / yr</span>
+                <span>{sumOrNull(components.map((c) => c.yearly_run_cost))?.toLocaleString() ?? "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Replacement budget</span>
+                <span>{sumOrNull(components.map((c) => c.replacement_budget))?.toLocaleString() ?? "—"}</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
       {drawer && (
         <ServiceDrawer
@@ -353,6 +447,17 @@ export default function ProductDetail({
           onClose={() => setSystemDrawerOpen(false)}
           onChanged={async () => {
             await loadSystems();
+          }}
+        />
+      )}
+      {contractDrawerOpen && (
+        <ContractDrawer
+          key={editingContract?.id ?? "new"}
+          contract={editingContract}
+          productId={product.id}
+          onClose={() => setContractDrawerOpen(false)}
+          onChanged={async () => {
+            await loadContracts();
           }}
         />
       )}
