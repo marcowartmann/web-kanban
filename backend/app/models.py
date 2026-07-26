@@ -4,7 +4,13 @@ from datetime import date, datetime
 from sqlalchemy import CheckConstraint, Column, Date, Enum, ForeignKey, Index, Integer, Numeric, String, Table, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.catalog.domain import Criticality, DependencyType, LifecycleStage, LifecycleState
+from app.catalog.domain import (
+    Criticality,
+    DependencyType,
+    LifecycleStage,
+    LifecycleState,
+    RoadmapStatus,
+)
 from app.db import Base
 # DateTime is app.timeutil's tz-normalizing TypeDecorator — never import DateTime
 # from sqlalchemy for a column, or SQLite reads it back naive.
@@ -715,3 +721,58 @@ class SupportContract(Base):
 
     product: Mapped["Product"] = relationship()
     vendor: Mapped["Vendor | None"] = relationship()
+
+
+class Stream(Base):
+    __tablename__ = "streams"
+    __table_args__ = (UniqueConstraint("product_id", "name", name="uq_stream_product_name"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="RESTRICT"), index=True
+    )
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+    product: Mapped["Product"] = relationship()
+
+
+roadmap_item_features = Table(
+    "roadmap_item_features",
+    Base.metadata,
+    Column("roadmap_item_id", Integer, ForeignKey("roadmap_items.id", ondelete="CASCADE"), primary_key=True),
+    Column("feature_id", Integer, ForeignKey("items.id", ondelete="CASCADE"), primary_key=True),
+)
+
+
+class RoadmapItem(Base):
+    __tablename__ = "roadmap_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String(256))
+    description: Mapped[str | None] = mapped_column(Text)
+    stream_id: Mapped[int] = mapped_column(
+        ForeignKey("streams.id", ondelete="RESTRICT"), index=True
+    )
+    status: Mapped[RoadmapStatus] = mapped_column(
+        Enum(RoadmapStatus, native_enum=False,
+             values_callable=lambda e: [m.value for m in e], length=16),
+        default=RoadmapStatus.IDEA,
+        server_default="idea",
+    )
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow, server_default=func.now()
+    )
+
+    stream: Mapped["Stream"] = relationship()
