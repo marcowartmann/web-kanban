@@ -752,3 +752,40 @@ class ComponentUpdate(BaseModel):
     end_of_sale: date | None = None
     end_of_support: date | None = None
     end_of_life: date | None = None
+
+
+class SystemMemberRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    component: ComponentRead
+    quantity: int | None = None
+
+
+class SystemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    description: str | None = None
+    product_id: int
+    product_name: str | None = None
+    lifecycle_stage: LifecycleStage
+    risk: RiskLevel
+    members: list[SystemMemberRead] = []
+
+
+class SystemCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    product_id: int
+    description: str | None = None
+    lifecycle_stage: LifecycleStage = LifecycleStage.PLAN
+
+
+class SystemUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = None
+    lifecycle_stage: LifecycleStage | None = None
+
+
+class SystemMemberSet(BaseModel):
+    component_id: int
+    quantity: int | None = Field(default=None, ge=0)
