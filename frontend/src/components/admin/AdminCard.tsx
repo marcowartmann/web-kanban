@@ -19,8 +19,6 @@ export const adminRowClass =
 export const adminRemoveButtonClass =
   "shrink-0 rounded-md p-1 text-sm leading-none text-gray-300 transition hover:bg-red-50 hover:text-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-100";
 
-export const adminEmptyClass = "px-3 py-6 text-center text-sm text-gray-400";
-
 /** A modern Admin panel: rounded card with an accent icon chip, title, and an
  *  optional count pill. */
 export default function AdminCard({

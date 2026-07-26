@@ -9,9 +9,11 @@ import {
 import PageHeader from "../shell/PageHeader";
 import type { CatalogService, CatalogSystem, Component, LifecycleState, Product, SupportContract } from "../types";
 import Badge, { type BadgeTone } from "./Badge";
+import Banner from "./Banner";
 import ComponentDrawer from "./ComponentDrawer";
 import ContractBadge from "./ContractBadge";
 import ContractDrawer from "./ContractDrawer";
+import EmptyState from "./EmptyState";
 import RiskBadge from "./RiskBadge";
 import ServiceDrawer from "./ServiceDrawer";
 import SystemDrawer from "./SystemDrawer";
@@ -312,10 +314,12 @@ export default function ProductDetail({ product }: { product: Product }) {
               </div>
             )}
             {error && (
-              <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+              <div className="mb-4">
+                <Banner tone="error">{error}</Banner>
+              </div>
             )}
             {tree.length === 0 ? (
-              <div className="py-12 text-center text-sm text-gray-400">No services yet.</div>
+              <EmptyState>No services yet.</EmptyState>
             ) : (
               tree.map((s) => (
                 <ServiceNode
@@ -333,7 +337,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         {tab === "systems" && (
           <>
             {systems.length === 0 ? (
-              <div className="py-12 text-center text-sm text-gray-400">No systems yet.</div>
+              <EmptyState>No systems yet.</EmptyState>
             ) : (
               systems.map((s) => (
                 <SystemRow
@@ -352,7 +356,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         {tab === "components" && (
           <>
             {components.length === 0 ? (
-              <div className="py-12 text-center text-sm text-gray-400">No components yet.</div>
+              <EmptyState>No components yet.</EmptyState>
             ) : (
               components.map((c) => (
                 <ComponentRow
@@ -371,7 +375,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         {tab === "contracts" && (
           <>
             {contracts.length === 0 ? (
-              <div className="py-12 text-center text-sm text-gray-400">No contracts yet.</div>
+              <EmptyState>No contracts yet.</EmptyState>
             ) : (
               contracts.map((c) => (
                 <ContractRow

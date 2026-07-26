@@ -27,6 +27,7 @@ import type {
   ServiceTech,
 } from "../types";
 import Badge from "./Badge";
+import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
 import PlainSelect from "./PlainSelect";
 import RiskBadge from "./RiskBadge";
@@ -211,7 +212,9 @@ export default function ServiceDrawer({
         </button>
       </div>
       {error && (
-        <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-3">
+          <Banner tone="error">{error}</Banner>
+        </div>
       )}
       <label className={captionClass}>Name</label>
       <input value={name} onChange={(e) => setName(e.target.value)} className={`${inputClass} mb-3`} />

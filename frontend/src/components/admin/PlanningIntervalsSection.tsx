@@ -9,10 +9,11 @@ import {
   renamePlanningInterval,
 } from "../../api/client";
 import type { PlanningInterval } from "../../types";
+import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
+import EmptyState from "../EmptyState";
 import AdminCard, {
   adminAddButtonClass,
-  adminEmptyClass,
   adminInputClass,
   adminRemoveButtonClass,
   adminRowClass,
@@ -107,7 +108,11 @@ export default function PlanningIntervalsSection({ onChanged }: { onChanged: () 
           Add
         </button>
       </div>
-      {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
+      {error && (
+        <div className="mb-2">
+          <Banner tone="error">{error}</Banner>
+        </div>
+      )}
       <ul className="flex flex-col gap-0.5">
         {intervals.map((p) => (
           <li key={p.id} className={adminRowClass}>
@@ -156,7 +161,11 @@ export default function PlanningIntervalsSection({ onChanged }: { onChanged: () 
             )}
           </li>
         ))}
-        {intervals.length === 0 && <li className={adminEmptyClass}>No planning intervals yet.</li>}
+        {intervals.length === 0 && (
+          <li>
+            <EmptyState>No planning intervals yet.</EmptyState>
+          </li>
+        )}
       </ul>
       {forceDelete && (
         <ConfirmDialog

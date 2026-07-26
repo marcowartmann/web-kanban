@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { getProducts } from "../api/client";
 import PageHeader from "../shell/PageHeader";
 import type { Product } from "../types";
+import EmptyState from "./EmptyState";
 
 export default function ProductsView() {
   const navigate = useNavigate();
@@ -36,9 +37,7 @@ export default function ProductsView() {
         {loading ? (
           <div className="text-gray-500">Loading…</div>
         ) : products.length === 0 ? (
-          <div className="py-16 text-center text-gray-400">
-            No products yet. Admins can create them under Admin → Catalog.
-          </div>
+          <EmptyState>No products yet. Admins can create them under Admin → Catalog.</EmptyState>
         ) : (
           artGroups.map(([artName, list]) => (
             <section key={artName} className="mb-8">

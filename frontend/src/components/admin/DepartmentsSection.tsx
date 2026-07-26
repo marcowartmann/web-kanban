@@ -11,9 +11,10 @@ import {
   setDepartmentMembers,
 } from "../../api/client";
 import type { Department, PersonOption, Team } from "../../types";
+import Banner from "../Banner";
+import EmptyState from "../EmptyState";
 import AdminCard, {
   adminAddButtonClass,
-  adminEmptyClass,
   adminInputClass,
   adminRemoveButtonClass,
   adminRowClass,
@@ -85,9 +86,13 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
 
   return (
     <AdminCard title="Departments" icon={<FontAwesomeIcon icon={faBuilding} />} count={departments.length}>
-      {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
+      {error && (
+        <div className="mb-2">
+          <Banner tone="error">{error}</Banner>
+        </div>
+      )}
       {teams.length === 0 ? (
-        <p className={adminEmptyClass}>Add a team first.</p>
+        <EmptyState>Add a team first.</EmptyState>
       ) : (
         <div className="flex flex-col gap-4">
           {teams.map((team) => {

@@ -46,4 +46,10 @@ describe("LifecycleView", () => {
     expect(screen.queryByText("Fine")).not.toBeInTheDocument();
     expect(screen.getByText("Dead")).toBeInTheDocument();
   });
+
+  it("shows an error banner when the fetch fails", async () => {
+    vi.mocked(getLifecycle).mockRejectedValue(new Error("Network down"));
+    render(<LifecycleView />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Network down");
+  });
 });

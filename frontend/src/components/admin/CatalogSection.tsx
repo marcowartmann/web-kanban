@@ -11,6 +11,7 @@ import {
   updateProduct,
 } from "../../api/client";
 import type { Art, Product, Team } from "../../types";
+import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
 import PlainSelect from "../PlainSelect";
 import { btnDangerGhost, btnGhost, btnSecondary, captionClass, inputClass } from "../ui";
@@ -108,9 +109,7 @@ export default function CatalogSection() {
 
   return (
     <div className="flex flex-col gap-6">
-      {error && (
-        <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
-      )}
+      {error && <Banner tone="error">{error}</Banner>}
 
       <section className="rounded-xl border border-gray-200 bg-surface p-4">
         <h2 className="mb-3 text-sm font-semibold text-gray-900">ARTs</h2>

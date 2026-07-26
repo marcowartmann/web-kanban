@@ -10,14 +10,15 @@ import {
   renameContainer,
 } from "../../api/client";
 import type { Container, Team } from "../../types";
+import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
+import EmptyState from "../EmptyState";
 import FilterSelect from "../FilterSelect";
 import PlainSelect from "../PlainSelect";
 import { captionClass } from "../ui";
 import {
   adminAddButtonClass,
   adminCardClass,
-  adminEmptyClass,
   adminInputClass,
   adminRemoveButtonClass,
   adminRowClass,
@@ -240,7 +241,11 @@ export default function ContainersSection({
           Add
         </button>
       </div>
-      {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
+      {error && (
+        <div className="mb-2">
+          <Banner tone="error">{error}</Banner>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         {visibleTeams.map((t) => {
@@ -253,7 +258,7 @@ export default function ContainersSection({
             </div>
           );
         })}
-        {scoped.length === 0 && <p className={adminEmptyClass}>No containers in this scope yet.</p>}
+        {scoped.length === 0 && <EmptyState>No containers in this scope yet.</EmptyState>}
       </div>
 
       {forceDelete && (

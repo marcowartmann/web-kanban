@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createComment, deleteComment, getComments, updateComment } from "../api/client";
 import { useOptionalAuth } from "../auth/AuthContext";
 import type { AuthUser, Comment } from "../types";
+import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
 import { btnPrimary, inputClass } from "./ui";
 
@@ -183,7 +184,7 @@ export default function ItemComments({ itemId }: { itemId: number }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <Banner tone="error">{error}</Banner>}
       {user && (
         <div className="flex flex-col gap-1.5">
           <textarea

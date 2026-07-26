@@ -12,6 +12,7 @@ import { ConflictError, createItem, getItem, updateItem } from "../api/client";
 import { groupByStatus } from "../lib/groupByStatus";
 import type { Item } from "../types";
 import Badge from "./Badge";
+import Banner from "./Banner";
 import Column from "./Column";
 import InlineAddInput from "./InlineAddInput";
 
@@ -149,7 +150,11 @@ export default function StoryBoardModal({
           </div>
         </div>
 
-        {error && <p className="px-5 py-2 text-sm text-red-600">{error}</p>}
+        {error && (
+          <div className="px-5 py-2">
+            <Banner tone="error">{error}</Banner>
+          </div>
+        )}
 
         <div className="overflow-auto bg-gray-50 p-4">
           {feature && isEmpty ? (

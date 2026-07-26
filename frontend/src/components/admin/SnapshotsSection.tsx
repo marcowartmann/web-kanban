@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { API, createSnapshot, deleteSnapshot, listSnapshots, restoreSnapshot, uploadSnapshot } from "../../api/client";
 import { faBoxArchive } from "../../icons";
 import type { SnapshotInfo } from "../../types";
+import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
+import EmptyState from "../EmptyState";
 import { btnPrimary, btnSecondary } from "../ui";
-import AdminCard, { adminEmptyClass } from "./AdminCard";
+import AdminCard from "./AdminCard";
 
 export default function SnapshotsSection({ onChanged }: { onChanged: () => void }) {
   const [snapshots, setSnapshots] = useState<SnapshotInfo[]>([]);
@@ -110,13 +112,21 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
           />
         </label>
       </div>
-      {status && <p className="mb-2 text-xs text-emerald-700">{status}</p>}
-      {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
+      {status && (
+        <div className="mb-2">
+          <Banner tone="success">{status}</Banner>
+        </div>
+      )}
+      {error && (
+        <div className="mb-2">
+          <Banner tone="error">{error}</Banner>
+        </div>
+      )}
       {snapshots.length === 0 ? (
-        <p className={adminEmptyClass}>
+        <EmptyState>
           No snapshots yet — create one here, or import a CSV (one is created automatically
           before every import).
-        </p>
+        </EmptyState>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-700">

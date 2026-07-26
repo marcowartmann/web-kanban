@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ConflictError, convertUserProvider, createUser, setUserDepartments, updateUser } from "../../api/client";
 import type { AuthUser, Department, Team } from "../../types";
+import Banner from "../Banner";
 import PlainSelect from "../PlainSelect";
 import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass } from "../ui";
 
@@ -233,7 +234,11 @@ export default function UserModal({
             </p>
           </div>
         )}
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {error && (
+          <div className="mt-3">
+            <Banner tone="error">{error}</Banner>
+          </div>
+        )}
         <div className="mt-5 flex justify-end gap-2">
           <button onClick={onClose} className={btnGhost}>
             Cancel

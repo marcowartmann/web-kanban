@@ -3,17 +3,23 @@ import { getLifecycle } from "../api/client";
 import PageHeader from "../shell/PageHeader";
 import type { Component } from "../types";
 import Badge from "./Badge";
+import Banner from "./Banner";
+import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import RiskBadge from "./RiskBadge";
 
 export default function LifecycleView() {
   const [rows, setRows] = useState<Component[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<string | null>(null);
   const [onlyAtRisk, setOnlyAtRisk] = useState(false);
 
   useEffect(() => {
-    void getLifecycle().then(setRows).finally(() => setLoading(false));
+    void getLifecycle()
+      .then(setRows)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setLoading(false));
   }, []);
 
   const productNames = useMemo(
@@ -52,12 +58,15 @@ export default function LifecycleView() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
+        {error && (
+          <div className="mb-3">
+            <Banner tone="error">{error}</Banner>
+          </div>
+        )}
         {loading ? (
           <div className="text-gray-500">Loading…</div>
         ) : filtered.length === 0 ? (
-          <div className="px-2 py-8 text-sm text-gray-400">
-            No components yet. Add them on a product's Components tab.
-          </div>
+          <EmptyState>No components yet. Add them on a product's Components tab.</EmptyState>
         ) : (
           <table className="w-full text-left text-sm">
             <thead>

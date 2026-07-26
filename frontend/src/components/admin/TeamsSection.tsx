@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import { ConflictError, createTeam, deleteTeam, getTeams, renameTeam } from "../../api/client";
 import { faPen, faUsers, faXmark } from "../../icons";
 import type { Team } from "../../types";
+import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
+import EmptyState from "../EmptyState";
 import AdminCard, {
   adminAddButtonClass,
-  adminEmptyClass,
   adminInputClass,
   adminRemoveButtonClass,
   adminRowClass,
@@ -96,7 +97,11 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
           Add
         </button>
       </div>
-      {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
+      {error && (
+        <div className="mb-2">
+          <Banner tone="error">{error}</Banner>
+        </div>
+      )}
       <ul className="flex flex-col gap-0.5">
         {teams.map((t) => (
           <li key={t.id} className={adminRowClass}>
@@ -145,7 +150,11 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
             )}
           </li>
         ))}
-        {teams.length === 0 && <li className={adminEmptyClass}>No teams yet.</li>}
+        {teams.length === 0 && (
+          <li>
+            <EmptyState>No teams yet.</EmptyState>
+          </li>
+        )}
       </ul>
       {forceDelete && (
         <ConfirmDialog

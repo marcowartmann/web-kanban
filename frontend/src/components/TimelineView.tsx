@@ -14,6 +14,7 @@ import { computePlanningLinks } from "../lib/planningLinks";
 import { dependencyComponent, groupByFeature, layoutFlat, type FeatureLane } from "../lib/timeline";
 import PageHeader from "../shell/PageHeader";
 import type { Item, LinkRow } from "../types";
+import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import TimelineLane, { type TimelineColumn } from "./TimelineLane";
 
@@ -202,9 +203,7 @@ export default function TimelineView({
         <DndContext sensors={sensors} onDragEnd={(e) => void handleTimelineDragEnd(e, items, onChanged)}>
           <div className="flex flex-col">
             {mode === "feature" && filteredLanes.length === 0 && query.trim() ? (
-              <div className="px-2 py-8 text-sm text-gray-400">
-                No features match “{query.trim()}”.
-              </div>
+              <EmptyState>No features match “{query.trim()}”.</EmptyState>
             ) : (
               (mode === "feature" ? filteredLanes : [depsLane]).map((lane) => (
                 <TimelineLane

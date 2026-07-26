@@ -9,6 +9,8 @@ import {
 } from "../../api/client";
 import { faCloudArrowUp } from "../../icons";
 import type { BackupConfig, BackupRun } from "../../types";
+import Banner from "../Banner";
+import EmptyState from "../EmptyState";
 import PlainSelect from "../PlainSelect";
 import { btnPrimary, btnSecondary } from "../ui";
 import { adminCardClass, adminInputClass } from "./AdminCard";
@@ -154,13 +156,13 @@ export default function BackupSection() {
         <button onClick={() => void save()} disabled={busy} className={btnPrimary}>Save</button>
         <button onClick={() => void test()} disabled={busy} className={btnSecondary}>Test connection</button>
         <button onClick={() => void run()} disabled={busy} className={btnSecondary}>Run now</button>
-        {status && <span className="text-xs font-medium text-emerald-700">{status}</span>}
-        {error && <span className="text-xs font-medium text-red-600">{error}</span>}
+        {status && <Banner tone="success">{status}</Banner>}
+        {error && <Banner tone="error">{error}</Banner>}
       </div>
 
       <h3 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wide text-gray-400">Recent runs</h3>
       {runs.length === 0 ? (
-        <p className="text-sm text-gray-400">No backups have run yet.</p>
+        <EmptyState>No backups have run yet.</EmptyState>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-700">

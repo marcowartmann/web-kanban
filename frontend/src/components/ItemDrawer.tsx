@@ -15,6 +15,7 @@ import {
 import type { Container, Department, Item, ItemKind, ItemUpdate, PersonOption, RelationOption, Team } from "../types";
 import Avatar from "./Avatar";
 import Badge, { type BadgeTone } from "./Badge";
+import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
 import Field from "./Field";
 import InlineAddInput from "./InlineAddInput";
@@ -672,7 +673,9 @@ export default function ItemDrawer({
             />
           </div>
           {conflict && (
-            <p className="px-4 pb-2 text-xs font-medium text-amber-700">{conflict}</p>
+            <div className="px-4 pb-2">
+              <Banner tone="warning">{conflict}</Banner>
+            </div>
           )}
         </div>
       </div>

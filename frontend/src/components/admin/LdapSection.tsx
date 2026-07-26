@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getLdapConfig, saveLdapConfig, testLdap } from "../../api/client";
 import { faLock } from "../../icons";
 import type { LdapConfig } from "../../types";
+import Banner from "../Banner";
 import { btnPrimary, btnSecondary } from "../ui";
 import { adminCardClass, adminInputClass } from "./AdminCard";
 
@@ -134,8 +135,8 @@ export default function LdapSection() {
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <button onClick={() => void save()} disabled={busy} className={btnPrimary}>Save</button>
         <button onClick={() => void test()} disabled={busy} className={btnSecondary}>Test connection</button>
-        {status && <span className="text-xs font-medium text-emerald-700">{status}</span>}
-        {error && <span className="text-xs font-medium text-red-600">{error}</span>}
+        {status && <Banner tone="success">{status}</Banner>}
+        {error && <Banner tone="error">{error}</Banner>}
       </div>
     </section>
   );

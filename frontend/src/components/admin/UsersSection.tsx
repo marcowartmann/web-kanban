@@ -4,6 +4,7 @@ import { ConflictError, deleteUser, getDepartments, getTeams, listUsers } from "
 import { faUser } from "../../icons";
 import type { AuthUser, Department, Team } from "../../types";
 import Badge, { type BadgeTone } from "../Badge";
+import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
 import UserModal from "./UserModal";
 
@@ -81,7 +82,11 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
         </button>
       </header>
 
-      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+      {error && (
+        <div className="mb-3">
+          <Banner tone="error">{error}</Banner>
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">

@@ -5,7 +5,9 @@ import { faEllipsisVertical, faPlus } from "../icons";
 import { assignRows, axisRange, barGeometry } from "../lib/roadmap";
 import PageHeader from "../shell/PageHeader";
 import type { Product, RoadmapItem, RoadmapStatus, Stream } from "../types";
+import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
+import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import RoadmapItemDrawer from "./RoadmapItemDrawer";
 import { btnSecondary, inputClass, popoverClass } from "./ui";
@@ -256,7 +258,7 @@ export default function RoadmapView() {
 
       {error && (
         <div className="shrink-0 px-6 pt-3">
-          <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+          <Banner tone="error">{error}</Banner>
         </div>
       )}
 
@@ -279,9 +281,7 @@ export default function RoadmapView() {
         {loading ? (
           <div className="text-gray-500">Loading…</div>
         ) : streams.length === 0 ? (
-          <div className="px-2 py-8 text-sm text-gray-400">
-            No streams yet. Add one to start the roadmap.
-          </div>
+          <EmptyState>No streams yet. Add one to start the roadmap.</EmptyState>
         ) : (
           <>
             <div className="flex">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAuthConfig, login } from "../api/client";
 import type { AuthUser } from "../types";
+import Banner from "./Banner";
 import { captionClass, inputClass } from "./ui";
 
 type Method = "ldap" | "local";
@@ -86,7 +87,11 @@ export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser)
             className={`w-full ${inputClass}`}
           />
         </label>
-        {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+        {error && (
+          <div className="mb-3">
+            <Banner tone="error">{error}</Banner>
+          </div>
+        )}
         <button
           type="submit"
           disabled={busy}

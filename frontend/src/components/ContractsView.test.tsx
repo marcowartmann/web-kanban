@@ -47,4 +47,10 @@ describe("ContractsView", () => {
     expect(screen.queryByText("Evergreen")).not.toBeInTheDocument();
     expect(screen.getByText("Dead")).toBeInTheDocument();
   });
+
+  it("shows an error banner when the fetch fails", async () => {
+    vi.mocked(getContracts).mockRejectedValue(new Error("Network down"));
+    render(<ContractsView />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Network down");
+  });
 });

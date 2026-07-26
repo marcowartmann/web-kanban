@@ -2,17 +2,23 @@ import { useEffect, useMemo, useState } from "react";
 import { getContracts } from "../api/client";
 import PageHeader from "../shell/PageHeader";
 import type { SupportContract } from "../types";
+import Banner from "./Banner";
 import ContractBadge from "./ContractBadge";
+import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 
 export default function ContractsView() {
   const [rows, setRows] = useState<SupportContract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<string | null>(null);
   const [onlyExpiring, setOnlyExpiring] = useState(false);
 
   useEffect(() => {
-    void getContracts().then(setRows).finally(() => setLoading(false));
+    void getContracts()
+      .then(setRows)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setLoading(false));
   }, []);
 
   const productNames = useMemo(
@@ -51,12 +57,15 @@ export default function ContractsView() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
+        {error && (
+          <div className="mb-3">
+            <Banner tone="error">{error}</Banner>
+          </div>
+        )}
         {loading ? (
           <div className="text-gray-500">Loading…</div>
         ) : filtered.length === 0 ? (
-          <div className="px-2 py-8 text-sm text-gray-400">
-            No contracts yet. Add them on a product's Contracts tab.
-          </div>
+          <EmptyState>No contracts yet. Add them on a product's Contracts tab.</EmptyState>
         ) : (
           <table className="w-full text-left text-sm">
             <thead>

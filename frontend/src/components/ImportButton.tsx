@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ConflictError, importCsv, previewImport } from "../api/client";
 import type { ImportPreview, ImportResult } from "../types";
+import Banner from "./Banner";
 import { btnDanger, btnGhost, btnSecondary, modalPanelClass, overlayClass } from "./ui";
 
 export default function ImportButton({
@@ -123,7 +124,11 @@ export default function ImportButton({
             <p className="mt-3 text-xs text-gray-500">
               A snapshot is saved automatically before the import.
             </p>
-            {modalError && <p className="mt-2 text-xs font-medium text-amber-700">{modalError}</p>}
+            {modalError && (
+              <div className="mt-2">
+                <Banner tone="warning">{modalError}</Banner>
+              </div>
+            )}
             <div className="mt-4 flex justify-end gap-2">
               <button onClick={close} disabled={busy} className={`${btnGhost} disabled:opacity-60`}>
                 Cancel

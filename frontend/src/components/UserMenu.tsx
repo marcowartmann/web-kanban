@@ -4,6 +4,7 @@ import { changeMyPassword, logout } from "../api/client";
 import { faArrowRightFromBracket, faChevronDown, faLock } from "../icons";
 import type { AuthUser } from "../types";
 import Avatar from "./Avatar";
+import Banner from "./Banner";
 import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass, popoverClass } from "./ui";
 
 export default function UserMenu({
@@ -140,7 +141,11 @@ export default function UserMenu({
                 className={`w-full ${inputClass}`}
               />
             </label>
-            {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+            {error && (
+              <div className="mb-3">
+                <Banner tone="error">{error}</Banner>
+              </div>
+            )}
             <div className="flex justify-end gap-2">
               <button onClick={() => setChanging(false)} className={btnGhost}>
                 Cancel

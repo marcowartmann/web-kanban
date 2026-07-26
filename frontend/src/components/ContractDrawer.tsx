@@ -9,6 +9,7 @@ import {
   updateContract,
 } from "../api/client";
 import type { Component, ContractComponentRef, SupportContract } from "../types";
+import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
 import SearchableSelect from "./SearchableSelect";
 import { btnDangerGhost, btnPrimary, btnSecondary, captionClass, inputClass } from "./ui";
@@ -151,7 +152,9 @@ export default function ContractDrawer({
         </button>
       </div>
       {error && (
-        <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-3">
+          <Banner tone="error">{error}</Banner>
+        </div>
       )}
       <label className={captionClass}>Name</label>
       <input
