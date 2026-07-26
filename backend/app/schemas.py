@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.catalog.domain import Criticality, DependencyType, LifecycleState
+from app.catalog.domain import Criticality, DependencyType, LifecycleStage, LifecycleState, RiskLevel
 from app.models import ItemKind, ObjectiveState
 
 
@@ -696,3 +696,59 @@ class DependencyRead(BaseModel):
 class ServiceDependenciesRead(BaseModel):
     outbound: list[DependencyRead]
     inbound: list[DependencyRead]
+
+
+# --- Catalog: vendors, components, lifecycle ---------------------------------
+
+class VendorRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    notes: str | None = None
+
+
+class ComponentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    model: str | None = None
+    description: str | None = None
+    product_id: int
+    product_name: str | None = None
+    vendor_id: int | None = None
+    vendor_name: str | None = None
+    lifecycle_stage: LifecycleStage
+    quantity: int | None = None
+    eos_announced: date | None = None
+    end_of_sale: date | None = None
+    end_of_support: date | None = None
+    end_of_life: date | None = None
+    risk: RiskLevel
+
+
+class ComponentCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    product_id: int
+    model: str | None = Field(default=None, max_length=64)
+    description: str | None = None
+    vendor_name: str | None = None
+    lifecycle_stage: LifecycleStage = LifecycleStage.PLAN
+    quantity: int | None = Field(default=None, ge=0)
+    eos_announced: date | None = None
+    end_of_sale: date | None = None
+    end_of_support: date | None = None
+    end_of_life: date | None = None
+
+
+class ComponentUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    model: str | None = Field(default=None, max_length=64)
+    description: str | None = None
+    vendor_name: str | None = None
+    lifecycle_stage: LifecycleStage | None = None
+    quantity: int | None = Field(default=None, ge=0)
+    eos_announced: date | None = None
+    end_of_sale: date | None = None
+    end_of_support: date | None = None
+    end_of_life: date | None = None
