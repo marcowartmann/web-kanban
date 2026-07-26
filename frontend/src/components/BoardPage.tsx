@@ -3,6 +3,7 @@ import BoardTabs from "./BoardTabs";
 import BoardView from "./BoardView";
 import PIObjectivesBoard, { canAddObjective } from "./PIObjectivesBoard";
 import NewItemBar from "./NewItemBar";
+import { SkeletonBoard } from "./Skeleton";
 import Toolbar from "./Toolbar";
 import { btnPrimary, btnSecondary } from "./ui";
 import PageHeader from "../shell/PageHeader";
@@ -72,7 +73,7 @@ export default function BoardPage() {
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Board" actions={boardActions} />
       {loading && !activeBoard ? (
-        <div className="p-8 text-gray-500">Loading board…</div>
+        <SkeletonBoard />
       ) : error ? (
         <div className="p-8 text-red-600">{error}</div>
       ) : activeBoard ? (

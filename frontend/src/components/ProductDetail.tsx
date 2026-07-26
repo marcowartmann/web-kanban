@@ -16,6 +16,7 @@ import ContractDrawer from "./ContractDrawer";
 import EmptyState from "./EmptyState";
 import RiskBadge from "./RiskBadge";
 import ServiceDrawer from "./ServiceDrawer";
+import { SkeletonRows } from "./Skeleton";
 import SystemDrawer from "./SystemDrawer";
 import { btnPrimary, btnSecondary, inputClass } from "./ui";
 
@@ -148,21 +149,25 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [addTarget, setAddTarget] = useState<{ parentId: number | null; parentName: string | null } | null>(null);
   const [newName, setNewName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [servicesLoaded, setServicesLoaded] = useState(false);
 
   const [components, setComponents] = useState<Component[]>([]);
   const [componentDrawerOpen, setComponentDrawerOpen] = useState(false);
   const [editingComponent, setEditingComponent] = useState<Component | null>(null);
+  const [componentsLoaded, setComponentsLoaded] = useState(false);
 
   const [systems, setSystems] = useState<CatalogSystem[]>([]);
   const [systemDrawerOpen, setSystemDrawerOpen] = useState(false);
   const [editingSystem, setEditingSystem] = useState<CatalogSystem | null>(null);
+  const [systemsLoaded, setSystemsLoaded] = useState(false);
 
   const [contracts, setContracts] = useState<SupportContract[]>([]);
   const [contractDrawerOpen, setContractDrawerOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<SupportContract | null>(null);
+  const [contractsLoaded, setContractsLoaded] = useState(false);
 
   const load = useCallback(
-    () => getProductServices(product.id).then(setTree),
+    () => getProductServices(product.id).then(setTree).finally(() => setServicesLoaded(true)),
     [product.id],
   );
   useEffect(() => {
@@ -170,7 +175,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   }, [load]);
 
   const loadComponents = useCallback(
-    () => getProductComponents(product.id).then(setComponents),
+    () => getProductComponents(product.id).then(setComponents).finally(() => setComponentsLoaded(true)),
     [product.id],
   );
   // The Systems tab's drawer needs the product's components too (member
@@ -180,7 +185,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   }, [tab, loadComponents]);
 
   const loadSystems = useCallback(
-    () => getProductSystems(product.id).then(setSystems),
+    () => getProductSystems(product.id).then(setSystems).finally(() => setSystemsLoaded(true)),
     [product.id],
   );
   useEffect(() => {
@@ -188,7 +193,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   }, [tab, loadSystems]);
 
   const loadContracts = useCallback(
-    () => getProductContracts(product.id).then(setContracts),
+    () => getProductContracts(product.id).then(setContracts).finally(() => setContractsLoaded(true)),
     [product.id],
   );
   useEffect(() => {
@@ -318,7 +323,9 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <Banner tone="error">{error}</Banner>
               </div>
             )}
-            {tree.length === 0 ? (
+            {!servicesLoaded ? (
+              <SkeletonRows />
+            ) : tree.length === 0 ? (
               <EmptyState>No services yet.</EmptyState>
             ) : (
               tree.map((s) => (
@@ -336,7 +343,9 @@ export default function ProductDetail({ product }: { product: Product }) {
 
         {tab === "systems" && (
           <>
-            {systems.length === 0 ? (
+            {!systemsLoaded ? (
+              <SkeletonRows />
+            ) : systems.length === 0 ? (
               <EmptyState>No systems yet.</EmptyState>
             ) : (
               systems.map((s) => (
@@ -355,7 +364,9 @@ export default function ProductDetail({ product }: { product: Product }) {
 
         {tab === "components" && (
           <>
-            {components.length === 0 ? (
+            {!componentsLoaded ? (
+              <SkeletonRows />
+            ) : components.length === 0 ? (
               <EmptyState>No components yet.</EmptyState>
             ) : (
               components.map((c) => (
@@ -374,7 +385,9 @@ export default function ProductDetail({ product }: { product: Product }) {
 
         {tab === "contracts" && (
           <>
-            {contracts.length === 0 ? (
+            {!contractsLoaded ? (
+              <SkeletonRows />
+            ) : contracts.length === 0 ? (
               <EmptyState>No contracts yet.</EmptyState>
             ) : (
               contracts.map((c) => (

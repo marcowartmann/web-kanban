@@ -25,7 +25,7 @@ describe("LifecycleView", () => {
     vi.mocked(getLifecycle).mockReturnValue(new Promise(() => {}));
     render(<LifecycleView />);
     expect(screen.getByRole("heading", { name: "Lifecycle" })).toBeInTheDocument();
-    expect(screen.getByText("Loading…")).toBeInTheDocument();
+    expect(screen.getByLabelText("Loading")).toBeInTheDocument();
     expect(screen.queryByText("No components yet")).not.toBeInTheDocument();
   });
 

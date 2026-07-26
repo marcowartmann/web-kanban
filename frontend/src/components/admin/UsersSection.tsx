@@ -6,6 +6,7 @@ import type { AuthUser, Department, Team } from "../../types";
 import Badge, { type BadgeTone } from "../Badge";
 import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
+import { SkeletonRows } from "../Skeleton";
 import UserModal from "./UserModal";
 
 const STATUS_TONE: Record<"active" | "inactive", BadgeTone> = { active: "emerald", inactive: "amber" };
@@ -19,13 +20,21 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const reload = () => {
     void listUsers().then(setUsers);
     void getTeams().then(setTeams);
     void getDepartments().then(setDepartments);
   };
-  useEffect(reload, []);
+  useEffect(() => {
+    Promise.all([
+      listUsers().then(setUsers),
+      getTeams().then(setTeams),
+      getDepartments().then(setDepartments),
+    ]).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // The last active local admin is the break-glass account if LDAP is down —
   // the backend refuses to delete it; mirror that in the UI.
@@ -88,76 +97,80 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 text-left text-[11px] uppercase tracking-wide text-gray-400">
-              <th className="py-2 pr-3 font-semibold">Name</th>
-              <th className="px-2 py-2 font-semibold">Email</th>
-              <th className="px-2 py-2 font-semibold">Team</th>
-              <th className="px-2 py-2 font-semibold">Role</th>
-              <th className="px-2 py-2 font-semibold">Auth</th>
-              <th className="px-2 py-2 font-semibold">Status</th>
-              <th className="px-2 py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-b border-gray-100 last:border-0">
-                <td
-                  className={`whitespace-nowrap py-2 pr-3 font-medium ${
-                    u.is_active ? "text-gray-800" : "text-gray-400 line-through"
-                  }`}
-                >
-                  {u.display_name}
-                </td>
-                <td className="px-2 py-2 text-gray-600">{u.email ?? "—"}</td>
-                <td className="px-2 py-2 text-gray-600">{u.team_name ?? "—"}</td>
-                <td className="px-2 py-2 text-gray-600">{u.role}</td>
-                <td className="px-2 py-2">
-                  <Badge tone={AUTH_TONE[u.auth_provider ?? "local"]}>
-                    {u.auth_provider === "ldap" ? "LDAP" : u.auth_provider === "oidc" ? "OIDC" : "Local"}
-                  </Badge>
-                </td>
-                <td className="px-2 py-2">
-                  <Badge tone={STATUS_TONE[u.is_active ? "active" : "inactive"]}>
-                    {u.is_active ? "active" : "inactive"}
-                  </Badge>
-                </td>
-                <td className="px-2 py-2 text-right">
-                  <span className="inline-flex gap-1.5">
-                    <button
-                      aria-label={`edit user ${u.display_name}`}
-                      onClick={() => setEditing(u)}
-                      className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
-                    >
-                      Edit
-                    </button>
-                    {u.id !== currentUserId && (
+      {loading ? (
+        <SkeletonRows />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-left text-[11px] uppercase tracking-wide text-gray-400">
+                <th className="py-2 pr-3 font-semibold">Name</th>
+                <th className="px-2 py-2 font-semibold">Email</th>
+                <th className="px-2 py-2 font-semibold">Team</th>
+                <th className="px-2 py-2 font-semibold">Role</th>
+                <th className="px-2 py-2 font-semibold">Auth</th>
+                <th className="px-2 py-2 font-semibold">Status</th>
+                <th className="px-2 py-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id} className="border-b border-gray-100 last:border-0">
+                  <td
+                    className={`whitespace-nowrap py-2 pr-3 font-medium ${
+                      u.is_active ? "text-gray-800" : "text-gray-400 line-through"
+                    }`}
+                  >
+                    {u.display_name}
+                  </td>
+                  <td className="px-2 py-2 text-gray-600">{u.email ?? "—"}</td>
+                  <td className="px-2 py-2 text-gray-600">{u.team_name ?? "—"}</td>
+                  <td className="px-2 py-2 text-gray-600">{u.role}</td>
+                  <td className="px-2 py-2">
+                    <Badge tone={AUTH_TONE[u.auth_provider ?? "local"]}>
+                      {u.auth_provider === "ldap" ? "LDAP" : u.auth_provider === "oidc" ? "OIDC" : "Local"}
+                    </Badge>
+                  </td>
+                  <td className="px-2 py-2">
+                    <Badge tone={STATUS_TONE[u.is_active ? "active" : "inactive"]}>
+                      {u.is_active ? "active" : "inactive"}
+                    </Badge>
+                  </td>
+                  <td className="px-2 py-2 text-right">
+                    <span className="inline-flex gap-1.5">
                       <button
-                        aria-label={`delete user ${u.display_name}`}
-                        onClick={() => askDelete(u)}
-                        disabled={isLastLocalAdmin(u)}
-                        title={isLastLocalAdmin(u) ? "Protected: the last local admin cannot be deleted" : undefined}
-                        className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+                        aria-label={`edit user ${u.display_name}`}
+                        onClick={() => setEditing(u)}
+                        className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
                       >
-                        Delete
+                        Edit
                       </button>
-                    )}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {users.length === 0 && (
-              <tr>
-                <td colSpan={7} className="py-4 text-center text-gray-400">
-                  No users yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                      {u.id !== currentUserId && (
+                        <button
+                          aria-label={`delete user ${u.display_name}`}
+                          onClick={() => askDelete(u)}
+                          disabled={isLastLocalAdmin(u)}
+                          title={isLastLocalAdmin(u) ? "Protected: the last local admin cannot be deleted" : undefined}
+                          className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-4 text-center text-gray-400">
+                    No users yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {adding && (
         <UserModal

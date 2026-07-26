@@ -6,6 +6,7 @@ import type { SnapshotInfo } from "../../types";
 import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
 import EmptyState from "../EmptyState";
+import { SkeletonRows } from "../Skeleton";
 import { btnPrimary, btnSecondary } from "../ui";
 import AdminCard from "./AdminCard";
 
@@ -19,9 +20,12 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
   const [deleting, setDeleting] = useState(false);
   const [confirmRestore, setConfirmRestore] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<SnapshotInfo | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const reload = () => void listSnapshots().then(setSnapshots);
-  useEffect(reload, []);
+  useEffect(() => {
+    void listSnapshots().then(setSnapshots).finally(() => setLoading(false));
+  }, []);
 
   const create = async () => {
     setError(null);
@@ -122,7 +126,9 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
           <Banner tone="error">{error}</Banner>
         </div>
       )}
-      {snapshots.length === 0 ? (
+      {loading ? (
+        <SkeletonRows />
+      ) : snapshots.length === 0 ? (
         <EmptyState>
           No snapshots yet — create one here, or import a CSV (one is created automatically
           before every import).

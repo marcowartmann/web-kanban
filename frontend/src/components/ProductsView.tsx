@@ -4,6 +4,7 @@ import { getProducts } from "../api/client";
 import PageHeader from "../shell/PageHeader";
 import type { Product } from "../types";
 import EmptyState from "./EmptyState";
+import { SkeletonCards } from "./Skeleton";
 
 export default function ProductsView() {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ export default function ProductsView() {
       <PageHeader title="Products" />
       <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
         {loading ? (
-          <div className="text-gray-500">Loading…</div>
+          <SkeletonCards />
         ) : products.length === 0 ? (
           <EmptyState>No products yet. Admins can create them under Admin → Catalog.</EmptyState>
         ) : (

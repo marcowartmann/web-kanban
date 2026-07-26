@@ -10,6 +10,7 @@ import ConfirmDialog from "./ConfirmDialog";
 import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import RoadmapItemDrawer from "./RoadmapItemDrawer";
+import { SkeletonRows } from "./Skeleton";
 import { btnSecondary, inputClass, popoverClass } from "./ui";
 
 // Bar stacking: each overlap row is 32px tall (24px bar + 8px gap), lanes
@@ -279,7 +280,7 @@ export default function RoadmapView() {
           </div>
         )}
         {loading ? (
-          <div className="text-gray-500">Loading…</div>
+          <SkeletonRows />
         ) : streams.length === 0 ? (
           <EmptyState>No streams yet. Add one to start the roadmap.</EmptyState>
         ) : (

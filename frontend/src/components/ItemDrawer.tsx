@@ -22,6 +22,7 @@ import InlineAddInput from "./InlineAddInput";
 import ItemActivity from "./ItemActivity";
 import ItemComments from "./ItemComments";
 import PlainSelect from "./PlainSelect";
+import { SkeletonRows } from "./Skeleton";
 import WsjfToggle from "./WsjfToggle";
 
 const NUMERIC_FIELDS = new Set([
@@ -173,7 +174,9 @@ export default function ItemDrawer({
     return (
       <Drawer compact={compact}>
         <CloseBar onClose={onClose} />
-        <p className="p-6 text-sm text-gray-500">Loading…</p>
+        <div className="p-6">
+          <SkeletonRows rows={6} />
+        </div>
       </Drawer>
     );
 

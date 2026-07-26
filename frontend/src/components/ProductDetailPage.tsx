@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { getProduct } from "../api/client";
 import type { Product } from "../types";
 import ProductDetail from "./ProductDetail";
+import { SkeletonRows } from "./Skeleton";
 
 /** Route wrapper: resolves :productId to a Product, with a not-found state. */
 export default function ProductDetailPage() {
@@ -31,6 +32,11 @@ export default function ProductDetailPage() {
       </div>
     );
   }
-  if (!product) return <div className="min-h-0 flex-1 overflow-auto px-6 py-6 text-gray-500">Loading…</div>;
+  if (!product)
+    return (
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
+        <SkeletonRows rows={6} />
+      </div>
+    );
   return <ProductDetail product={product} />;
 }

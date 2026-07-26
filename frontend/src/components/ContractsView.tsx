@@ -6,6 +6,7 @@ import Banner from "./Banner";
 import ContractBadge from "./ContractBadge";
 import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
+import { SkeletonRows } from "./Skeleton";
 
 export default function ContractsView() {
   const [rows, setRows] = useState<SupportContract[]>([]);
@@ -63,7 +64,7 @@ export default function ContractsView() {
           </div>
         )}
         {loading ? (
-          <div className="text-gray-500">Loading…</div>
+          <SkeletonRows />
         ) : filtered.length === 0 ? (
           <EmptyState>No contracts yet. Add them on a product's Contracts tab.</EmptyState>
         ) : (

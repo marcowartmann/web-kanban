@@ -4,6 +4,7 @@ import { getAuditEvents } from "../../api/client";
 import { faScroll } from "../../icons";
 import type { AuditEvent } from "../../types";
 import PlainSelect from "../PlainSelect";
+import { SkeletonRows } from "../Skeleton";
 
 const PAGE = 50;
 
@@ -22,13 +23,16 @@ export default function AuditLogSection() {
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
   const [entityType, setEntityType] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const fetchPage = (offset: number, append: boolean, isStale?: () => boolean) =>
-    void getAuditEvents({ limit: PAGE, offset, q, entity_type: entityType }).then((page) => {
-      if (isStale?.()) return; // a newer filter state superseded this request
-      setTotal(page.total);
-      setEvents((prev) => (append ? [...prev, ...page.items] : page.items));
-    });
+    void getAuditEvents({ limit: PAGE, offset, q, entity_type: entityType })
+      .then((page) => {
+        if (isStale?.()) return; // a newer filter state superseded this request
+        setTotal(page.total);
+        setEvents((prev) => (append ? [...prev, ...page.items] : page.items));
+      })
+      .finally(() => setLoading(false));
 
   // Filters reset to the first page. fetchPage reads q/entityType from this
   // render's closure, so listing it in deps would only add noise — the two
@@ -74,42 +78,46 @@ export default function AuditLogSection() {
         </div>
       </header>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 text-left text-[11px] uppercase tracking-wide text-gray-400">
-              <th className="py-2 pr-3 font-semibold">Time</th>
-              <th className="px-2 py-2 font-semibold">Actor</th>
-              <th className="px-2 py-2 font-semibold">Event</th>
-              <th className="px-2 py-2 font-semibold">Entity</th>
-              <th className="px-2 py-2 font-semibold">Change</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((event) => (
-              <tr key={event.id} className="border-b border-gray-100 last:border-0">
-                <td className="whitespace-nowrap py-2 pr-3 text-gray-500">
-                  {new Date(event.created_at).toLocaleString()}
-                </td>
-                <td className="px-2 py-2 text-gray-700">{event.actor_name ?? "—"}</td>
-                <td className="px-2 py-2 font-mono text-xs text-gray-600">{event.event_type}</td>
-                <td className="px-2 py-2 text-gray-700">
-                  {event.entity_label ?? "—"}
-                  {event.entity_id != null ? ` #${event.entity_id}` : ""}
-                </td>
-                <td className="px-2 py-2 text-gray-600">{changeCell(event)}</td>
+      {loading ? (
+        <SkeletonRows />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-left text-[11px] uppercase tracking-wide text-gray-400">
+                <th className="py-2 pr-3 font-semibold">Time</th>
+                <th className="px-2 py-2 font-semibold">Actor</th>
+                <th className="px-2 py-2 font-semibold">Event</th>
+                <th className="px-2 py-2 font-semibold">Entity</th>
+                <th className="px-2 py-2 font-semibold">Change</th>
               </tr>
-            ))}
-            {events.length === 0 && (
-              <tr>
-                <td colSpan={5} className="py-4 text-center text-gray-400">
-                  No audit events.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {events.map((event) => (
+                <tr key={event.id} className="border-b border-gray-100 last:border-0">
+                  <td className="whitespace-nowrap py-2 pr-3 text-gray-500">
+                    {new Date(event.created_at).toLocaleString()}
+                  </td>
+                  <td className="px-2 py-2 text-gray-700">{event.actor_name ?? "—"}</td>
+                  <td className="px-2 py-2 font-mono text-xs text-gray-600">{event.event_type}</td>
+                  <td className="px-2 py-2 text-gray-700">
+                    {event.entity_label ?? "—"}
+                    {event.entity_id != null ? ` #${event.entity_id}` : ""}
+                  </td>
+                  <td className="px-2 py-2 text-gray-600">{changeCell(event)}</td>
+                </tr>
+              ))}
+              {events.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-4 text-center text-gray-400">
+                    No audit events.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {events.length < total && (
         <div className="mt-3 flex justify-center">

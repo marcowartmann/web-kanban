@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Product, Stream } from "../types";
@@ -196,6 +196,22 @@ describe("RoadmapView", () => {
     expect(linkRoadmapFeature).toHaveBeenCalledWith(9, 42);
   });
 
+
+  it("add-stream row closes after a successful create", async () => {
+    render(<RoadmapView />);
+    await userEvent.click(await screen.findByRole("button", { name: /add stream/i }));
+    await userEvent.type(screen.getByPlaceholderText("New stream name"), "Edge{Enter}");
+    await waitFor(() => expect(screen.queryByPlaceholderText("New stream name")).not.toBeInTheDocument());
+  });
+
+  it("add-stream row stays open when the create fails", async () => {
+    vi.mocked(createStream).mockRejectedValueOnce(new Error("boom"));
+    render(<RoadmapView />);
+    await userEvent.click(await screen.findByRole("button", { name: /add stream/i }));
+    await userEvent.type(screen.getByPlaceholderText("New stream name"), "Edge{Enter}");
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("New stream name")).toBeInTheDocument();
+  });
 
   it("stacks overlapping items on separate rows", async () => {
     vi.mocked(getProductRoadmap).mockResolvedValue([

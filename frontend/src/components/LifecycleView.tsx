@@ -7,6 +7,7 @@ import Banner from "./Banner";
 import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import RiskBadge from "./RiskBadge";
+import { SkeletonRows } from "./Skeleton";
 
 export default function LifecycleView() {
   const [rows, setRows] = useState<Component[]>([]);
@@ -64,7 +65,7 @@ export default function LifecycleView() {
           </div>
         )}
         {loading ? (
-          <div className="text-gray-500">Loading…</div>
+          <SkeletonRows />
         ) : filtered.length === 0 ? (
           <EmptyState>No components yet. Add them on a product's Components tab.</EmptyState>
         ) : (
