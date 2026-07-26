@@ -8,6 +8,7 @@ from app.catalog import ports
 from app.catalog.adapters.postgres import (
     PostgresArtRepository,
     PostgresComponentRepository,
+    PostgresContractRepository,
     PostgresProductRepository,
     PostgresServiceRepository,
     PostgresSystemRepository,
@@ -38,3 +39,7 @@ def get_component_repo(db: Session = Depends(get_db)) -> ports.ComponentReposito
 
 def get_system_repo(db: Session = Depends(get_db)) -> ports.SystemRepository:
     return PostgresSystemRepository(db)
+
+
+def get_contract_repo(db: Session = Depends(get_db)) -> ports.ContractRepository:
+    return PostgresContractRepository(db)

@@ -12,12 +12,14 @@ from app.catalog.domain import (
     CatalogInUse,
     CatalogNotFound,
     CatalogRuleViolation,
+    ContractStatus,
     Criticality,
     DependencyType,
     LifecycleStage,
     LifecycleState,
     RiskLevel,
     component_risk,
+    contract_status,
     worst_risk,
 )
 
@@ -87,17 +89,40 @@ def _to_vendor(row: m.Vendor) -> domain.Vendor:
     return domain.Vendor(id=row.id, name=row.name, notes=row.notes)
 
 
-def _to_component(row: m.Component, today: date) -> domain.Component:
+def _component_contract_rows(db: Session, component_id: int) -> list[m.SupportContract]:
+    return list(db.scalars(
+        select(m.SupportContract)
+        .join(m.contract_components,
+              m.contract_components.c.contract_id == m.SupportContract.id)
+        .where(m.contract_components.c.component_id == component_id)
+        .order_by(m.SupportContract.name)
+    ))
+
+
+def _to_component(row: m.Component, today: date, db: Session | None = None) -> domain.Component:
     return domain.Component(
         id=row.id, name=row.name, model=row.model, description=row.description,
         product_id=row.product_id, vendor_id=row.vendor_id,
         lifecycle_stage=LifecycleStage(row.lifecycle_stage), quantity=row.quantity,
         eos_announced=row.eos_announced, end_of_sale=row.end_of_sale,
         end_of_support=row.end_of_support, end_of_life=row.end_of_life,
+        yearly_run_cost=float(row.yearly_run_cost) if row.yearly_run_cost is not None else None,
+        replacement_budget=(
+            float(row.replacement_budget) if row.replacement_budget is not None else None
+        ),
         vendor_name=row.vendor.name if row.vendor else None,
         product_name=row.product.name if row.product else None,
         risk=component_risk(end_of_support=row.end_of_support,
                             end_of_life=row.end_of_life, today=today),
+        contracts=[
+            domain.ContractSummary(
+                id=ct.id, name=ct.name, end_date=ct.end_date,
+                status=contract_status(end_date=ct.end_date,
+                                       notice_period_days=ct.notice_period_days,
+                                       today=today),
+            )
+            for ct in _component_contract_rows(db, row.id)
+        ] if db is not None else [],
     )
 
 
@@ -255,6 +280,12 @@ class PostgresProductRepository:
         )
         if n_sys:
             raise CatalogInUse(f"Product has {n_sys} system(s); delete them first")
+        n_ct = self.db.scalar(
+            select(func.count()).select_from(m.SupportContract)
+            .where(m.SupportContract.product_id == product_id)
+        )
+        if n_ct:
+            raise CatalogInUse(f"Product has {n_ct} contract(s); delete them first")
         self.db.delete(row)
         self.db.flush()
 
@@ -526,7 +557,8 @@ class PostgresVendorRepository:
 
 
 _COMPONENT_FIELDS = ("name", "model", "description", "lifecycle_stage", "quantity",
-                     "eos_announced", "end_of_sale", "end_of_support", "end_of_life")
+                     "eos_announced", "end_of_sale", "end_of_support", "end_of_life",
+                     "yearly_run_cost", "replacement_budget")
 
 
 class PostgresComponentRepository:
@@ -556,11 +588,11 @@ class PostgresComponentRepository:
             select(m.Component).where(m.Component.product_id == product_id)
             .order_by(m.Component.name)
         )
-        return [_to_component(r, today) for r in rows]
+        return [_to_component(r, today, db=self.db) for r in rows]
 
     def list_all(self, today: date | None = None) -> list[domain.Component]:
         today = today or date.today()
-        out = [_to_component(r, today) for r in self.db.scalars(select(m.Component))]
+        out = [_to_component(r, today, db=self.db) for r in self.db.scalars(select(m.Component))]
         severity = {RiskLevel.DANGER: 0, RiskLevel.WARNING: 1, RiskLevel.OK: 2}
 
         def nearest(c: domain.Component) -> date:
@@ -571,14 +603,15 @@ class PostgresComponentRepository:
         return out
 
     def get(self, component_id: int, today: date | None = None) -> domain.Component:
-        return _to_component(self._row(component_id), today or date.today())
+        return _to_component(self._row(component_id), today or date.today(), db=self.db)
 
     def create(self, *, name: str, product_id: int, model: str | None = None,
                description: str | None = None, vendor_name: str | None = None,
                lifecycle_stage: LifecycleStage = LifecycleStage.PLAN,
                quantity: int | None = None, eos_announced: date | None = None,
                end_of_sale: date | None = None, end_of_support: date | None = None,
-               end_of_life: date | None = None) -> domain.Component:
+               end_of_life: date | None = None, yearly_run_cost: float | None = None,
+               replacement_budget: float | None = None) -> domain.Component:
         if self.db.get(m.Product, product_id) is None:
             raise CatalogRuleViolation("product_id does not exist")
         self._validate_name(name=name, product_id=product_id, exclude_id=None)
@@ -588,6 +621,7 @@ class PostgresComponentRepository:
             lifecycle_stage=lifecycle_stage, quantity=quantity,
             eos_announced=eos_announced, end_of_sale=end_of_sale,
             end_of_support=end_of_support, end_of_life=end_of_life,
+            yearly_run_cost=yearly_run_cost, replacement_budget=replacement_budget,
         )
         self.db.add(row)
         self.db.flush()
@@ -621,6 +655,12 @@ class PostgresComponentRepository:
         )
         if n_svc:
             raise CatalogInUse(f"Component provides {n_svc} service(s); unlink it first")
+        n_ct = self.db.scalar(
+            select(func.count()).select_from(m.contract_components)
+            .where(m.contract_components.c.component_id == component_id)
+        )
+        if n_ct:
+            raise CatalogInUse(f"Component is covered by {n_ct} contract(s); unlink it first")
         self.db.delete(row)
         self.db.flush()
 
@@ -725,3 +765,154 @@ class PostgresSystemRepository:
         self.db.flush()
         self.db.expire(row, ["memberships"])
         return _to_system(row, date.today())
+
+
+def _contract_component_rows(db: Session, contract_id: int) -> list[m.Component]:
+    return list(db.scalars(
+        select(m.Component)
+        .join(m.contract_components, m.contract_components.c.component_id == m.Component.id)
+        .where(m.contract_components.c.contract_id == contract_id)
+        .order_by(m.Component.name)
+    ))
+
+
+def _to_contract(db: Session, row: m.SupportContract, today: date) -> domain.SupportContract:
+    return domain.SupportContract(
+        id=row.id, name=row.name, contract_no=row.contract_no,
+        product_id=row.product_id, vendor_id=row.vendor_id,
+        start_date=row.start_date, end_date=row.end_date,
+        yearly_cost=float(row.yearly_cost) if row.yearly_cost is not None else None,
+        notice_period_days=row.notice_period_days, notes=row.notes,
+        vendor_name=row.vendor.name if row.vendor else None,
+        product_name=row.product.name if row.product else None,
+        status=contract_status(end_date=row.end_date,
+                               notice_period_days=row.notice_period_days, today=today),
+        components=[
+            domain.ContractComponentSummary(
+                id=c.id, name=c.name,
+                product_name=c.product.name if c.product else None,
+            )
+            for c in _contract_component_rows(db, row.id)
+        ],
+    )
+
+
+_CONTRACT_FIELDS = ("name", "contract_no", "start_date", "end_date",
+                    "yearly_cost", "notice_period_days", "notes")
+
+
+class PostgresContractRepository:
+    read_only = False
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def _row(self, contract_id: int) -> m.SupportContract:
+        row = self.db.get(m.SupportContract, contract_id)
+        if row is None:
+            raise CatalogNotFound("Contract not found")
+        return row
+
+    def _validate_name(self, *, name: str, product_id: int, exclude_id: int | None) -> None:
+        q = select(m.SupportContract).where(
+            m.SupportContract.product_id == product_id, m.SupportContract.name == name
+        )
+        if exclude_id is not None:
+            q = q.where(m.SupportContract.id != exclude_id)
+        if self.db.scalar(q):
+            raise CatalogRuleViolation("A contract with this name already exists in this product")
+
+    def list(self, product_id: int, today: date | None = None) -> list[domain.SupportContract]:
+        today = today or date.today()
+        rows = self.db.scalars(
+            select(m.SupportContract)
+            .where(m.SupportContract.product_id == product_id)
+            .order_by(m.SupportContract.name)
+        )
+        return [_to_contract(self.db, r, today) for r in rows]
+
+    def list_all(self, today: date | None = None) -> list[domain.SupportContract]:
+        today = today or date.today()
+        out = [_to_contract(self.db, r, today)
+               for r in self.db.scalars(select(m.SupportContract))]
+        order = {ContractStatus.EXPIRED: 0, ContractStatus.EXPIRING: 1,
+                 ContractStatus.ACTIVE: 1}
+
+        def key(c: domain.SupportContract):
+            # expired first; then by soonest end date; evergreen (no end) last
+            return (0 if c.status == ContractStatus.EXPIRED else 1,
+                    c.end_date or date.max, c.name.lower())
+
+        out.sort(key=key)
+        return out
+
+    def get(self, contract_id: int, today: date | None = None) -> domain.SupportContract:
+        return _to_contract(self.db, self._row(contract_id), today or date.today())
+
+    def create(self, *, name: str, product_id: int, contract_no: str | None = None,
+               vendor_name: str | None = None, start_date: date | None = None,
+               end_date: date | None = None, yearly_cost: float | None = None,
+               notice_period_days: int | None = None,
+               notes: str | None = None) -> domain.SupportContract:
+        if self.db.get(m.Product, product_id) is None:
+            raise CatalogRuleViolation("product_id does not exist")
+        self._validate_name(name=name, product_id=product_id, exclude_id=None)
+        row = m.SupportContract(
+            name=name, product_id=product_id, contract_no=contract_no,
+            vendor_id=get_or_create_vendor_id(self.db, vendor_name),
+            start_date=start_date, end_date=end_date, yearly_cost=yearly_cost,
+            notice_period_days=notice_period_days, notes=notes,
+        )
+        self.db.add(row)
+        self.db.flush()
+        return _to_contract(self.db, row, date.today())
+
+    def update(self, contract_id: int, changes: dict) -> domain.SupportContract:
+        row = self._row(contract_id)
+        if "name" in changes and changes["name"] != row.name:
+            self._validate_name(name=changes["name"], product_id=row.product_id,
+                                exclude_id=contract_id)
+        if "vendor_name" in changes:
+            row.vendor_id = get_or_create_vendor_id(self.db, changes["vendor_name"])
+        for key in _CONTRACT_FIELDS:
+            if key in changes:
+                setattr(row, key, changes[key])
+        self.db.flush()
+        self.db.expire(row, ["vendor"])
+        return _to_contract(self.db, row, date.today())
+
+    def delete(self, contract_id: int) -> None:
+        row = self._row(contract_id)
+        # Link rows go with the contract (explicit for the SQLite fixtures,
+        # which don't enforce ON DELETE CASCADE).
+        self.db.execute(m.contract_components.delete().where(
+            m.contract_components.c.contract_id == contract_id))
+        self.db.delete(row)
+        self.db.flush()
+
+    def _link(self, contract_id: int, component_id: int):
+        return self.db.execute(
+            select(m.contract_components).where(
+                m.contract_components.c.contract_id == contract_id,
+                m.contract_components.c.component_id == component_id,
+            )
+        ).first()
+
+    def link_component(self, contract_id: int, component_id: int) -> domain.SupportContract:
+        row = self._row(contract_id)
+        if self.db.get(m.Component, component_id) is None:
+            raise CatalogRuleViolation("component_id does not exist")
+        if self._link(contract_id, component_id):
+            raise CatalogRuleViolation("This link already exists")
+        self.db.execute(m.contract_components.insert().values(
+            contract_id=contract_id, component_id=component_id))
+        return _to_contract(self.db, row, date.today())
+
+    def unlink_component(self, contract_id: int, component_id: int) -> domain.SupportContract:
+        row = self._row(contract_id)
+        if not self._link(contract_id, component_id):
+            raise CatalogNotFound("Link not found")
+        self.db.execute(m.contract_components.delete().where(
+            m.contract_components.c.contract_id == contract_id,
+            m.contract_components.c.component_id == component_id))
+        return _to_contract(self.db, row, date.today())
