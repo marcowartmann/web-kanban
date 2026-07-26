@@ -6,11 +6,12 @@ import RiskBadge from "./RiskBadge";
 
 export default function LifecycleView() {
   const [rows, setRows] = useState<Component[]>([]);
+  const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<string | null>(null);
   const [onlyAtRisk, setOnlyAtRisk] = useState(false);
 
   useEffect(() => {
-    void getLifecycle().then(setRows);
+    void getLifecycle().then(setRows).finally(() => setLoading(false));
   }, []);
 
   const productNames = useMemo(
@@ -48,7 +49,9 @@ export default function LifecycleView() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="text-gray-500">Loading…</div>
+        ) : filtered.length === 0 ? (
           <div className="px-2 py-8 text-sm text-gray-400">
             No components yet. Add them on a product's Components tab.
           </div>

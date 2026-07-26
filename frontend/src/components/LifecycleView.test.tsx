@@ -19,6 +19,13 @@ vi.mock("../api/client", () => ({ getLifecycle: vi.fn() }));
 import { getLifecycle } from "../api/client";
 
 describe("LifecycleView", () => {
+  it("shows loading state while fetching", () => {
+    vi.mocked(getLifecycle).mockReturnValue(new Promise(() => {}));
+    render(<LifecycleView />);
+    expect(screen.getByText("Loading…")).toBeInTheDocument();
+    expect(screen.queryByText("No components yet")).not.toBeInTheDocument();
+  });
+
   it("renders the component table", async () => {
     vi.mocked(getLifecycle).mockResolvedValue(rows);
     render(<LifecycleView />);
