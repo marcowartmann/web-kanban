@@ -28,7 +28,15 @@ export default function ConfirmDialog({
         e.stopPropagation();
         onClose();
       }}
-      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          // Same bubbling risk as the click guard above: an unstopped Escape
+          // would continue to DrawerShell's document-level listener and
+          // close the drawer underneath too.
+          e.stopPropagation();
+          onClose();
+        }
+      }}
     >
       <div className={`${modalPanelClass} max-w-md`} onClick={(e) => e.stopPropagation()}>
         <h2 className="text-sm font-semibold text-gray-900">{title}</h2>

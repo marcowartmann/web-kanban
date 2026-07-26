@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
+import ConfirmDialog from "./ConfirmDialog";
 import DrawerShell from "./DrawerShell";
 
 function renderShell(footerOverrides?: {
@@ -77,4 +78,27 @@ it("custom deleteLabel and saveLabel are used", () => {
   renderShell({ onDelete: vi.fn(), deleteLabel: "Remove", saveLabel: "Publish" });
   expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Publish" })).toBeInTheDocument();
+});
+
+it("Escape closes only a nested ConfirmDialog, not the drawer underneath", async () => {
+  const drawerClose = vi.fn();
+  const dialogClose = vi.fn();
+  render(
+    <DrawerShell
+      title="Widget"
+      onClose={drawerClose}
+      footer={{ onCancel: vi.fn(), onSave: vi.fn() }}
+    >
+      <ConfirmDialog
+        title="Delete widget"
+        message="Are you sure?"
+        confirmLabel="Delete"
+        onConfirm={vi.fn()}
+        onClose={dialogClose}
+      />
+    </DrawerShell>,
+  );
+  await userEvent.keyboard("{Escape}");
+  expect(dialogClose).toHaveBeenCalledTimes(1);
+  expect(drawerClose).not.toHaveBeenCalled();
 });
