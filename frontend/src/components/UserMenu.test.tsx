@@ -34,3 +34,28 @@ it("changes the password through the menu → modal", async () => {
   await userEvent.click(screen.getByRole("button", { name: /^save$/i }));
   expect(change).toHaveBeenCalledWith("old12345", "new12345");
 });
+
+it("ArrowDown from the trigger and ArrowUp/ArrowDown wrap between the two menuitems", async () => {
+  render(<UserMenu user={admin} onLoggedOut={() => {}} />);
+  const trigger = screen.getByRole("button", { name: /anna/i });
+  await userEvent.click(trigger);
+  await userEvent.keyboard("{ArrowDown}");
+  expect(screen.getByRole("menuitem", { name: /change password/i })).toHaveFocus();
+  await userEvent.keyboard("{ArrowDown}");
+  expect(screen.getByRole("menuitem", { name: /log out/i })).toHaveFocus();
+  await userEvent.keyboard("{ArrowDown}"); // wraps back to the first item
+  expect(screen.getByRole("menuitem", { name: /change password/i })).toHaveFocus();
+  await userEvent.keyboard("{ArrowUp}"); // wraps the other way
+  expect(screen.getByRole("menuitem", { name: /log out/i })).toHaveFocus();
+});
+
+it("Escape closes the menu and returns focus to the trigger", async () => {
+  render(<UserMenu user={admin} onLoggedOut={() => {}} />);
+  const trigger = screen.getByRole("button", { name: /anna/i });
+  await userEvent.click(trigger);
+  await userEvent.keyboard("{ArrowDown}");
+  expect(screen.getByRole("menuitem", { name: /change password/i })).toHaveFocus();
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  expect(trigger).toHaveFocus();
+});

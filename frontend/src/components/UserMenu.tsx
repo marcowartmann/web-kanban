@@ -24,6 +24,8 @@ export default function UserMenu({
   const [next, setNext] = useState("");
   const [error, setError] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     const onDocMouseDown = (e: MouseEvent) => {
@@ -37,6 +39,23 @@ export default function UserMenu({
       document.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  // Escape returns focus to the trigger (mirrors Menu's close(refocus) shape);
+  // the two menuitem buttons move with ArrowDown/ArrowUp, wrapping between them.
+  const close = (refocus: boolean) => {
+    setOpen(false);
+    if (refocus) triggerRef.current?.focus();
+  };
+  const focusAt = (pos: number) => {
+    const count = itemRefs.current.length;
+    itemRefs.current[((pos % count) + count) % count]?.focus();
+  };
+  const currentPos = () => itemRefs.current.findIndex((el) => el === document.activeElement);
+  const onMenuKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") { e.stopPropagation(); close(true); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); focusAt(currentPos() + 1); }
+    if (e.key === "ArrowUp") { e.preventDefault(); focusAt(currentPos() - 1); }
+  };
 
   const doLogout = async () => {
     try {
@@ -61,11 +80,18 @@ export default function UserMenu({
   return (
     <div ref={ref} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={compact ? user.display_name : undefined}
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => {
+          if (open && e.key === "Escape") { e.stopPropagation(); close(true); return; }
+          // Click-open leaves focus on the trigger, so the menu's own
+          // onKeyDown never sees this ArrowDown — handle it here too.
+          if (open && e.key === "ArrowDown") { e.preventDefault(); focusAt(0); }
+        }}
         className="flex items-center gap-2 rounded-full border border-gray-200 bg-surface py-1 pl-1 pr-2.5 text-sm shadow-xs transition hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
       >
         <Avatar name={user.display_name} />
@@ -88,6 +114,7 @@ export default function UserMenu({
       {open && (
         <div
           role="menu"
+          onKeyDown={onMenuKeyDown}
           className={`absolute z-30 w-52 ${dropUp ? "bottom-full left-0 mb-2" : "right-0 mt-2"} ${popoverClass}`}
         >
           <div className="border-b border-gray-100 px-3 py-2">
@@ -95,6 +122,7 @@ export default function UserMenu({
             {user.email && <p className="truncate text-xs text-gray-400">{user.email}</p>}
           </div>
           <button
+            ref={(el) => { itemRefs.current[0] = el; }}
             role="menuitem"
             onClick={() => {
               setOpen(false);
@@ -106,6 +134,7 @@ export default function UserMenu({
             Change password
           </button>
           <button
+            ref={(el) => { itemRefs.current[1] = el; }}
             role="menuitem"
             onClick={() => {
               setOpen(false);

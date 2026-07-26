@@ -121,6 +121,21 @@ describe("RoadmapView", () => {
     expect(screen.getByRole("menuitem", { name: "Move up" })).toBeDisabled();
   });
 
+  it("Move down is disabled for the last stream", async () => {
+    render(<RoadmapView />);
+    await openStreamMenu("Backbone");
+    expect(screen.getByRole("menuitem", { name: "Move down" })).toBeDisabled();
+  });
+
+  it("delete via the kebab shows the confirm and cancel keeps the stream", async () => {
+    render(<RoadmapView />);
+    await openStreamMenu("Campus");
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
+    expect(await screen.findByRole("alertdialog")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByText("Campus")).toBeInTheDocument();
+  });
+
   it("reorders self-heals when stored positions are duplicated", async () => {
     // Test that index-derived positions fix corrupted state where two streams
     // share the same stored position. Mock both streams with position: 0.

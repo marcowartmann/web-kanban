@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createStream, deleteStream, getProductRoadmap, getProducts, updateStream } from "../api/client";
 import { faEllipsisVertical, faPlus } from "../icons";
 import { assignRows, axisRange, barGeometry } from "../lib/roadmap";
@@ -9,9 +9,10 @@ import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
 import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
+import Menu from "./Menu";
 import RoadmapItemDrawer from "./RoadmapItemDrawer";
 import { SkeletonRows } from "./Skeleton";
-import { btnSecondary, inputClass, popoverClass } from "./ui";
+import { btnSecondary, inputClass } from "./ui";
 
 // Bar stacking: each overlap row is 32px tall (24px bar + 8px gap), lanes
 // carry 8px padding above and below the rows.
@@ -27,73 +28,6 @@ const BAR_CLASSES: Record<RoadmapStatus, string> = {
   done: "bg-emerald-100 text-emerald-700",
   cancelled: "bg-gray-100 text-gray-400 line-through",
 };
-
-function StreamMenu({
-  name, index, count, onMove, onRename, onDelete,
-}: {
-  name: string;
-  index: number;
-  count: number;
-  onMove: (direction: -1 | 1) => void;
-  onRename: () => void;
-  onDelete: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-  const itemClass =
-    "flex w-full items-center rounded-lg px-3 py-1.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40";
-  const act = (fn: () => void) => () => {
-    setOpen(false);
-    fn();
-  };
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={`Stream actions for ${name}`}
-        onClick={() => setOpen((o) => !o)}
-        className="rounded-lg px-1.5 py-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
-      >
-        <FontAwesomeIcon icon={faEllipsisVertical} />
-      </button>
-      {open && (
-        <div role="menu" className={`absolute left-0 z-20 mt-1 w-40 ${popoverClass}`}>
-          <button role="menuitem" disabled={index === 0} onClick={act(() => onMove(-1))} className={itemClass}>
-            Move up
-          </button>
-          <button role="menuitem" disabled={index === count - 1} onClick={act(() => onMove(1))} className={itemClass}>
-            Move down
-          </button>
-          <button role="menuitem" onClick={act(onRename)} className={itemClass}>
-            Rename
-          </button>
-          <button
-            role="menuitem"
-            onClick={act(onDelete)}
-            className="flex w-full items-center rounded-lg px-3 py-1.5 text-left text-sm text-red-600 transition hover:bg-red-50"
-          >
-            Delete
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 /** Top-level Gantt-style roadmap: per-product streams (lanes) holding
  *  date-ranged items rendered as status-colored bars against a shared month
@@ -338,13 +272,23 @@ export default function RoadmapView() {
                   >
                     <FontAwesomeIcon icon={faPlus} />
                   </button>
-                  <StreamMenu
-                    name={stream.name}
-                    index={index}
-                    count={streams.length}
-                    onMove={(d) => void moveStream(index, d)}
-                    onRename={() => setRenaming({ id: stream.id, name: stream.name })}
-                    onDelete={() => setConfirmDelete({ id: stream.id, name: stream.name })}
+                  <Menu
+                    ariaLabel={`Stream actions for ${stream.name}`}
+                    trigger={() => <FontAwesomeIcon icon={faEllipsisVertical} />}
+                    items={[
+                      { label: "Move up", disabled: index === 0, onSelect: () => void moveStream(index, -1) },
+                      {
+                        label: "Move down",
+                        disabled: index === streams.length - 1,
+                        onSelect: () => void moveStream(index, 1),
+                      },
+                      { label: "Rename", onSelect: () => setRenaming({ id: stream.id, name: stream.name }) },
+                      {
+                        label: "Delete",
+                        danger: true,
+                        onSelect: () => setConfirmDelete({ id: stream.id, name: stream.name }),
+                      },
+                    ]}
                   />
                 </div>
                 <div
