@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
@@ -41,31 +41,48 @@ export function renderAt(path: string, role: "admin" | "member" = "admin") {
   );
 }
 
+// The sidebar's nav links exist from the very first render (static markup);
+// react-router only attaches aria-current="page" once the route/redirect has
+// settled a beat later. `findByRole` resolves as soon as an element matching
+// role+name exists, *not* once its attributes reach a given state — so
+// `findByRole(...).toHaveAttribute(...)` checks the attribute exactly once,
+// right after the link first appears, and can observe it pre-settle. Under
+// full-suite parallel load the settle beat can land after that single check,
+// flaking an otherwise-correct assertion (raising findByRole's own timeout
+// does not help, since it isn't what's being waited on). Poll the attribute
+// itself instead.
+async function expectCurrentNavLink(name: string) {
+  await waitFor(
+    () => expect(screen.getByRole("link", { name })).toHaveAttribute("aria-current", "page"),
+    { timeout: 3000 },
+  );
+}
+
 it("deep link renders the Roadmap view", async () => {
   renderAt("/roadmap");
-  expect(await screen.findByRole("link", { name: "Roadmap" })).toHaveAttribute("aria-current", "page");
+  await expectCurrentNavLink("Roadmap");
   expect(await screen.findByText(/no streams yet/i)).toBeInTheDocument();
 });
 
 it("the root path lands on the Board", async () => {
   renderAt("/");
-  expect(await screen.findByRole("link", { name: "Board" })).toHaveAttribute("aria-current", "page");
+  await expectCurrentNavLink("Board");
 });
 
 it("unknown paths land on the Board", async () => {
   renderAt("/nope");
-  expect(await screen.findByRole("link", { name: "Board" })).toHaveAttribute("aria-current", "page");
+  await expectCurrentNavLink("Board");
 });
 
 it("members deep-linking to /admin are redirected to the Board", async () => {
   renderAt("/admin", "member");
-  expect(await screen.findByRole("link", { name: "Board" })).toHaveAttribute("aria-current", "page");
+  await expectCurrentNavLink("Board");
   expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument();
 });
 
 it("/admin redirects to the Users section", async () => {
   renderAt("/admin");
-  expect(await screen.findByRole("link", { name: "Users" })).toHaveAttribute("aria-current", "page");
+  await expectCurrentNavLink("Users");
   expect(screen.getByRole("heading", { name: "Administration" })).toBeInTheDocument();
 });
 
@@ -76,7 +93,7 @@ it("/admin/import deep-links to the Import section", async () => {
 
 it("unknown admin sections fall back to Users", async () => {
   renderAt("/admin/bogus");
-  expect(await screen.findByRole("link", { name: "Users" })).toHaveAttribute("aria-current", "page");
+  await expectCurrentNavLink("Users");
 });
 
 const BOARD = {

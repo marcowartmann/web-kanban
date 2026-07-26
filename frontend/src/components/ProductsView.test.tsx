@@ -68,5 +68,4 @@ describe("ProductsView", () => {
     await userEvent.click(await screen.findByText("Network"));
     expect(await screen.findByText("DETAIL PROBE")).toBeInTheDocument();
   });
-
 });

@@ -1,11 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import * as client from "./api/client";
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
 import { ThemeProvider } from "./theme/ThemeContext";
 
+beforeEach(() => window.history.replaceState(null, "", "/"));
 afterEach(() => vi.restoreAllMocks());
 
 function mockAppData(role: "admin" | "member") {

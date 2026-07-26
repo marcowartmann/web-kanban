@@ -18,6 +18,7 @@ const ben = {
 function mockData() {
   vi.spyOn(client, "listUsers").mockResolvedValue([anna, ben] as never);
   vi.spyOn(client, "getTeams").mockResolvedValue([{ id: 1, name: "Network" }] as never);
+  vi.spyOn(client, "getDepartments").mockResolvedValue([] as never);
 }
 
 it("renders the table with email, team, and status", async () => {
@@ -36,6 +37,7 @@ it("shows the auth provider (LDAP vs Local) per user", async () => {
     { ...ben, auth_provider: "local" },
   ] as never);
   vi.spyOn(client, "getTeams").mockResolvedValue([{ id: 1, name: "Network" }] as never);
+  vi.spyOn(client, "getDepartments").mockResolvedValue([] as never);
   render(<UsersSection currentUserId={1} />);
   expect(await screen.findByText("LDAP")).toBeInTheDocument();
   expect(screen.getByText("Local")).toBeInTheDocument();

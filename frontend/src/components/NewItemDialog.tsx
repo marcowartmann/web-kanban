@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ItemKind } from "../types";
-import { btnGhost, inputClass, modalPanelClass, overlayClass } from "./ui";
+import { btnGhost, inputClass, modalPanelClass, overlayClass, zModal } from "./ui";
 
 const KIND_LABEL: Record<ItemKind, string> = {
   feature: "feature",
@@ -26,7 +26,7 @@ export default function NewItemDialog({
   };
   return (
     <div
-      className={`${overlayClass} z-40`}
+      className={`${overlayClass} ${zModal}`}
       role="dialog"
       aria-label={`New ${KIND_LABEL[kind]}`}
       onClick={onClose}
