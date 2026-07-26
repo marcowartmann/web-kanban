@@ -77,6 +77,9 @@ def test_links_and_component_summaries(env):
     comp_read = components.get(comp.id, today=TODAY)
     assert [s.name for s in comp_read.contracts] == ["SmartNet"]
     assert comp_read.contracts[0].status == ContractStatus.EXPIRED
+    # PATCH response must carry contracts too, same as GET.
+    comp_updated = components.update(comp.id, {"description": "x"})
+    assert [s.name for s in comp_updated.contracts] == ["SmartNet"]
     got = contracts.unlink_component(c.id, comp.id)
     assert got.components == []
     with pytest.raises(CatalogNotFound):

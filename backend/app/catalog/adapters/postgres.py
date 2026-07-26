@@ -639,7 +639,7 @@ class PostgresComponentRepository:
                 setattr(row, key, changes[key])
         self.db.flush()
         self.db.expire(row, ["vendor"])
-        return _to_component(row, date.today())
+        return _to_component(row, date.today(), db=self.db)
 
     def delete(self, component_id: int) -> None:
         row = self._row(component_id)

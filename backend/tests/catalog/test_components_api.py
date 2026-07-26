@@ -73,6 +73,7 @@ def test_component_update_field_level_audit(client, product_id, db_session):
     db_session.query(AuditEvent).filter_by(event_type="component.updated").delete()
     client.patch(f"/api/v1/components/{cid}", json={
         "vendor_name": "Juniper", "end_of_support": "2027-01-31", "name": "C",
+        "yearly_run_cost": 1200.5,
     })
     events = db_session.query(AuditEvent).filter_by(event_type="component.updated").all()
     by_field = {e.field: e for e in events}
@@ -80,3 +81,6 @@ def test_component_update_field_level_audit(client, product_id, db_session):
     assert by_field["vendor"].new_value == "Juniper"
     assert by_field["end_of_support"].new_value == "2027-01-31"
     assert "name" not in by_field  # unchanged
+    # numeric stringification may differ ("1200.5" vs "1200.50"); compare as float.
+    assert by_field["yearly_run_cost"].old_value is None
+    assert float(by_field["yearly_run_cost"].new_value) == 1200.5

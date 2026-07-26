@@ -15,7 +15,8 @@ router = APIRouter(prefix="/api/v1", tags=["components"])
 # Fields whose old/new values are logged by simple value comparison. The
 # vendor is handled separately (detected by id, logged by name).
 _AUDIT_FIELDS = ("name", "model", "description", "lifecycle_stage", "quantity",
-                 "eos_announced", "end_of_sale", "end_of_support", "end_of_life")
+                 "eos_announced", "end_of_sale", "end_of_support", "end_of_life",
+                 "yearly_run_cost", "replacement_budget")
 
 
 def _s(value) -> str | None:

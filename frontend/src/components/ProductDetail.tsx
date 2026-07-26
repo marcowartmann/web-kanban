@@ -118,7 +118,9 @@ function ContractRow({
       {contract.vendor_name && <span className="text-xs text-gray-400">{contract.vendor_name}</span>}
       <span className="text-xs text-gray-500">{contract.end_date ?? "—"}</span>
       <ContractBadge status={contract.status} />
-      <span className="w-20 text-right text-xs text-gray-500">{contract.yearly_cost ?? "—"}</span>
+      <span className="w-20 text-right text-xs text-gray-500">
+        {contract.yearly_cost?.toLocaleString() ?? "—"}
+      </span>
     </div>
   );
 }
