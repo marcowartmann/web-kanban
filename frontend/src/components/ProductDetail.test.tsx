@@ -22,7 +22,8 @@ const comp: Component = {
   product_id: 1, product_name: "Network", vendor_id: 1, vendor_name: "Cisco",
   lifecycle_stage: "operate", quantity: 120,
   eos_announced: null, end_of_sale: null,
-  end_of_support: "2026-10-31", end_of_life: null, risk: "warning",
+  end_of_support: "2026-10-31", end_of_life: null,
+  yearly_run_cost: null, replacement_budget: null, risk: "warning", contracts: [],
 };
 
 const systemFixture: CatalogSystem = {

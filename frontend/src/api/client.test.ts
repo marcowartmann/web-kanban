@@ -41,6 +41,15 @@ import {
   updateComponent,
   updateSystem,
 } from "./client";
+import {
+  createContract,
+  deleteContract,
+  getContracts,
+  getProductContracts,
+  linkContractComponent,
+  unlinkContractComponent,
+  updateContract,
+} from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -500,6 +509,61 @@ describe("api client", () => {
     const spy = mockFetch(200, { components: [], systems: [], risk: "ok" });
     await removeServiceTechSystem(5, 9);
     expect(spy.mock.calls[0][0]).toBe("/api/v1/services/5/tech/systems/9");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getProductContracts GETs nested route", async () => {
+    const spy = mockFetch(200, []);
+    await getProductContracts(4);
+    expect(spy).toHaveBeenCalledWith("/api/v1/products/4/contracts", undefined);
+  });
+
+  it("getContracts GETs /api/v1/contracts", async () => {
+    const spy = mockFetch(200, []);
+    await getContracts();
+    expect(spy).toHaveBeenCalledWith("/api/v1/contracts", undefined);
+  });
+
+  it("createContract POSTs payload", async () => {
+    const spy = mockFetch(201, { id: 1, components: [] });
+    await createContract({ name: "Support Deal", product_id: 2, vendor_name: "Cisco" });
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/contracts");
+    expect(spy.mock.calls[0][1]?.method).toBe("POST");
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({
+      name: "Support Deal",
+      product_id: 2,
+      vendor_name: "Cisco",
+    });
+  });
+
+  it("updateContract PATCHes changes", async () => {
+    const spy = mockFetch(200, { id: 1, components: [] });
+    await updateContract(1, { yearly_cost: 5000 });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/contracts/1");
+    expect(init?.method).toBe("PATCH");
+    expect(JSON.parse(init?.body as string)).toEqual({ yearly_cost: 5000 });
+  });
+
+  it("deleteContract sends DELETE", async () => {
+    const spy = mockFetch(204, null);
+    await deleteContract(1);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/contracts/1");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("linkContractComponent POSTs component_id", async () => {
+    const spy = mockFetch(201, { id: 1, components: [] });
+    await linkContractComponent(1, 8);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/contracts/1/components");
+    expect(spy.mock.calls[0][1]?.method).toBe("POST");
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({ component_id: 8 });
+  });
+
+  it("unlinkContractComponent DELETEs", async () => {
+    const spy = mockFetch(200, { id: 1, components: [] });
+    await unlinkContractComponent(1, 8);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/contracts/1/components/8");
     expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 });

@@ -8,11 +8,13 @@ const rows: Component[] = [
   { id: 1, name: "Dead", model: null, description: null, product_id: 1,
     product_name: "Network", vendor_id: 1, vendor_name: "Cisco",
     lifecycle_stage: "operate", quantity: null, eos_announced: null,
-    end_of_sale: null, end_of_support: null, end_of_life: "2020-01-01", risk: "danger" },
+    end_of_sale: null, end_of_support: null, end_of_life: "2020-01-01",
+    yearly_run_cost: null, replacement_budget: null, risk: "danger", contracts: [] },
   { id: 2, name: "Fine", model: "X", description: null, product_id: 2,
     product_name: "Storage", vendor_id: null, vendor_name: null,
     lifecycle_stage: "plan", quantity: null, eos_announced: null,
-    end_of_sale: null, end_of_support: null, end_of_life: null, risk: "ok" },
+    end_of_sale: null, end_of_support: null, end_of_life: null,
+    yearly_run_cost: null, replacement_budget: null, risk: "ok", contracts: [] },
 ];
 
 vi.mock("../api/client", () => ({ getLifecycle: vi.fn() }));

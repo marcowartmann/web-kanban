@@ -36,6 +36,7 @@ import type {
   ServiceOption,
   ServiceTech,
   SnapshotInfo,
+  SupportContract,
   Team,
   Vendor,
 } from "../types";
@@ -618,6 +619,8 @@ interface ComponentPayload {
   end_of_sale?: string | null;
   end_of_support?: string | null;
   end_of_life?: string | null;
+  yearly_run_cost?: number | null;
+  replacement_budget?: number | null;
 }
 
 export function createComponent(payload: ComponentPayload): Promise<Component> {
@@ -696,6 +699,50 @@ export function addServiceTechSystem(serviceId: number, systemId: number): Promi
 
 export function removeServiceTechSystem(serviceId: number, systemId: number): Promise<ServiceTech> {
   return request<ServiceTech>(`${API}/services/${serviceId}/tech/systems/${systemId}`, {
+    method: "DELETE",
+  });
+}
+
+// --- Catalog: support contracts ---------------------------------------------
+
+interface ContractPayload {
+  name: string;
+  product_id: number;
+  contract_no?: string | null;
+  vendor_name?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  yearly_cost?: number | null;
+  notice_period_days?: number | null;
+  notes?: string | null;
+}
+
+export function getProductContracts(productId: number): Promise<SupportContract[]> {
+  return request<SupportContract[]>(`${API}/products/${productId}/contracts`);
+}
+
+export function getContracts(): Promise<SupportContract[]> {
+  return request<SupportContract[]>(`${API}/contracts`);
+}
+
+export function createContract(payload: ContractPayload): Promise<SupportContract> {
+  return request<SupportContract>(`${API}/contracts`, json(payload));
+}
+
+export function updateContract(id: number, changes: Partial<ContractPayload>): Promise<SupportContract> {
+  return request<SupportContract>(`${API}/contracts/${id}`, { ...json(changes), method: "PATCH" });
+}
+
+export function deleteContract(id: number): Promise<void> {
+  return request<void>(`${API}/contracts/${id}`, { method: "DELETE" });
+}
+
+export function linkContractComponent(contractId: number, componentId: number): Promise<SupportContract> {
+  return request<SupportContract>(`${API}/contracts/${contractId}/components`, json({ component_id: componentId }));
+}
+
+export function unlinkContractComponent(contractId: number, componentId: number): Promise<SupportContract> {
+  return request<SupportContract>(`${API}/contracts/${contractId}/components/${componentId}`, {
     method: "DELETE",
   });
 }

@@ -366,6 +366,38 @@ export interface Vendor {
   notes: string | null;
 }
 
+export type ContractStatus = "active" | "expiring" | "expired";
+
+export interface ContractSummary {
+  id: number;
+  name: string;
+  status: ContractStatus;
+  end_date: string | null;
+}
+
+export interface ContractComponentRef {
+  id: number;
+  name: string;
+  product_name: string | null;
+}
+
+export interface SupportContract {
+  id: number;
+  name: string;
+  contract_no: string | null;
+  product_id: number;
+  product_name: string | null;
+  vendor_id: number | null;
+  vendor_name: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  yearly_cost: number | null;
+  notice_period_days: number | null;
+  notes: string | null;
+  status: ContractStatus;
+  components: ContractComponentRef[];
+}
+
 export interface Component {
   id: number;
   name: string;
@@ -381,7 +413,10 @@ export interface Component {
   end_of_sale: string | null;
   end_of_support: string | null;
   end_of_life: string | null;
+  yearly_run_cost: number | null;
+  replacement_budget: number | null;
   risk: RiskLevel;
+  contracts: ContractSummary[];
 }
 
 export interface SystemMember {
