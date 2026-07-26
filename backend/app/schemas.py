@@ -10,6 +10,7 @@ from app.catalog.domain import (
     LifecycleStage,
     LifecycleState,
     RiskLevel,
+    RoadmapStatus,
 )
 from app.models import ItemKind, ObjectiveState
 
@@ -773,6 +774,68 @@ class ContractUpdate(BaseModel):
 
 class ContractComponentLink(BaseModel):
     component_id: int
+
+
+class LinkedFeatureRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    status: str | None = None
+
+
+class RoadmapItemRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    description: str | None = None
+    stream_id: int
+    status: RoadmapStatus
+    start_date: date
+    end_date: date
+    features: list[LinkedFeatureRead] = []
+
+
+class StreamRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    product_id: int
+    position: int
+    items: list[RoadmapItemRead] = []
+
+
+class StreamCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    product_id: int
+
+
+class StreamUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    position: int | None = Field(default=None, ge=0)
+
+
+class RoadmapItemCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=256)
+    stream_id: int
+    start_date: date
+    end_date: date
+    description: str | None = None
+    status: RoadmapStatus = RoadmapStatus.IDEA
+
+
+class RoadmapItemUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: str | None = Field(default=None, min_length=1, max_length=256)
+    description: str | None = None
+    stream_id: int | None = None
+    status: RoadmapStatus | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+
+
+class RoadmapFeatureLink(BaseModel):
+    feature_id: int
 
 
 class ComponentRead(BaseModel):
