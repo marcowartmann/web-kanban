@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { createService, getProductServices } from "../api/client";
-import type { CatalogService, LifecycleState, Product } from "../types";
+import { createService, getProductComponents, getProductServices } from "../api/client";
+import type { CatalogService, Component, LifecycleState, Product } from "../types";
+import ComponentDrawer from "./ComponentDrawer";
+import RiskBadge from "./RiskBadge";
 import ServiceDrawer from "./ServiceDrawer";
 import { btnPrimary, btnSecondary, inputClass } from "./ui";
 
@@ -71,6 +73,23 @@ function ServiceNode({
   );
 }
 
+function ComponentRow({ component, onOpen }: { component: Component; onOpen: (c: Component) => void }) {
+  return (
+    <div className="mb-1.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-surface px-3 py-2">
+      <button onClick={() => onOpen(component)} className="flex flex-1 items-baseline gap-1.5 text-left">
+        <span className="text-sm font-medium text-gray-800">{component.name}</span>
+        {component.model && <span className="text-xs text-gray-400">{component.model}</span>}
+      </button>
+      {component.vendor_name && <span className="text-xs text-gray-400">{component.vendor_name}</span>}
+      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+        {component.lifecycle_stage}
+      </span>
+      <RiskBadge risk={component.risk} />
+      <span className="text-xs text-gray-500">{component.quantity ?? "—"}</span>
+    </div>
+  );
+}
+
 export default function ProductDetail({
   product,
   onBack,
@@ -78,12 +97,17 @@ export default function ProductDetail({
   product: Product;
   onBack: () => void;
 }) {
+  const [tab, setTab] = useState<"services" | "systems" | "components">("services");
   const [tree, setTree] = useState<CatalogService[]>([]);
   const [drawer, setDrawer] = useState<CatalogService | null>(null);
   // null = form closed; parentId null = add at root, otherwise sub-service.
   const [addTarget, setAddTarget] = useState<{ parentId: number | null; parentName: string | null } | null>(null);
   const [newName, setNewName] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const [components, setComponents] = useState<Component[]>([]);
+  const [componentDrawerOpen, setComponentDrawerOpen] = useState(false);
+  const [editingComponent, setEditingComponent] = useState<Component | null>(null);
 
   const load = useCallback(
     () => getProductServices(product.id).then(setTree),
@@ -92,6 +116,21 @@ export default function ProductDetail({
   useEffect(() => {
     void load();
   }, [load]);
+
+  const loadComponents = useCallback(
+    () => getProductComponents(product.id).then(setComponents),
+    [product.id],
+  );
+  useEffect(() => {
+    if (tab === "components") void loadComponents();
+  }, [tab, loadComponents]);
+
+  const pill = (active: boolean) =>
+    `rounded-full border px-3 py-1 text-sm font-medium transition ${
+      active
+        ? "border-blue-600 bg-blue-600 text-white shadow-xs"
+        : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
+    }`;
 
   const addService = async () => {
     if (!newName.trim() || !addTarget) return;
@@ -127,48 +166,99 @@ export default function ProductDetail({
               <p className="mt-1 max-w-2xl text-sm text-gray-600">{product.description}</p>
             )}
           </div>
-          <button
-            onClick={() => setAddTarget((t) => (t ? null : { parentId: null, parentName: null }))}
-            className={btnSecondary}
-          >
-            Add service
+          {tab === "services" && (
+            <button
+              onClick={() => setAddTarget((t) => (t ? null : { parentId: null, parentName: null }))}
+              className={btnSecondary}
+            >
+              Add service
+            </button>
+          )}
+          {tab === "components" && (
+            <button
+              onClick={() => {
+                setEditingComponent(null);
+                setComponentDrawerOpen(true);
+              }}
+              className={btnSecondary}
+            >
+              Add component
+            </button>
+          )}
+        </div>
+
+        <div className="mb-5 flex gap-2">
+          <button onClick={() => setTab("services")} className={pill(tab === "services")}>
+            Services
+          </button>
+          <button onClick={() => setTab("systems")} className={pill(tab === "systems")}>
+            Systems
+          </button>
+          <button onClick={() => setTab("components")} className={pill(tab === "components")}>
+            Components
           </button>
         </div>
-        {addTarget && (
-          <div className="mb-4 flex max-w-xl items-center gap-2">
-            {addTarget.parentName && (
-              <span className="shrink-0 text-xs text-gray-500">
-                Sub-service of <span className="font-medium">{addTarget.parentName}</span>
-              </span>
+
+        {tab === "services" && (
+          <>
+            {addTarget && (
+              <div className="mb-4 flex max-w-xl items-center gap-2">
+                {addTarget.parentName && (
+                  <span className="shrink-0 text-xs text-gray-500">
+                    Sub-service of <span className="font-medium">{addTarget.parentName}</span>
+                  </span>
+                )}
+                <input
+                  autoFocus
+                  placeholder="Service name"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && void addService()}
+                  className={inputClass}
+                />
+                <button onClick={() => void addService()} className={btnPrimary}>
+                  Create
+                </button>
+              </div>
             )}
-            <input
-              autoFocus
-              placeholder="Service name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && void addService()}
-              className={inputClass}
-            />
-            <button onClick={() => void addService()} className={btnPrimary}>
-              Create
-            </button>
-          </div>
+            {error && (
+              <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+            )}
+            {tree.length === 0 ? (
+              <div className="py-12 text-center text-sm text-gray-400">No services yet.</div>
+            ) : (
+              tree.map((s) => (
+                <ServiceNode
+                  key={s.id}
+                  service={s}
+                  depth={0}
+                  onOpen={setDrawer}
+                  onAddChild={(svc) => setAddTarget({ parentId: svc.id, parentName: svc.name })}
+                />
+              ))
+            )}
+          </>
         )}
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
-        )}
-        {tree.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400">No services yet.</div>
-        ) : (
-          tree.map((s) => (
-            <ServiceNode
-              key={s.id}
-              service={s}
-              depth={0}
-              onOpen={setDrawer}
-              onAddChild={(svc) => setAddTarget({ parentId: svc.id, parentName: svc.name })}
-            />
-          ))
+
+        {tab === "systems" && <div />}
+
+        {tab === "components" && (
+          <>
+            {components.length === 0 ? (
+              <div className="py-12 text-center text-sm text-gray-400">No components yet.</div>
+            ) : (
+              components.map((c) => (
+                <ComponentRow
+                  key={c.id}
+                  component={c}
+                  onOpen={(comp) => {
+                    setEditingComponent(comp);
+                    setComponentDrawerOpen(true);
+                  }}
+                />
+              ))
+            )}
+          </>
         )}
       </div>
       {drawer && (
@@ -183,6 +273,17 @@ export default function ProductDetail({
           onClose={() => setDrawer(null)}
           onChanged={async () => {
             await load();
+          }}
+        />
+      )}
+      {componentDrawerOpen && (
+        <ComponentDrawer
+          key={editingComponent?.id ?? "new"}
+          component={editingComponent}
+          productId={product.id}
+          onClose={() => setComponentDrawerOpen(false)}
+          onChanged={async () => {
+            await loadComponents();
           }}
         />
       )}
