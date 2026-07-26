@@ -178,11 +178,11 @@ export default function BackupSection() {
             <tbody>
               {runs.map((r) => (
                 <tr key={r.id} className="border-b border-gray-100 last:border-0">
-                  <td className="py-2 pr-3">{r.started_at ? new Date(r.started_at).toLocaleString() : "—"}</td>
-                  <td className="py-2 pr-3">{r.trigger}</td>
-                  <td className={`py-2 pr-3 font-medium ${r.status === "success" ? "text-emerald-600" : r.status === "error" ? "text-red-600" : "text-gray-500"}`}>{r.status}</td>
-                  <td className="py-2 pr-3 text-xs text-gray-500">{[r.db_file, r.snapshots_file].filter(Boolean).join(", ") || "—"}</td>
-                  <td className="py-2 text-xs text-gray-500">{r.message ?? "—"}</td>
+                  <td className="py-2 px-3">{r.started_at ? new Date(r.started_at).toLocaleString() : "—"}</td>
+                  <td className="py-2 px-3">{r.trigger}</td>
+                  <td className={`py-2 px-3 font-medium ${r.status === "success" ? "text-emerald-600" : r.status === "error" ? "text-red-600" : "text-gray-500"}`}>{r.status}</td>
+                  <td className="py-2 px-3 text-xs text-gray-500">{[r.db_file, r.snapshots_file].filter(Boolean).join(", ") || "—"}</td>
+                  <td className="py-2 px-3 text-xs text-gray-500">{r.message ?? "—"}</td>
                 </tr>
               ))}
             </tbody>

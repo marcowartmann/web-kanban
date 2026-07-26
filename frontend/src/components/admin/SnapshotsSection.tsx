@@ -149,12 +149,12 @@ export default function SnapshotsSection({ onChanged }: { onChanged: () => void 
             <tbody>
               {snapshots.map((s) => (
                 <tr key={s.name} className="border-b border-gray-100 last:border-0">
-                  <td className="py-2 pr-3">{new Date(s.created_at).toLocaleString()}</td>
-                  <td className="py-2 pr-3">{s.actor}</td>
-                  <td className="py-2 pr-3">{s.items}</td>
-                  <td className="py-2 pr-3">{s.comments}</td>
-                  <td className="py-2 pr-3">{s.links}</td>
-                  <td className="py-2">
+                  <td className="py-2 px-3">{new Date(s.created_at).toLocaleString()}</td>
+                  <td className="py-2 px-3">{s.actor}</td>
+                  <td className="py-2 px-3">{s.items}</td>
+                  <td className="py-2 px-3">{s.comments}</td>
+                  <td className="py-2 px-3">{s.links}</td>
+                  <td className="py-2 px-3">
                     <span className="flex items-center justify-end gap-3">
                       <a
                         href={`${API}/import/snapshots/${encodeURIComponent(s.name)}/download`}
