@@ -6,7 +6,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getPIObjectives, updatePIObjective } from "../api/client";
 import type { AuthUser, Item, ObjectiveState, PIObjective, Team } from "../types";
 import FilterSelect from "./FilterSelect";
@@ -71,10 +71,15 @@ export default function PIObjectivesBoard({
   useEffect(reload, [reload]);
 
   // The page header owns the "+ New objective" button; each increment of
-  // addSignal is one click. Guarded upstream by the disabled state.
+  // addSignal is one click. Guarded upstream by the disabled state. Track the
+  // last-consumed signal so a fresh mount (e.g. switching tabs and back)
+  // never replays a click from a previous mount of this component.
+  const consumedSignal = useRef(addSignal);
   useEffect(() => {
-    if (addSignal > 0) setEditing("new");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (addSignal > consumedSignal.current) {
+      consumedSignal.current = addSignal;
+      setEditing("new");
+    }
   }, [addSignal]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));

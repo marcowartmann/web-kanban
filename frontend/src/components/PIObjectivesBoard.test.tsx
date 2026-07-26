@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import type { ComponentProps } from "react";
 import * as client from "../api/client";
 import type { AuthUser, PIObjective, Team } from "../types";
 import PIObjectivesBoard from "./PIObjectivesBoard";
@@ -14,12 +15,8 @@ const obj = (over: Partial<PIObjective>): PIObjective => ({
   feature_ids: [7, 8], feature_count: 2, ...over,
 });
 
-it("renders objectives in state columns with feature count and Key Delivery badge", async () => {
-  vi.spyOn(client, "getPIObjectives").mockResolvedValue([
-    obj({ id: 1, title: "Committed KD", state: "committed", is_key_delivery: true }),
-    obj({ id: 2, title: "Plan B", state: "uncommitted", is_key_delivery: false, feature_ids: [], feature_count: 0 }),
-  ]);
-  render(
+function renderBoard(overrides: Partial<ComponentProps<typeof PIObjectivesBoard>> = {}) {
+  return render(
     <PIObjectivesBoard
       teams={teams}
       planningIntervals={["PI1-Q3"]}
@@ -29,8 +26,17 @@ it("renders objectives in state columns with feature count and Key Delivery badg
       team={null}
       onTeamChange={() => {}}
       addSignal={0}
+      {...overrides}
     />,
   );
+}
+
+it("renders objectives in state columns with feature count and Key Delivery badge", async () => {
+  vi.spyOn(client, "getPIObjectives").mockResolvedValue([
+    obj({ id: 1, title: "Committed KD", state: "committed", is_key_delivery: true }),
+    obj({ id: 2, title: "Plan B", state: "uncommitted", is_key_delivery: false, feature_ids: [], feature_count: 0 }),
+  ]);
+  renderBoard();
   expect(await screen.findByText("Committed KD")).toBeInTheDocument();
   expect(screen.getByText("Plan B")).toBeInTheDocument();
   expect(screen.getByText("Uncommitted")).toBeInTheDocument(); // column header (unique)
@@ -43,4 +49,32 @@ it("computeStateChange reports whether a drop changes the column", async () => {
   const { computeStateChange } = await import("./PIObjectivesBoard");
   expect(computeStateChange("uncommitted", "committed")).toEqual({ changed: true, state: "committed" });
   expect(computeStateChange("committed", "committed")).toEqual({ changed: false, state: "committed" });
+});
+
+it("opens the new-objective editor when addSignal increments", async () => {
+  vi.spyOn(client, "getPIObjectives").mockResolvedValue([]);
+  const { rerender } = renderBoard({ team: "Network", addSignal: 0 });
+  await waitFor(() => expect(client.getPIObjectives).toHaveBeenCalled());
+  expect(screen.queryByRole("heading", { name: /new pi objective/i })).not.toBeInTheDocument();
+
+  rerender(
+    <PIObjectivesBoard
+      teams={teams}
+      planningIntervals={["PI1-Q3"]}
+      user={user}
+      features={[]}
+      onChanged={() => {}}
+      team="Network"
+      onTeamChange={() => {}}
+      addSignal={1}
+    />,
+  );
+  expect(await screen.findByRole("heading", { name: /new pi objective/i })).toBeInTheDocument();
+});
+
+it("does not reopen the editor on a fresh mount, even if addSignal is already > 0 (tab remount regression)", async () => {
+  vi.spyOn(client, "getPIObjectives").mockResolvedValue([]);
+  renderBoard({ team: "Network", addSignal: 1 });
+  await waitFor(() => expect(client.getPIObjectives).toHaveBeenCalled());
+  expect(screen.queryByRole("heading", { name: /new pi objective/i })).not.toBeInTheDocument();
 });
