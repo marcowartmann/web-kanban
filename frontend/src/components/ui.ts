@@ -5,7 +5,11 @@
  *  flex-1, ml-auto, z-*, cursor-*, overflow-*). Never append a utility that
  *  conflicts with one inside the token (e.g. a second px-*) — Tailwind's
  *  stylesheet order, not class order, would decide the winner. Deliberate
- *  size variants keep a full literal string at the call site instead. */
+ *  size variants keep a full literal string at the call site instead.
+ *
+ *  Filter-bar slot order (left → right): search input → scope filters
+ *  (Product / Planning Interval) → dimension filters → pill toggles →
+ *  ml-auto secondary actions. Primary page actions live in PageHeader. */
 
 export const btnPrimary =
   "rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:opacity-60";

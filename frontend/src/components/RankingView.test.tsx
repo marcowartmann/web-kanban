@@ -22,6 +22,11 @@ function renderView() {
   );
 }
 
+it("renders Planning Interval as the filter label", () => {
+  renderView();
+  expect(screen.getByText("Planning Interval")).toBeInTheDocument();
+});
+
 it("hovering a row cross-highlights the same feature in the other list", () => {
   const { container } = render(
     <RankingView items={items} planningIntervals={[]} teams={["Net", "Cloud"]} containers={[]} user={user} onChanged={vi.fn()} />,

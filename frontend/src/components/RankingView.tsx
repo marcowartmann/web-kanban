@@ -170,8 +170,8 @@ export default function RankingView({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Ranking" />
-      <div className="flex shrink-0 flex-wrap gap-2 border-b border-gray-200 bg-surface px-6 py-3">
-        <FilterSelect label="Interval" value={pi} options={planningIntervals} onChange={setPi} />
+      <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
+        <FilterSelect label="Planning Interval" value={pi} options={planningIntervals} onChange={setPi} />
         <FilterSelect label="Team" value={team} options={teams} onChange={setTeam} />
         <FilterSelect label="Container" value={container} options={[...new Set(containers.map((c) => c.name))]} onChange={setContainer} />
         <FilterSelect label="Department" value={department} options={departmentNames} onChange={setDepartment} />

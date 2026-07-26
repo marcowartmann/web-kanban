@@ -134,6 +134,30 @@ export default function TimelineView({
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Timeline" />
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
+        {mode === "feature" && (
+          <div className="relative">
+            <FontAwesomeIcon
+              icon={faMagnifyingGlass}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"
+            />
+            <input
+              aria-label="Filter by feature title or ID"
+              placeholder="Filter features…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-56 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-8 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-300 focus:bg-surface focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+            />
+            {query && (
+              <button
+                aria-label="Clear feature filter"
+                onClick={() => setQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-xs text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
+              >
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            )}
+          </div>
+        )}
         <FilterSelect
           label="Planning Interval"
           value={pi ?? undefined}
@@ -168,32 +192,7 @@ export default function TimelineView({
 
       <div className="min-h-0 flex-1 overflow-auto px-4 pb-4">
         <div className="sticky top-0 z-20 flex items-center gap-2 bg-canvas pb-2 pl-2 pt-4">
-          <div className="w-64 shrink-0 px-2">
-            {mode === "feature" && (
-              <div className="relative">
-                <FontAwesomeIcon
-                  icon={faMagnifyingGlass}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"
-                />
-                <input
-                  aria-label="Filter by feature title or ID"
-                  placeholder="Filter features…"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-9 pr-8 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-300 focus:bg-surface focus:outline-hidden focus:ring-2 focus:ring-blue-100"
-                />
-                {query && (
-                  <button
-                    aria-label="Clear feature filter"
-                    onClick={() => setQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-xs text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
-                  >
-                    <FontAwesomeIcon icon={faXmark} />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          <div className="w-64 shrink-0 px-2" />
           {columns.map((col) => (
             <div key={String(col.slot)} className="w-64 shrink-0 px-2 text-sm font-semibold text-gray-700">
               {col.label}

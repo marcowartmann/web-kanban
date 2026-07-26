@@ -66,6 +66,13 @@ it("filters feature lanes by title or id via the search field", async () => {
   expect(screen.queryByText("Checkout")).not.toBeInTheDocument();
 });
 
+it("the feature search sits in the filter bar", () => {
+  const items = [feature(1), story(11, 1, 1)];
+  render(<TimelineView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />);
+  const input = screen.getByPlaceholderText("Filter features…");
+  expect(input.closest("div.border-b")).not.toBeNull(); // filter bar row, not the lane header
+});
+
 it("filters feature lanes by department", async () => {
   const items = [
     feature(1, { title: "Checkout", department_name: "FE" }),
