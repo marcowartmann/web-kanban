@@ -143,7 +143,7 @@ it("the New objective action is disabled until a team is chosen", async () => {
       </AuthProvider>
     </ThemeProvider>,
   );
-  await userEvent.click(await screen.findByRole("button", { name: /pi objectives/i }));
+  await userEvent.click(await screen.findByRole("tab", { name: /pi objectives/i }));
   const btn = await screen.findByRole("button", { name: /new objective/i });
   expect(btn).toBeDisabled();
   await userEvent.click(screen.getByRole("button", { name: /team/i }));

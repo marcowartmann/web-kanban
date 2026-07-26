@@ -18,6 +18,7 @@ import RiskBadge from "./RiskBadge";
 import ServiceDrawer from "./ServiceDrawer";
 import { SkeletonRows } from "./Skeleton";
 import SystemDrawer from "./SystemDrawer";
+import TabBar from "./TabBar";
 import { btnPrimary, btnSecondary, inputClass } from "./ui";
 
 /** Sums non-null numbers; returns null (renders "—") when every input is null. */
@@ -200,13 +201,6 @@ export default function ProductDetail({ product }: { product: Product }) {
     if (tab === "contracts") void loadContracts();
   }, [tab, loadContracts]);
 
-  const pill = (active: boolean) =>
-    `rounded-full border px-3 py-1 text-sm font-medium transition ${
-      active
-        ? "border-blue-600 bg-blue-600 text-white shadow-xs"
-        : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
-    }`;
-
   const addService = async () => {
     if (!newName.trim() || !addTarget) return;
     setError(null);
@@ -281,19 +275,17 @@ export default function ProductDetail({ product }: { product: Product }) {
           <p className="mb-4 max-w-2xl text-sm text-gray-600">{product.description}</p>
         )}
 
-        <div className="mb-5 flex gap-2">
-          <button onClick={() => setTab("services")} className={pill(tab === "services")}>
-            Services
-          </button>
-          <button onClick={() => setTab("systems")} className={pill(tab === "systems")}>
-            Systems
-          </button>
-          <button onClick={() => setTab("components")} className={pill(tab === "components")}>
-            Components
-          </button>
-          <button onClick={() => setTab("contracts")} className={pill(tab === "contracts")}>
-            Contracts
-          </button>
+        <div className="mb-5 -mx-6">
+          <TabBar
+            tabs={[
+              { key: "services", label: "Services" },
+              { key: "systems", label: "Systems" },
+              { key: "components", label: "Components" },
+              { key: "contracts", label: "Contracts" },
+            ]}
+            active={tab}
+            onSelect={(k) => setTab(k as "services" | "systems" | "components" | "contracts")}
+          />
         </div>
 
         {tab === "services" && (

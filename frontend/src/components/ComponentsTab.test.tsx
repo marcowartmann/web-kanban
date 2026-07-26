@@ -48,7 +48,7 @@ describe("ProductDetail Components tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Components" }));
     expect(await screen.findByText("Catalyst 9300")).toBeInTheDocument();
     expect(screen.getByText("Cisco")).toBeInTheDocument();
     expect(screen.getByText("operate")).toBeInTheDocument();
@@ -63,7 +63,7 @@ describe("ProductDetail Components tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Components" }));
     await userEvent.click(await screen.findByRole("button", { name: "Add component" }));
     await userEvent.type(screen.getByLabelText("Component name"), "New Switch");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -79,7 +79,7 @@ describe("ProductDetail Components tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Components" }));
     await userEvent.click(await screen.findByText("Catalyst 9300"));
     expect(await screen.findByDisplayValue("Catalyst 9300")).toBeInTheDocument();
     expect(screen.getByDisplayValue("2026-10-31")).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe("ProductDetail Components tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Components" }));
     await userEvent.click(await screen.findByRole("button", { name: "Add component" }));
     await userEvent.type(screen.getByLabelText("Component name"), "New Switch");
     const vendorInput = await screen.findByRole("combobox", { name: "Vendor" });
@@ -113,7 +113,7 @@ describe("ProductDetail Components tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Components" }));
     await userEvent.click(await screen.findByText("Catalyst 9300"));
     expect(await screen.findByText("SmartNet")).toBeInTheDocument();
     expect(screen.getByText("expired")).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe("ProductDetail Components tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Components" }));
     await userEvent.click(await screen.findByText("Catalyst 9300"));
     const costInput = await screen.findByLabelText("Yearly run cost");
     await userEvent.clear(costInput);

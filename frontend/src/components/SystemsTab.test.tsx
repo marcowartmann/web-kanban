@@ -67,7 +67,7 @@ describe("ProductDetail Systems tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Systems" }));
     expect(await screen.findByText("Campus fabric")).toBeInTheDocument();
     expect(screen.getByText("1 components")).toBeInTheDocument();
     expect(screen.getByText("danger")).toBeInTheDocument();
@@ -82,7 +82,7 @@ describe("ProductDetail Systems tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Systems" }));
     await userEvent.click(await screen.findByText("Campus fabric"));
     await userEvent.click(await screen.findByRole("combobox", { name: "Add component member" }));
     await userEvent.click(screen.getByText("Nexus 9k"));
@@ -97,7 +97,7 @@ describe("ProductDetail Systems tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Systems" }));
     await userEvent.click(await screen.findByText("Campus fabric"));
     await userEvent.click(await screen.findByRole("button", { name: "Remove Catalyst 9300" }));
     expect(removeSystemMember).toHaveBeenCalledWith(9, 1);
@@ -115,7 +115,7 @@ describe("ProductDetail Systems tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Systems" }));
     await userEvent.click(await screen.findByText("Campus fabric"));
 
     const callsBefore = vi.mocked(getProductSystems).mock.calls.length;
@@ -140,7 +140,7 @@ describe("ProductDetail Systems tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Systems" }));
     await userEvent.click(await screen.findByText("Campus fabric"));
 
     await userEvent.click(await screen.findByRole("button", { name: "Remove Catalyst 9300" }));

@@ -68,7 +68,7 @@ describe("ProductDetail Contracts tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Contracts" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Contracts" }));
     expect(await screen.findByText("SmartNet")).toBeInTheDocument();
     expect(screen.getByText("expiring")).toBeInTheDocument();
     expect(screen.getAllByText(/15’000|15,000/)).toHaveLength(2);
@@ -83,7 +83,7 @@ describe("ProductDetail Contracts tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Contracts" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Contracts" }));
     await userEvent.click(await screen.findByRole("button", { name: "Add contract" }));
     await userEvent.type(screen.getByLabelText("Contract name"), "SmartNet");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -104,7 +104,7 @@ describe("ProductDetail Contracts tab", () => {
         <ProductDetail product={product} />
       </MemoryRouter>,
     );
-    await userEvent.click(await screen.findByRole("button", { name: "Contracts" }));
+    await userEvent.click(await screen.findByRole("tab", { name: "Contracts" }));
     await userEvent.click(await screen.findByText("SmartNet"));
     await userEvent.click(await screen.findByRole("combobox", { name: "Link component" }));
     await userEvent.click(screen.getByText("Catalyst 9300 (Network)"));

@@ -1,4 +1,5 @@
 import type { Board } from "../types";
+import TabBar from "./TabBar";
 
 export default function BoardTabs({
   boards,
@@ -13,26 +14,20 @@ export default function BoardTabs({
   objectivesActive?: boolean;
   onSelectObjectives?: () => void;
 }) {
-  const tab = (active: boolean) =>
-    `-mb-px border-b-2 px-3 py-2 text-sm font-medium ${
-      active ? "border-blue-600 text-blue-700" : "border-transparent text-gray-500 hover:text-gray-800"
-    }`;
-  return (
-    <div className="flex shrink-0 gap-1 border-b border-gray-200 bg-surface px-6">
-      {boards.map((board) => (
-        <button
-          key={board.id}
-          onClick={() => onSelect(board.id)}
-          className={tab(!objectivesActive && board.id === activeId)}
-        >
-          {board.name}
-        </button>
-      ))}
-      {onSelectObjectives && (
-        <button onClick={onSelectObjectives} className={tab(objectivesActive)}>
-          PI Objectives
-        </button>
-      )}
-    </div>
-  );
+  const tabs = [
+    ...boards.map((board) => ({ key: String(board.id), label: board.name })),
+    ...(onSelectObjectives ? [{ key: "objectives", label: "PI Objectives" }] : []),
+  ];
+
+  const active = objectivesActive ? "objectives" : (activeId !== null ? String(activeId) : null);
+
+  const handleSelect = (k: string) => {
+    if (k === "objectives") {
+      onSelectObjectives?.();
+    } else {
+      onSelect(Number(k));
+    }
+  };
+
+  return <TabBar tabs={tabs} active={active} onSelect={handleSelect} />;
 }
