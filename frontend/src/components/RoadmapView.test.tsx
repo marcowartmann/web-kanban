@@ -102,6 +102,24 @@ describe("RoadmapView", () => {
     expect(updateStream).toHaveBeenCalledWith(1, { position: 1 });
   });
 
+  it("reorders self-heals when stored positions are duplicated", async () => {
+    // Test that index-derived positions fix corrupted state where two streams
+    // share the same stored position. Mock both streams with position: 0.
+    const corruptedStreams: Stream[] = [
+      { ...streams[0], position: 0 },
+      { ...streams[1], position: 0 },
+    ];
+    vi.mocked(getProductRoadmap).mockResolvedValueOnce(corruptedStreams);
+    render(<RoadmapView />);
+    await screen.findByText("Campus");
+    await userEvent.click(screen.getByRole("button", { name: "Move Backbone up" }));
+    // Index-derived positions ensure distinct calls even from corrupted state:
+    // Backbone (id 2) at index 1, moving up (direction -1) → position 0
+    // Campus (id 1) at index 0 → position 1
+    expect(updateStream).toHaveBeenCalledWith(2, { position: 0 });
+    expect(updateStream).toHaveBeenCalledWith(1, { position: 1 });
+  });
+
   it("renames a stream inline", async () => {
     render(<RoadmapView />);
     await screen.findByText("Campus");
