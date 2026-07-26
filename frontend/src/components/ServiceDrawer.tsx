@@ -26,6 +26,7 @@ import type {
   ServiceOption,
   ServiceTech,
 } from "../types";
+import Badge from "./Badge";
 import ConfirmDialog from "./ConfirmDialog";
 import PlainSelect from "./PlainSelect";
 import RiskBadge from "./RiskBadge";
@@ -259,8 +260,8 @@ export default function ServiceDrawer({
               {d.to_service_name}
               <span className="text-gray-400"> ({d.to_product_name})</span>
             </span>
-            <span className="rounded-full bg-gray-200 px-1.5 text-xs text-gray-600">{d.dep_type}</span>
-            <span className="rounded-full bg-amber-50 px-1.5 text-xs text-amber-700">{d.criticality}</span>
+            <Badge tone="gray">{d.dep_type}</Badge>
+            <Badge tone="amber">{d.criticality}</Badge>
             <button
               aria-label={`Remove dependency on ${d.to_service_name}`}
               onClick={() => void removeDep(d.id)}

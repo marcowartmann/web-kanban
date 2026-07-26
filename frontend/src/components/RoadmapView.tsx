@@ -15,11 +15,13 @@ import { btnSecondary, inputClass, popoverClass } from "./ui";
 const BAR_ROW_PX = 32;
 const BAR_PAD_PX = 8;
 
-const STATUS_CLASSES: Record<RoadmapStatus, string> = {
-  idea: "bg-gray-200 text-gray-700",
-  planned: "bg-blue-100 text-blue-800",
-  committed: "bg-violet-100 text-violet-800",
-  done: "bg-emerald-100 text-emerald-800",
+// Bar fills stay -100 with -700 text (dark-remapped tints; fixes the old
+// -800/gray-200 dark-mode gaps). Chips elsewhere use <Badge>.
+const BAR_CLASSES: Record<RoadmapStatus, string> = {
+  idea: "bg-gray-100 text-gray-700",
+  planned: "bg-blue-100 text-blue-700",
+  committed: "bg-violet-100 text-violet-700",
+  done: "bg-emerald-100 text-emerald-700",
   cancelled: "bg-gray-100 text-gray-400 line-through",
 };
 
@@ -359,7 +361,7 @@ export default function RoadmapView() {
                         key={item.id}
                         title={`${item.title}: ${item.start_date} → ${item.end_date}`}
                         onClick={() => openEdit(item)}
-                        className={`absolute h-6 truncate rounded px-2 text-left text-xs font-medium ${STATUS_CLASSES[item.status]}`}
+                        className={`absolute h-6 truncate rounded px-2 text-left text-xs font-medium ${BAR_CLASSES[item.status]}`}
                         style={{
                           left: `${g.leftPct}%`,
                           width: `${g.widthPct}%`,

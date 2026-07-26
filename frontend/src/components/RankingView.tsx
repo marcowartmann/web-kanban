@@ -35,7 +35,7 @@ function InfoButton({ onOpen }: { onOpen: () => void }) {
 function DeltaBadge({ delta }: { delta: number }) {
   const direction = delta > 0 ? "up" : delta < 0 ? "down" : "none";
   const cls =
-    delta > 0 ? "text-green-600" : delta < 0 ? "text-red-600" : "text-gray-300";
+    delta > 0 ? "text-emerald-600" : delta < 0 ? "text-red-600" : "text-gray-300";
   return (
     <span
       data-testid="delta"

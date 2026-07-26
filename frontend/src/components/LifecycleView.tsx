@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getLifecycle } from "../api/client";
 import PageHeader from "../shell/PageHeader";
 import type { Component } from "../types";
+import Badge from "./Badge";
 import FilterSelect from "./FilterSelect";
 import RiskBadge from "./RiskBadge";
 
@@ -81,9 +82,7 @@ export default function LifecycleView() {
                   <td className="px-3 py-2 border-b border-gray-100">{c.product_name ?? "—"}</td>
                   <td className="px-3 py-2 border-b border-gray-100">{c.vendor_name ?? "—"}</td>
                   <td className="px-3 py-2 border-b border-gray-100">
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      {c.lifecycle_stage}
-                    </span>
+                    <Badge tone="gray">{c.lifecycle_stage}</Badge>
                   </td>
                   <td className="px-3 py-2 border-b border-gray-100">{c.end_of_sale ?? "—"}</td>
                   <td className="px-3 py-2 border-b border-gray-100">{c.end_of_support ?? "—"}</td>

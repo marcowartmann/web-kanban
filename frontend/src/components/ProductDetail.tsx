@@ -8,6 +8,7 @@ import {
 } from "../api/client";
 import PageHeader from "../shell/PageHeader";
 import type { CatalogService, CatalogSystem, Component, LifecycleState, Product, SupportContract } from "../types";
+import Badge, { type BadgeTone } from "./Badge";
 import ComponentDrawer from "./ComponentDrawer";
 import ContractBadge from "./ContractBadge";
 import ContractDrawer from "./ContractDrawer";
@@ -34,11 +35,11 @@ function subtreeIds(node: CatalogService): number[] {
   return [node.id, ...node.children.flatMap(subtreeIds)];
 }
 
-const BADGE: Record<LifecycleState, string> = {
-  planned: "bg-blue-50 text-blue-700",
-  active: "bg-emerald-50 text-emerald-700",
-  deprecated: "bg-amber-50 text-amber-700",
-  retired: "bg-gray-100 text-gray-500",
+const SERVICE_TONE: Record<LifecycleState, BadgeTone> = {
+  planned: "blue",
+  active: "emerald",
+  deprecated: "amber",
+  retired: "gray",
 };
 
 function ServiceNode({
@@ -77,9 +78,7 @@ function ServiceNode({
           +
         </button>
         {service.owner_name && <span className="text-xs text-gray-400">{service.owner_name}</span>}
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${BADGE[service.lifecycle_state]}`}>
-          {service.lifecycle_state}
-        </span>
+        <Badge tone={SERVICE_TONE[service.lifecycle_state]}>{service.lifecycle_state}</Badge>
       </div>
       {open &&
         service.children.map((c) => (
@@ -96,9 +95,7 @@ function SystemRow({ system, onOpen }: { system: CatalogSystem; onOpen: (s: Cata
         {system.name}
       </button>
       <span className="text-xs text-gray-500">{system.members.length} components</span>
-      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-        {system.lifecycle_stage}
-      </span>
+      <Badge tone="gray">{system.lifecycle_stage}</Badge>
       <RiskBadge risk={system.risk} />
     </div>
   );
@@ -134,9 +131,7 @@ function ComponentRow({ component, onOpen }: { component: Component; onOpen: (c:
         {component.model && <span className="text-xs text-gray-400">{component.model}</span>}
       </button>
       {component.vendor_name && <span className="text-xs text-gray-400">{component.vendor_name}</span>}
-      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-        {component.lifecycle_stage}
-      </span>
+      <Badge tone="gray">{component.lifecycle_stage}</Badge>
       <RiskBadge risk={component.risk} />
       <span className="text-xs text-gray-500">{component.quantity ?? "—"}</span>
     </div>
