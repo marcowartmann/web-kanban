@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import BoardTabs from "./BoardTabs";
 import BoardView from "./BoardView";
 import PIObjectivesBoard, { canAddObjective } from "./PIObjectivesBoard";
 import NewItemBar from "./NewItemBar";
-import Toolbar, { type BoardFilters } from "./Toolbar";
+import Toolbar from "./Toolbar";
 import { btnPrimary, btnSecondary } from "./ui";
 import PageHeader from "../shell/PageHeader";
 import { useWork } from "../shell/WorkLayout";
@@ -26,19 +26,18 @@ export default function BoardPage() {
     onChanged,
     onOpenStories,
     teamOptions,
+    activeBoardId,
+    setActiveBoardId,
+    objectivesTab,
+    setObjectivesTab,
+    filters,
+    setFilters,
   } = useWork();
   const isAdmin = user.role === "admin";
 
-  const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
-  const [objectivesTab, setObjectivesTab] = useState(false);
-  const [filters, setFilters] = useState<BoardFilters>({});
   const [objTeam, setObjTeam] = useState<string | null>(null);
   const [addObjectiveSignal, setAddObjectiveSignal] = useState(0);
   const [laneEditing, setLaneEditing] = useState(false);
-
-  useEffect(() => {
-    if (activeBoardId == null && boards.length) setActiveBoardId(boards[0].id);
-  }, [boards, activeBoardId]);
 
   const activeBoard = boards.find((b) => b.id === activeBoardId) ?? null;
 

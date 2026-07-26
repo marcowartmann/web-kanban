@@ -28,11 +28,11 @@ function SidebarLink({ item, collapsed }: { item: NavItem; collapsed: boolean })
   );
 }
 
-function Group({ group, collapsed }: { group: NavGroup; collapsed: boolean }) {
+function Group({ group, collapsed, first }: { group: NavGroup; collapsed: boolean; first: boolean }) {
   return (
     <div className="mb-1">
       {collapsed ? (
-        <div aria-hidden className="mx-2 my-2 border-t border-gray-200" />
+        !first && <div aria-hidden className="mx-2 my-2 border-t border-gray-200" />
       ) : (
         <div className={`px-3 pb-1 pt-3 ${captionClass}`}>{group.label}</div>
       )}
@@ -65,11 +65,11 @@ export default function Sidebar({ onLoggedOut }: { onLoggedOut: () => void }) {
         <span className="text-lg font-semibold text-gray-900">{collapsed ? "J" : "JAMra"}</span>
       </div>
       <nav aria-label="Main" className={`min-h-0 flex-1 overflow-y-auto ${collapsed ? "px-1.5" : "px-3"}`}>
-        {NAV_GROUPS.map((g) => (
-          <Group key={g.label} group={g} collapsed={collapsed} />
+        {NAV_GROUPS.map((g, i) => (
+          <Group key={g.label} group={g} collapsed={collapsed} first={i === 0} />
         ))}
         {user.role === "admin" && (
-          <Group group={{ label: "Admin", items: [ADMIN_ITEM] }} collapsed={collapsed} />
+          <Group group={{ label: "Admin", items: [ADMIN_ITEM] }} collapsed={collapsed} first={false} />
         )}
       </nav>
       <div className={`shrink-0 border-t border-gray-200 py-3 ${collapsed ? "px-1.5" : "px-3"}`}>

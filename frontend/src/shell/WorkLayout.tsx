@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import ItemDrawer from "../components/ItemDrawer";
 import StoryBoardModal from "../components/StoryBoardModal";
+import type { BoardFilters } from "../components/Toolbar";
 import { useAuth } from "../auth/AuthContext";
 import { useBoard } from "../hooks/useBoard";
 import { getContainers, getDepartments, getObjectiveLinkedFeatures, getPersonOptions, getTeams } from "../api/client";
@@ -23,6 +24,12 @@ export type WorkContext = ReturnType<typeof useBoard> & {
   openItem: (id: number) => void;
   onChanged: () => void;
   onOpenStories: (featureId: number) => void;
+  activeBoardId: number | null;
+  setActiveBoardId: (id: number | null) => void;
+  objectivesTab: boolean;
+  setObjectivesTab: (v: boolean) => void;
+  filters: BoardFilters;
+  setFilters: React.Dispatch<React.SetStateAction<BoardFilters>>;
 };
 
 export default function WorkLayout() {
@@ -40,6 +47,13 @@ export default function WorkLayout() {
   const [containers, setContainers] = useState<Container[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [objectiveLinks, setObjectiveLinks] = useState<Set<number>>(new Set());
+
+  // Board-local UI state lives here (not in BoardPage) so it survives
+  // switching between work routes (Board/Planning/Timeline/Ranking), which
+  // all mount under this always-mounted layout.
+  const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
+  const [objectivesTab, setObjectivesTab] = useState(false);
+  const [filters, setFilters] = useState<BoardFilters>({});
 
   const openItem = (id: number) => setPanels([id]);
   // A child story docks to the LEFT of the feature (the rightmost panel).
@@ -70,6 +84,10 @@ export default function WorkLayout() {
     void getDepartments().then(setDepartments);
     void getObjectiveLinkedFeatures().then((ids) => setObjectiveLinks(new Set(ids)));
   }, [refreshKey]);
+
+  useEffect(() => {
+    if (activeBoardId == null && boards.length) setActiveBoardId(boards[0].id);
+  }, [boards, activeBoardId]);
 
   const statusOptions = useMemo(() => statusOptionsByKind(boards), [boards]);
 
@@ -111,6 +129,12 @@ export default function WorkLayout() {
     openItem,
     onChanged: handleChanged,
     onOpenStories: setOpenStoriesFeatureId,
+    activeBoardId,
+    setActiveBoardId,
+    objectivesTab,
+    setObjectivesTab,
+    filters,
+    setFilters,
   };
 
   return (

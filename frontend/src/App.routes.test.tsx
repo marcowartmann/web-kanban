@@ -106,6 +106,29 @@ it("the Board page header holds New Feature / New Risk and Edit lanes", async ()
   expect(await screen.findByRole("button", { name: "Edit lanes" })).toBeInTheDocument();
 });
 
+it("board filters survive navigating away and back", async () => {
+  mockAppData("admin");
+  vi.spyOn(client, "getBoards").mockResolvedValue([BOARD] as never);
+  render(
+    <ThemeProvider>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/board"]}>
+          <AppShell />
+        </MemoryRouter>
+      </AuthProvider>
+    </ThemeProvider>,
+  );
+  vi.spyOn(client, "getCapacities").mockResolvedValue([] as never);
+  const search = await screen.findByPlaceholderText("Search title…");
+  await userEvent.type(search, "widget");
+  expect(search).toHaveValue("widget");
+
+  await userEvent.click(await screen.findByRole("link", { name: "Planning" }));
+  await userEvent.click(await screen.findByRole("link", { name: "Board" }));
+
+  expect(await screen.findByPlaceholderText("Search title…")).toHaveValue("widget");
+});
+
 it("the New objective action is disabled until a team is chosen", async () => {
   mockAppData("admin");
   vi.spyOn(client, "getBoards").mockResolvedValue([BOARD] as never);

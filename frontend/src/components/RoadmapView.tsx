@@ -320,7 +320,7 @@ export default function RoadmapView() {
                         if (e.key === "Enter") void commitRename();
                         if (e.key === "Escape") setRenaming(null);
                       }}
-                      className={inputClass}
+                      className={`min-w-0 flex-1 ${inputClass}`}
                     />
                   ) : (
                     <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
