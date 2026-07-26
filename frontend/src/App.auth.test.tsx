@@ -19,6 +19,8 @@ function mockAppData(role: "admin" | "member") {
   vi.spyOn(client, "getPersonOptions").mockResolvedValue([] as never);
   vi.spyOn(client, "getTeams").mockResolvedValue([] as never);
   vi.spyOn(client, "getContainers").mockResolvedValue([] as never);
+  vi.spyOn(client, "getDepartments").mockResolvedValue([] as never);
+  vi.spyOn(client, "getObjectiveLinkedFeatures").mockResolvedValue([] as never);
   vi.spyOn(client, "listUsers").mockResolvedValue([] as never);
 }
 
@@ -33,7 +35,7 @@ it("admins reach Import CSV inside the Admin section", async () => {
   );
   // Import is no longer in the board header; it lives in Admin.
   expect(screen.queryByText(/import csv/i)).not.toBeInTheDocument();
-  await userEvent.click(await screen.findByRole("button", { name: "Admin" }));
+  await userEvent.click(await screen.findByRole("link", { name: "Admin" }));
   expect(await screen.findByRole("button", { name: /import csv/i })).toBeInTheDocument();
 });
 
@@ -47,6 +49,6 @@ it("members see neither the Admin tab nor Import", async () => {
     </ThemeProvider>,
   );
   expect(await screen.findByRole("button", { name: "U" })).toBeInTheDocument(); // user menu rendered
-  expect(screen.queryByRole("button", { name: "Admin" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument();
   expect(screen.queryByText(/import csv/i)).not.toBeInTheDocument();
 });

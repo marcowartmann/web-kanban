@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from "react-router";
 import BoardTabs from "./components/BoardTabs";
 import BoardView from "./components/BoardView";
 import PIObjectivesBoard from "./components/PIObjectivesBoard";
@@ -23,22 +24,10 @@ import { ObjectiveLinksContext } from "./objectives/links";
 import { statusOptionsByKind } from "./lib/boardLanes";
 import type { Container, Department, PersonOption, Team } from "./types";
 
-type View =
-  | "board"
-  | "admin"
-  | "planning"
-  | "timeline"
-  | "ranking"
-  | "products"
-  | "lifecycle"
-  | "contracts"
-  | "roadmap";
-
-export default function App() {
+export function AppShell() {
   const { user, setUser } = useAuth();
   const isAdmin = user.role === "admin";
   const { boards, items, links, planningIntervals, loading, error, reload } = useBoard();
-  const [view, setView] = useState<View>("board");
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
   const [objectivesTab, setObjectivesTab] = useState(false);
   // Panels are docked right-to-left: the rightmost is the primary item, and a
@@ -120,17 +109,70 @@ export default function App() {
     void reload();
   };
 
-  // Segmented control, matching the drawer's Comments|Activity tabs.
-  const navButton = (target: View, label: string) => (
-    <button
-      onClick={() => setView(target)}
-      className={`rounded-md px-3 py-1.5 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
-        view === target ? "bg-surface text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-700"
-      }`}
+  const { pathname } = useLocation();
+
+  const navLink = (target: string, label: string) => (
+    <NavLink
+      to={target}
+      className={({ isActive }) =>
+        `rounded-md px-3 py-1.5 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
+          isActive ? "bg-surface text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-700"
+        }`
+      }
     >
       {label}
-    </button>
+    </NavLink>
   );
+
+  const boardElement =
+    loading && !activeBoard ? (
+      <div className="p-8 text-gray-500">Loading board…</div>
+    ) : error ? (
+      <div className="p-8 text-red-600">{error}</div>
+    ) : activeBoard ? (
+      <>
+        <BoardTabs
+          boards={boards}
+          activeId={objectivesTab ? null : activeBoardId}
+          onSelect={selectBoard}
+          objectivesActive={objectivesTab}
+          onSelectObjectives={() => setObjectivesTab(true)}
+        />
+        {objectivesTab ? (
+          <PIObjectivesBoard
+            teams={teamOptions}
+            planningIntervals={planningIntervals}
+            user={user}
+            features={items.filter((i) => i.kind === "feature")}
+            onChanged={handleChanged}
+          />
+        ) : (
+          <>
+            <Toolbar
+              filters={filters}
+              onChange={setFilters}
+              planningIntervals={planningIntervals}
+              teams={teams}
+              assignees={assignees}
+              containerNames={containerNames}
+              departmentNames={departmentNames}
+              kindOptions={activeBoard.kinds}
+            />
+            <BoardView
+              board={activeBoard}
+              items={items}
+              links={links}
+              filters={filters}
+              containers={containers}
+              onOpenCard={openItem}
+              onOpenStories={setOpenStoriesFeatureId}
+              onChanged={handleChanged}
+              canEditLanes={isAdmin}
+            />
+          </>
+        )}
+      </>
+    ) : null;
 
   return (
     <ObjectiveLinksContext.Provider value={objectiveLinks}>
@@ -139,113 +181,85 @@ export default function App() {
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold text-gray-900">JAMra</h1>
           <nav className="flex gap-0.5 rounded-lg bg-gray-100 p-0.5">
-            {navButton("board", "Board")}
-            {navButton("planning", "Planning")}
-            {navButton("timeline", "Timeline")}
-            {navButton("ranking", "Ranking")}
-            {navButton("products", "Products")}
-            {navButton("lifecycle", "Lifecycle")}
-            {navButton("contracts", "Contracts")}
-            {navButton("roadmap", "Roadmap")}
-            {isAdmin && navButton("admin", "Admin")}
+            {navLink("/board", "Board")}
+            {navLink("/planning", "Planning")}
+            {navLink("/timeline", "Timeline")}
+            {navLink("/ranking", "Ranking")}
+            {navLink("/products", "Products")}
+            {navLink("/lifecycle", "Lifecycle")}
+            {navLink("/contracts", "Contracts")}
+            {navLink("/roadmap", "Roadmap")}
+            {isAdmin && navLink("/admin", "Admin")}
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          {view === "board" && <NewItemBar onCreated={handleChanged} />}
+          {pathname === "/board" && <NewItemBar onCreated={handleChanged} />}
           <ThemeToggle />
           <UserMenu user={user} onLoggedOut={() => setUser(null)} />
         </div>
       </header>
 
-      {view === "admin" ? (
-        <div className="min-h-0 flex-1 overflow-auto">
-          <AdminView onChanged={handleChanged} planningIntervals={planningIntervals} />
-        </div>
-      ) : view === "planning" ? (
-        <PlanningView
-          items={items}
-          links={links}
-          planningIntervals={planningIntervals}
-          departmentNames={departmentNames}
-          onOpenCard={openItem}
-          onChanged={handleChanged}
-        />
-      ) : view === "timeline" ? (
-        <TimelineView
-          items={items}
-          links={links}
-          planningIntervals={planningIntervals}
-          departmentNames={departmentNames}
-          onOpenCard={openItem}
-          onChanged={handleChanged}
-        />
-      ) : view === "ranking" ? (
-        <RankingView
-          items={items}
-          planningIntervals={planningIntervals}
-          teams={teams}
-          containers={containers}
-          departmentNames={departmentNames}
-          user={user}
-          onOpenCard={openItem}
-          onChanged={handleChanged}
-        />
-      ) : view === "products" ? (
-        <ProductsView />
-      ) : view === "lifecycle" ? (
-        <LifecycleView />
-      ) : view === "contracts" ? (
-        <ContractsView />
-      ) : view === "roadmap" ? (
-        <RoadmapView />
-      ) : loading && !activeBoard ? (
-        <div className="p-8 text-gray-500">Loading board…</div>
-      ) : error ? (
-        <div className="p-8 text-red-600">{error}</div>
-      ) : activeBoard ? (
-        <>
-          <BoardTabs
-            boards={boards}
-            activeId={objectivesTab ? null : activeBoardId}
-            onSelect={selectBoard}
-            objectivesActive={objectivesTab}
-            onSelectObjectives={() => setObjectivesTab(true)}
-          />
-          {objectivesTab ? (
-            <PIObjectivesBoard
-              teams={teamOptions}
+      <Routes>
+        <Route path="/board" element={boardElement} />
+        <Route
+          path="/planning"
+          element={
+            <PlanningView
+              items={items}
+              links={links}
               planningIntervals={planningIntervals}
-              user={user}
-              features={items.filter((i) => i.kind === "feature")}
+              departmentNames={departmentNames}
+              onOpenCard={openItem}
               onChanged={handleChanged}
             />
-          ) : (
-            <>
-              <Toolbar
-                filters={filters}
-                onChange={setFilters}
-                planningIntervals={planningIntervals}
-                teams={teams}
-                assignees={assignees}
-                containerNames={containerNames}
-                departmentNames={departmentNames}
-                kindOptions={activeBoard.kinds}
-              />
-              <BoardView
-                board={activeBoard}
-                items={items}
-                links={links}
-                filters={filters}
-                containers={containers}
-                onOpenCard={openItem}
-                onOpenStories={setOpenStoriesFeatureId}
-                onChanged={handleChanged}
-                canEditLanes={isAdmin}
-              />
-            </>
-          )}
-        </>
-      ) : null}
+          }
+        />
+        <Route
+          path="/timeline"
+          element={
+            <TimelineView
+              items={items}
+              links={links}
+              planningIntervals={planningIntervals}
+              departmentNames={departmentNames}
+              onOpenCard={openItem}
+              onChanged={handleChanged}
+            />
+          }
+        />
+        <Route
+          path="/ranking"
+          element={
+            <RankingView
+              items={items}
+              planningIntervals={planningIntervals}
+              teams={teams}
+              containers={containers}
+              departmentNames={departmentNames}
+              user={user}
+              onOpenCard={openItem}
+              onChanged={handleChanged}
+            />
+          }
+        />
+        <Route path="/products" element={<ProductsView />} />
+        <Route path="/lifecycle" element={<LifecycleView />} />
+        <Route path="/contracts" element={<ContractsView />} />
+        <Route path="/roadmap" element={<RoadmapView />} />
+        <Route
+          path="/admin/*"
+          element={
+            isAdmin ? (
+              <div className="min-h-0 flex-1 overflow-auto">
+                <AdminView onChanged={handleChanged} planningIntervals={planningIntervals} />
+              </div>
+            ) : (
+              <Navigate to="/board" replace />
+            )
+          }
+        />
+        <Route path="*" element={<Navigate to="/board" replace />} />
+      </Routes>
 
       {openStoriesFeatureId != null && (
         <StoryBoardModal
@@ -286,5 +300,13 @@ export default function App() {
       )}
     </div>
     </ObjectiveLinksContext.Provider>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
+    </BrowserRouter>
   );
 }
