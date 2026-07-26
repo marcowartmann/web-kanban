@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { faMagnifyingGlass, faXmark } from "../icons";
 import type { ItemKind } from "../types";
 import FilterSelect from "./FilterSelect";
+import TogglePill from "./TogglePill";
 
 export interface BoardFilters {
   planning_interval?: string;
@@ -118,19 +119,9 @@ export default function Toolbar({
         {kindOptions.map((kind) => {
           const active = (filters.kinds ?? []).includes(kind);
           return (
-            <button
-              key={kind}
-              type="button"
-              aria-pressed={active}
-              onClick={() => toggleKind(kind)}
-              className={`rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
-                active
-                  ? "border-blue-600 bg-blue-600 text-white shadow-xs"
-                  : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
-              }`}
-            >
+            <TogglePill key={kind} active={active} onChange={() => toggleKind(kind)}>
               {kind.charAt(0).toUpperCase() + kind.slice(1)}
-            </button>
+            </TogglePill>
           );
         })}
       </div>

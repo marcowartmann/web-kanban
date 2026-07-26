@@ -7,6 +7,7 @@ import ContractBadge from "./ContractBadge";
 import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import { SkeletonRows } from "./Skeleton";
+import TogglePill from "./TogglePill";
 
 export default function ContractsView() {
   const [rows, setRows] = useState<SupportContract[]>([]);
@@ -37,11 +38,6 @@ export default function ContractsView() {
     [rows, product, onlyExpiring],
   );
 
-  const pill = (active: boolean) =>
-    `rounded-full border px-3 py-1 text-sm font-medium transition ${
-      active ? "border-blue-600 bg-blue-600 text-white shadow-xs" : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
-    }`;
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Contracts" />
@@ -52,9 +48,9 @@ export default function ContractsView() {
           options={productNames}
           onChange={(v) => setProduct(v ?? null)}
         />
-        <button onClick={() => setOnlyExpiring((v) => !v)} className={pill(onlyExpiring)}>
+        <TogglePill active={onlyExpiring} onChange={setOnlyExpiring}>
           Only expiring or expired
-        </button>
+        </TogglePill>
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto px-6 py-4">

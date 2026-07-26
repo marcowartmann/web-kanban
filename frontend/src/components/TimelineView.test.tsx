@@ -24,7 +24,7 @@ it("renders feature lanes with stories in their iteration cells", () => {
 it("the Only planned toggle hides the backlog story", async () => {
   const items = [feature(1), story(11, 1, 1), story(12, 1, null)];
   render(<TimelineView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />);
-  await userEvent.click(screen.getByRole("button", { name: /only planned/i }));
+  await userEvent.click(screen.getByRole("radio", { name: /only planned/i }));
   expect(screen.getByText("S11")).toBeInTheDocument();
   expect(screen.queryByText("S12")).not.toBeInTheDocument();
 });
@@ -103,7 +103,7 @@ it("dependencies mode narrows to the selected item's transitive component", asyn
     // 13 is unrelated
   ];
   render(<TimelineView items={items} links={links} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />);
-  await userEvent.click(screen.getByRole("button", { name: "Dependencies" }));
+  await userEvent.click(screen.getByRole("radio", { name: "Dependencies" }));
   // empty selection -> all PI stories shown
   expect(screen.getByText("S13")).toBeInTheDocument();
   // select S11 -> component is {11,12}; S13 drops out

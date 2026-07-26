@@ -29,7 +29,7 @@ it("shows the selected PI's containers grouped by team; pills switch scope", asy
   expect(screen.getByRole("heading", { name: "Network" })).toBeInTheDocument(); // team subheading
   expect(screen.queryByText("Later Ops")).toBeNull();
 
-  fireEvent.click(screen.getByRole("button", { name: "PI2-Q4" }));
+  fireEvent.click(screen.getByRole("radio", { name: "PI2-Q4" }));
   expect(screen.getByText("Later Ops")).toBeInTheDocument();
   expect(screen.queryByText("Operations")).toBeNull();
 });

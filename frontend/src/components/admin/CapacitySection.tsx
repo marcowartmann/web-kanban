@@ -5,6 +5,7 @@ import { faChartColumn } from "../../icons";
 import { ITERATION_SLOTS, iterationLabel } from "../../lib/iterations";
 import type { Capacity, PersonOption, Team } from "../../types";
 import FilterSelect from "../FilterSelect";
+import SegmentedToggle from "../SegmentedToggle";
 import { adminCardClass } from "./AdminCard";
 
 export default function CapacitySection({
@@ -104,21 +105,12 @@ export default function CapacitySection({
           <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
             Planning Interval
           </span>
-          <div className="flex flex-wrap gap-1.5">
-            {planningIntervals.map((p) => (
-              <button
-                key={p}
-                onClick={() => setPi(p)}
-                className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
-                  p === pi
-                    ? "border-blue-600 bg-blue-600 text-white shadow-xs"
-                    : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+          <SegmentedToggle
+            ariaLabel="Planning Interval"
+            value={pi ?? ""}
+            onChange={setPi}
+            options={planningIntervals.map((p) => ({ value: p, label: p }))}
+          />
         </div>
       </div>
 

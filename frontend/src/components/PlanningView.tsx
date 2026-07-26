@@ -21,6 +21,7 @@ import type { Capacity, Item, LinkRow, PersonOption, Team } from "../types";
 import CapacityGrid from "./CapacityGrid";
 import FilterSelect from "./FilterSelect";
 import PlanningColumn from "./PlanningColumn";
+import TogglePill from "./TogglePill";
 
 export async function handlePlanDragEnd(
   event: DragEndEvent,
@@ -168,13 +169,6 @@ export default function PlanningView({
     );
   }
 
-  const pill = (active: boolean) =>
-    `rounded-full border px-3 py-1 text-sm font-medium transition ${
-      active
-        ? "border-blue-600 bg-blue-600 text-white shadow-xs"
-        : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
-    }`;
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Planning" />
@@ -206,12 +200,12 @@ export default function PlanningView({
           onChange={(v) => setDepartment(v ?? null)}
         />
 
-        <button onClick={() => setOnlyUnassigned((v) => !v)} className={pill(onlyUnassigned)}>
+        <TogglePill active={onlyUnassigned} onChange={setOnlyUnassigned}>
           Unassigned
-        </button>
-        <button onClick={() => setShowCapacity((v) => !v)} className={pill(showCapacity)}>
+        </TogglePill>
+        <TogglePill active={showCapacity} onChange={setShowCapacity}>
           Capacity
-        </button>
+        </TogglePill>
       </div>
 
       {groups && (

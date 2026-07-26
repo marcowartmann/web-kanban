@@ -16,7 +16,9 @@ import PageHeader from "../shell/PageHeader";
 import type { Item, LinkRow } from "../types";
 import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
+import SegmentedToggle from "./SegmentedToggle";
 import TimelineLane, { type TimelineColumn } from "./TimelineLane";
+import TogglePill from "./TogglePill";
 
 export async function handleTimelineDragEnd(
   event: DragEndEvent,
@@ -126,11 +128,6 @@ export default function TimelineView({
     );
   }
 
-  const pill = (active: boolean) =>
-    `rounded-full border px-3 py-1 text-sm font-medium transition ${
-      active ? "border-blue-600 bg-blue-600 text-white shadow-xs" : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
-    }`;
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Timeline" />
@@ -168,18 +165,34 @@ export default function TimelineView({
         />
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Mode</span>
-          <button onClick={() => setMode("feature")} className={pill(mode === "feature")}>By feature</button>
-          <button onClick={() => setMode("deps")} className={pill(mode === "deps")}>Dependencies</button>
+          <SegmentedToggle
+            ariaLabel="Mode"
+            value={mode}
+            onChange={setMode}
+            options={[
+              { value: "feature", label: "By feature" },
+              { value: "deps", label: "Dependencies" },
+            ]}
+          />
           {mode === "deps" && selected.size > 0 && (
-            <button onClick={() => setSelected(new Set())} className={pill(false)}>Clear ({selected.size})</button>
+            <TogglePill active={false} onChange={() => setSelected(new Set())}>
+              Clear ({selected.size})
+            </TogglePill>
           )}
         </div>
         {mode === "feature" && (
           <>
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Lanes</span>
-              <button onClick={() => setShowAll(true)} className={pill(showAll)}>Show all</button>
-              <button onClick={() => setShowAll(false)} className={pill(!showAll)}>Only planned</button>
+              <SegmentedToggle
+                ariaLabel="Lanes"
+                value={showAll ? "all" : "planned"}
+                onChange={(v) => setShowAll(v === "all")}
+                options={[
+                  { value: "all", label: "Show all" },
+                  { value: "planned", label: "Only planned" },
+                ]}
+              />
             </div>
             <FilterSelect
               label="Department"

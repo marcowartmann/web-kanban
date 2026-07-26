@@ -8,6 +8,7 @@ import EmptyState from "./EmptyState";
 import FilterSelect from "./FilterSelect";
 import RiskBadge from "./RiskBadge";
 import { SkeletonRows } from "./Skeleton";
+import TogglePill from "./TogglePill";
 
 export default function LifecycleView() {
   const [rows, setRows] = useState<Component[]>([]);
@@ -38,11 +39,6 @@ export default function LifecycleView() {
     [rows, product, onlyAtRisk],
   );
 
-  const pill = (active: boolean) =>
-    `rounded-full border px-3 py-1 text-sm font-medium transition ${
-      active ? "border-blue-600 bg-blue-600 text-white shadow-xs" : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
-    }`;
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Lifecycle" />
@@ -53,9 +49,9 @@ export default function LifecycleView() {
           options={productNames}
           onChange={(v) => setProduct(v ?? null)}
         />
-        <button onClick={() => setOnlyAtRisk((v) => !v)} className={pill(onlyAtRisk)}>
+        <TogglePill active={onlyAtRisk} onChange={setOnlyAtRisk}>
           Only at risk
-        </button>
+        </TogglePill>
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
