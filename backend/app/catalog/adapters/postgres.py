@@ -402,6 +402,10 @@ class PostgresServiceRepository:
             .where(m.ServiceDependency.from_service_id == service_id)
         ):
             self.db.delete(dep)
+        self.db.execute(m.service_components.delete().where(
+            m.service_components.c.service_id == service_id))
+        self.db.execute(m.service_systems.delete().where(
+            m.service_systems.c.service_id == service_id))
         self.db.delete(row)
         self.db.flush()
 
@@ -447,6 +451,68 @@ class PostgresServiceRepository:
             raise CatalogNotFound("Dependency not found")
         self.db.delete(row)
         self.db.flush()
+
+    def list_tech(self, service_id: int, today: date | None = None) -> domain.ServiceTech:
+        today = today or date.today()
+        self._row(service_id)
+        comp_rows = self.db.scalars(
+            select(m.Component)
+            .join(m.service_components, m.service_components.c.component_id == m.Component.id)
+            .where(m.service_components.c.service_id == service_id)
+            .order_by(m.Component.name)
+        )
+        components = [_to_component(r, today) for r in comp_rows]
+        sys_rows = self.db.scalars(
+            select(m.System)
+            .join(m.service_systems, m.service_systems.c.system_id == m.System.id)
+            .where(m.service_systems.c.service_id == service_id)
+            .order_by(m.System.name)
+        )
+        systems = [_to_system(r, today) for r in sys_rows]
+        member_risks = [mb.component.risk for s in systems for mb in s.members]
+        rolled = worst_risk([c.risk for c in components] + member_risks)
+        return domain.ServiceTech(components=components, systems=systems, risk=rolled)
+
+    def _tech_link(self, table, service_id: int, key_col, key_id: int):
+        return self.db.execute(
+            select(table).where(table.c.service_id == service_id, key_col == key_id)
+        ).first()
+
+    def add_tech_component(self, service_id: int, component_id: int) -> None:
+        self._row(service_id)
+        if self.db.get(m.Component, component_id) is None:
+            raise CatalogRuleViolation("component_id does not exist")
+        if self._tech_link(m.service_components, service_id,
+                           m.service_components.c.component_id, component_id):
+            raise CatalogRuleViolation("This link already exists")
+        self.db.execute(m.service_components.insert().values(
+            service_id=service_id, component_id=component_id))
+
+    def remove_tech_component(self, service_id: int, component_id: int) -> None:
+        if not self._tech_link(m.service_components, service_id,
+                               m.service_components.c.component_id, component_id):
+            raise CatalogNotFound("Link not found")
+        self.db.execute(m.service_components.delete().where(
+            m.service_components.c.service_id == service_id,
+            m.service_components.c.component_id == component_id))
+
+    def add_tech_system(self, service_id: int, system_id: int) -> None:
+        self._row(service_id)
+        if self.db.get(m.System, system_id) is None:
+            raise CatalogRuleViolation("system_id does not exist")
+        if self._tech_link(m.service_systems, service_id,
+                           m.service_systems.c.system_id, system_id):
+            raise CatalogRuleViolation("This link already exists")
+        self.db.execute(m.service_systems.insert().values(
+            service_id=service_id, system_id=system_id))
+
+    def remove_tech_system(self, service_id: int, system_id: int) -> None:
+        if not self._tech_link(m.service_systems, service_id,
+                               m.service_systems.c.system_id, system_id):
+            raise CatalogNotFound("Link not found")
+        self.db.execute(m.service_systems.delete().where(
+            m.service_systems.c.service_id == service_id,
+            m.service_systems.c.system_id == system_id))
 
 
 class PostgresVendorRepository:

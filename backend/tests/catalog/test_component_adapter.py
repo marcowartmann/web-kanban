@@ -122,3 +122,22 @@ def test_product_delete_blocked_by_components(repos):
     comps.create(name="C", product_id=repos["product"].id)
     with pytest.raises(CatalogInUse):
         repos["products"].delete(repos["product"].id)
+
+
+def test_product_delete_blocked_by_system(repos):
+    repos["systems"].create(name="OnlySys", product_id=repos["product"].id)
+    with pytest.raises(CatalogInUse):
+        repos["products"].delete(repos["product"].id)
+
+
+def test_rename_duplicate_rules(repos):
+    comps, systems = repos["components"], repos["systems"]
+    pid = repos["product"].id
+    comps.create(name="A", product_id=pid)
+    c2 = comps.create(name="B", product_id=pid)
+    with pytest.raises(CatalogRuleViolation):
+        comps.update(c2.id, {"name": "A"})
+    systems.create(name="SA", product_id=pid)
+    s2 = systems.create(name="SB", product_id=pid)
+    with pytest.raises(CatalogRuleViolation):
+        systems.update(s2.id, {"name": "SA"})
