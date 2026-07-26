@@ -9,12 +9,14 @@ export default function SearchableSelect({
   onChange,
   placeholder = "Search…",
   ariaLabel,
+  allowCreate = false,
 }: {
   value: string | null;
   options: string[];
   onChange: (value: string | null) => void;
   placeholder?: string;
   ariaLabel?: string;
+  allowCreate?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(value ?? "");
@@ -36,6 +38,12 @@ export default function SearchableSelect({
   const filtered = open
     ? options.filter((o) => o.toLowerCase().includes(query.toLowerCase()))
     : options;
+
+  const trimmedQuery = query.trim();
+  const showCreate =
+    allowCreate &&
+    trimmedQuery !== "" &&
+    !filtered.some((o) => o.toLowerCase() === trimmedQuery.toLowerCase());
 
   const commit = (name: string) => {
     onChange(name);
@@ -77,7 +85,7 @@ export default function SearchableSelect({
       </div>
       {open && (
         <ul className={`absolute z-10 mt-1 max-h-48 w-full overflow-auto ${popoverClass}`}>
-          {filtered.length === 0 && (
+          {filtered.length === 0 && !showCreate && (
             <li className="px-3 py-1.5 text-xs text-gray-400">No matches</li>
           )}
           {filtered.map((o) => {
@@ -99,6 +107,21 @@ export default function SearchableSelect({
               </li>
             );
           })}
+          {showCreate && (
+            <li>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  commit(trimmedQuery);
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm text-blue-700 transition hover:bg-blue-50"
+              >
+                <span className="truncate">
+                  Use &#8220;{trimmedQuery}&#8221;
+                </span>
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </div>

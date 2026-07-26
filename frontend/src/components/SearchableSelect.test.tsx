@@ -36,3 +36,39 @@ it("does not commit free text (strict)", () => {
   fireEvent.change(input, { target: { value: "Nobody" } });
   expect(onChange).not.toHaveBeenCalled();
 });
+
+it("allowCreate: shows a create row for an unmatched query and commits it", () => {
+  const onChange = vi.fn();
+  render(<SearchableSelect value={null} options={options} onChange={onChange} allowCreate />);
+  const input = screen.getByRole("combobox");
+  fireEvent.focus(input);
+  fireEvent.change(input, { target: { value: "NewVendor" } });
+  const createRow = screen.getByText('Use “NewVendor”');
+  expect(createRow).toBeInTheDocument();
+  fireEvent.mouseDown(createRow);
+  expect(onChange).toHaveBeenCalledWith("NewVendor");
+});
+
+it("allowCreate: no create row when the query exactly matches an existing option", () => {
+  render(<SearchableSelect value={null} options={options} onChange={() => {}} allowCreate />);
+  const input = screen.getByRole("combobox");
+  fireEvent.focus(input);
+  fireEvent.change(input, { target: { value: "Marco Wartmann" } });
+  expect(screen.queryByText('Use “Marco Wartmann”')).toBeNull();
+});
+
+it("allowCreate: falls back to No matches when the query is empty", () => {
+  render(<SearchableSelect value={null} options={[]} onChange={() => {}} allowCreate />);
+  fireEvent.focus(screen.getByRole("combobox"));
+  expect(screen.getByText("No matches")).toBeInTheDocument();
+});
+
+it("without allowCreate: shows No matches instead of a create row", () => {
+  const onChange = vi.fn();
+  render(<SearchableSelect value={null} options={options} onChange={onChange} />);
+  const input = screen.getByRole("combobox");
+  fireEvent.focus(input);
+  fireEvent.change(input, { target: { value: "NewVendor" } });
+  expect(screen.getByText("No matches")).toBeInTheDocument();
+  expect(screen.queryByText('Use “NewVendor”')).toBeNull();
+});

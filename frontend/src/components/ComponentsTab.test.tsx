@@ -16,7 +16,7 @@ vi.mock("../api/client", () => ({
   getProductServices: vi.fn().mockResolvedValue([]),
   getProductComponents: vi.fn().mockResolvedValue([]),
   getProductSystems: vi.fn().mockResolvedValue([]),
-  getVendors: vi.fn().mockResolvedValue([]),
+  getVendors: vi.fn().mockResolvedValue([{ id: 1, name: "Cisco", notes: null }]),
   getPersonOptions: vi.fn().mockResolvedValue([]),
   getServiceOptions: vi.fn().mockResolvedValue([]),
   getServiceDependencies: vi.fn().mockResolvedValue({ outbound: [], inbound: [] }),
@@ -68,5 +68,22 @@ describe("ProductDetail Components tab", () => {
     await userEvent.click(await screen.findByText("Catalyst 9300"));
     expect(await screen.findByDisplayValue("Catalyst 9300")).toBeInTheDocument();
     expect(screen.getByDisplayValue("2026-10-31")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Vendor" })).toHaveValue("Cisco");
+  });
+
+  it("creates a component with a new vendor via the picker's on-the-fly create", async () => {
+    vi.mocked(getProductComponents).mockResolvedValue([]);
+    vi.mocked(createComponent).mockResolvedValue(comp);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Add component" }));
+    await userEvent.type(screen.getByLabelText("Component name"), "New Switch");
+    const vendorInput = await screen.findByRole("combobox", { name: "Vendor" });
+    await userEvent.type(vendorInput, "NewVendor");
+    await userEvent.click(await screen.findByText('Use “NewVendor”'));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(vi.mocked(createComponent).mock.calls.at(-1)?.[0]).toMatchObject({
+      name: "New Switch", product_id: 1, vendor_name: "NewVendor",
+    });
   });
 });

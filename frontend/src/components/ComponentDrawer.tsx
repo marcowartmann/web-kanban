@@ -1,15 +1,17 @@
-import { useState } from "react";
-import { createComponent, deleteComponent, updateComponent } from "../api/client";
+import { useEffect, useState } from "react";
+import { createComponent, deleteComponent, getVendors, updateComponent } from "../api/client";
 import type { Component, LifecycleStage } from "../types";
 import ConfirmDialog from "./ConfirmDialog";
 import PlainSelect from "./PlainSelect";
+import SearchableSelect from "./SearchableSelect";
 import { btnDangerGhost, btnPrimary, btnSecondary, captionClass, inputClass } from "./ui";
 
 const STAGES: LifecycleStage[] = ["plan", "build", "operate", "phase_out", "retired"];
 
 /** Component create/edit drawer. `component == null` is create mode (POST);
- *  otherwise edit mode (PATCH, only-changed keys). Vendor is a plain text
- *  input — free text IS the get-or-create contract, not a picker. */
+ *  otherwise edit mode (PATCH, only-changed keys). Vendor is a SearchableSelect
+ *  with on-the-fly create — free text that doesn't match an existing vendor
+ *  IS the get-or-create contract, offered via the "Use “…”" row. */
 export default function ComponentDrawer({
   component,
   productId,
@@ -21,10 +23,15 @@ export default function ComponentDrawer({
   onClose: () => void;
   onChanged: () => Promise<void> | void;
 }) {
+  const [vendors, setVendors] = useState<string[]>([]);
+  useEffect(() => {
+    void getVendors().then((list) => setVendors(list.map((v) => v.name)));
+  }, []);
+
   const [name, setName] = useState(component?.name ?? "");
   const [model, setModel] = useState(component?.model ?? "");
   const [description, setDescription] = useState(component?.description ?? "");
-  const [vendorName, setVendorName] = useState(component?.vendor_name ?? "");
+  const [vendorName, setVendorName] = useState<string | null>(component?.vendor_name ?? null);
   const [stage, setStage] = useState<LifecycleStage>(component?.lifecycle_stage ?? "plan");
   const [quantity, setQuantity] = useState(component?.quantity != null ? String(component.quantity) : "");
   const [eosAnnounced, setEosAnnounced] = useState(component?.eos_announced ?? "");
@@ -45,7 +52,7 @@ export default function ComponentDrawer({
           product_id: productId,
           model: model || null,
           description: description || null,
-          vendor_name: vendorName || null,
+          vendor_name: vendorName,
           lifecycle_stage: stage,
           quantity: parsedQuantity,
           eos_announced: eosAnnounced || null,
@@ -58,7 +65,7 @@ export default function ComponentDrawer({
         if (name !== component.name) changes.name = name;
         if (model !== (component.model ?? "")) changes.model = model || null;
         if (description !== (component.description ?? "")) changes.description = description || null;
-        if (vendorName !== (component.vendor_name ?? "")) changes.vendor_name = vendorName || null;
+        if (vendorName !== (component.vendor_name ?? null)) changes.vendor_name = vendorName;
         if (stage !== component.lifecycle_stage) changes.lifecycle_stage = stage;
         if (parsedQuantity !== component.quantity) changes.quantity = parsedQuantity;
         if (eosAnnounced !== (component.eos_announced ?? "")) changes.eos_announced = eosAnnounced || null;
@@ -126,12 +133,16 @@ export default function ComponentDrawer({
         className={`${inputClass} mb-3`}
       />
       <label className={captionClass}>Vendor</label>
-      <input
-        aria-label="Vendor"
-        value={vendorName}
-        onChange={(e) => setVendorName(e.target.value)}
-        className={`${inputClass} mb-3`}
-      />
+      <div className="mb-3">
+        <SearchableSelect
+          ariaLabel="Vendor"
+          value={vendorName}
+          options={vendors}
+          onChange={setVendorName}
+          allowCreate
+          placeholder="Vendor…"
+        />
+      </div>
       <label className={captionClass}>Stage</label>
       <div className="mb-3">
         <PlainSelect
