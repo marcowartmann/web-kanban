@@ -87,4 +87,44 @@ describe("ProductDetail Systems tab", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Remove Catalyst 9300" }));
     expect(removeSystemMember).toHaveBeenCalledWith(9, 1);
   });
+
+  it("refreshes the systems tab after a membership edit", async () => {
+    vi.mocked(getProductSystems).mockResolvedValue([system]);
+    vi.mocked(getProductComponents).mockResolvedValue([comp, comp2]);
+    vi.mocked(setSystemMember).mockResolvedValue({
+      ...system,
+      members: [{ component: comp, quantity: 80 }, { component: comp2, quantity: null }],
+    });
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
+    await userEvent.click(await screen.findByText("Campus fabric"));
+
+    const callsBefore = vi.mocked(getProductSystems).mock.calls.length;
+
+    await userEvent.click(await screen.findByRole("combobox", { name: "Add component member" }));
+    await userEvent.click(screen.getByText("Nexus 9k"));
+
+    await screen.findByRole("button", { name: "Remove Nexus 9k" });
+    expect(vi.mocked(getProductSystems).mock.calls.length).toBeGreaterThan(callsBefore);
+  });
+
+  it("shows a fresh empty quantity after removing then re-adding a member", async () => {
+    vi.mocked(getProductSystems).mockResolvedValue([system]);
+    vi.mocked(getProductComponents).mockResolvedValue([comp, comp2]);
+    vi.mocked(removeSystemMember).mockResolvedValue({ ...system, members: [] });
+    vi.mocked(setSystemMember).mockResolvedValue({
+      ...system,
+      members: [{ component: comp, quantity: null }],
+    });
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
+    await userEvent.click(await screen.findByText("Campus fabric"));
+
+    await userEvent.click(await screen.findByRole("button", { name: "Remove Catalyst 9300" }));
+    await userEvent.click(await screen.findByRole("combobox", { name: "Add component member" }));
+    await userEvent.click(screen.getByText("Catalyst 9300"));
+
+    const quantityInput = await screen.findByRole("spinbutton", { name: "Quantity for Catalyst 9300" });
+    expect(quantityInput).toHaveValue(null);
+  });
 });

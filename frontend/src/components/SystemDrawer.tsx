@@ -65,14 +65,25 @@ export default function SystemDrawer({
     }
   };
 
+  const syncFromMembership = async (fresh: CatalogSystem) => {
+    setMembers(fresh.members);
+    setQuantities(
+      Object.fromEntries(
+        fresh.members.map((m) => [m.component.id, m.quantity != null ? String(m.quantity) : ""]),
+      ),
+    );
+    await onChanged();
+  };
+
   const commitQuantity = async (componentId: number) => {
     if (!system) return;
     setError(null);
     const raw = quantities[componentId] ?? "";
+    if (raw.trim() !== "" && Number.isNaN(Number(raw))) return;
     const parsed = raw.trim() === "" ? null : Number(raw);
     try {
       const fresh = await setSystemMember(system.id, componentId, parsed);
-      setMembers(fresh.members);
+      await syncFromMembership(fresh);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not update quantity");
     }
@@ -83,7 +94,7 @@ export default function SystemDrawer({
     setError(null);
     try {
       const fresh = await setSystemMember(system.id, componentId, null);
-      setMembers(fresh.members);
+      await syncFromMembership(fresh);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not add member");
     }
@@ -94,7 +105,7 @@ export default function SystemDrawer({
     setError(null);
     try {
       const fresh = await removeSystemMember(system.id, componentId);
-      setMembers(fresh.members);
+      await syncFromMembership(fresh);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not remove member");
     }
