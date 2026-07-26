@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLifecycle } from "../api/client";
+import PageHeader from "../shell/PageHeader";
 import type { Component } from "../types";
 import FilterSelect from "./FilterSelect";
 import RiskBadge from "./RiskBadge";
@@ -36,6 +37,7 @@ export default function LifecycleView() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <PageHeader title="Lifecycle" />
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect
           label="Product"

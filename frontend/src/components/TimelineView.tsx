@@ -12,6 +12,7 @@ import { faMagnifyingGlass, faXmark } from "../icons";
 import { ITERATION_SLOTS, iterationLabel } from "../lib/iterations";
 import { computePlanningLinks } from "../lib/planningLinks";
 import { dependencyComponent, groupByFeature, layoutFlat, type FeatureLane } from "../lib/timeline";
+import PageHeader from "../shell/PageHeader";
 import type { Item, LinkRow } from "../types";
 import FilterSelect from "./FilterSelect";
 import TimelineLane, { type TimelineColumn } from "./TimelineLane";
@@ -116,7 +117,12 @@ export default function TimelineView({
   ];
 
   if (!planningIntervals.length) {
-    return <div className="p-8 text-gray-500">No planning intervals yet. Set a Planning Interval on stories first.</div>;
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <PageHeader title="Timeline" />
+        <div className="p-8 text-gray-500">No planning intervals yet. Set a Planning Interval on stories first.</div>
+      </div>
+    );
   }
 
   const pill = (active: boolean) =>
@@ -126,6 +132,7 @@ export default function TimelineView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <PageHeader title="Timeline" />
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect
           label="Planning Interval"

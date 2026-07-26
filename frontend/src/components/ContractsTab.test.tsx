@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import type { Component, Product, SupportContract } from "../types";
 import ProductDetail from "./ProductDetail";
@@ -62,7 +63,11 @@ describe("ProductDetail Contracts tab", () => {
     vi.mocked(getProductComponents).mockResolvedValue([
       { ...comp, yearly_run_cost: 1200, replacement_budget: 90000 },
     ]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Contracts" }));
     expect(await screen.findByText("SmartNet")).toBeInTheDocument();
     expect(screen.getByText("expiring")).toBeInTheDocument();
@@ -73,7 +78,11 @@ describe("ProductDetail Contracts tab", () => {
   it("creates a contract through the drawer", async () => {
     vi.mocked(getProductContracts).mockResolvedValue([]);
     vi.mocked(createContract).mockResolvedValue(contract);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Contracts" }));
     await userEvent.click(await screen.findByRole("button", { name: "Add contract" }));
     await userEvent.type(screen.getByLabelText("Contract name"), "SmartNet");
@@ -90,7 +99,11 @@ describe("ProductDetail Contracts tab", () => {
       ...contract,
       components: [{ id: comp.id, name: comp.name, product_name: "Network" }],
     });
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Contracts" }));
     await userEvent.click(await screen.findByText("SmartNet"));
     await userEvent.click(await screen.findByRole("combobox", { name: "Link component" }));

@@ -66,6 +66,7 @@ it("members deep-linking to /admin are redirected to the Board", async () => {
 it("/admin redirects to the Users section", async () => {
   renderAt("/admin");
   expect(await screen.findByRole("link", { name: "Users" })).toHaveAttribute("aria-current", "page");
+  expect(screen.getByRole("heading", { name: "Administration" })).toBeInTheDocument();
 });
 
 it("/admin/import deep-links to the Import section", async () => {

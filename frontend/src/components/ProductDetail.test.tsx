@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import type { CatalogService, CatalogSystem, Component, Product } from "../types";
 import ProductDetail from "./ProductDetail";
@@ -70,7 +71,14 @@ const product: Product = {
 describe("ProductDetail", () => {
   it("renders the service tree with lifecycle badges and expand/collapse", async () => {
     vi.mocked(getProductServices).mockResolvedValue(tree);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("link", { name: /back to products/i }),
+    ).toHaveAttribute("href", "/products");
     expect(await screen.findByText("Connectivity")).toBeInTheDocument();
     expect(screen.getByText("active")).toBeInTheDocument();
     expect(screen.getByText("Campus LAN")).toBeInTheDocument();
@@ -80,21 +88,33 @@ describe("ProductDetail", () => {
 
   it("opens the drawer when a service is clicked", async () => {
     vi.mocked(getProductServices).mockResolvedValue(tree);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Connectivity"));
     expect(await screen.findByRole("heading", { name: "Edit service" })).toBeInTheDocument();
   });
 
   it("shows the add-service form", async () => {
     vi.mocked(getProductServices).mockResolvedValue([]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: /add service/i }));
     expect(screen.getByPlaceholderText("Service name")).toBeInTheDocument();
   });
 
   it("resets drawer state when switching to a different service", async () => {
     vi.mocked(getProductServices).mockResolvedValue(tree);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Connectivity"));
     expect(await screen.findByDisplayValue("Connectivity")).toBeInTheDocument();
     await userEvent.click(screen.getByText("Campus LAN"));
@@ -110,7 +130,11 @@ describe("ProductDetail", () => {
     vi.mocked(getProductServices).mockResolvedValue(tree);
     vi.mocked(getServiceDependencies).mockResolvedValue({ outbound: [], inbound: [] });
     vi.mocked(updateService).mockResolvedValue(tree[0]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Connectivity"));
     await userEvent.click(await screen.findByRole("button", { name: "Save" }));
     await waitFor(() => expect(updateService).toHaveBeenCalled());
@@ -137,7 +161,11 @@ describe("ProductDetail", () => {
       inbound: [],
     });
     vi.mocked(removeServiceDependency).mockRejectedValue(new Error("dependency in use"));
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Connectivity"));
     await userEvent.click(
       await screen.findByRole("button", { name: /remove dependency on campus lan/i }),
@@ -148,7 +176,11 @@ describe("ProductDetail", () => {
   it("keeps the add-service form open and shows an error when creation fails", async () => {
     vi.mocked(getProductServices).mockResolvedValue([]);
     vi.mocked(createService).mockRejectedValue(new Error("name already exists"));
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: /add service/i }));
     await userEvent.type(screen.getByPlaceholderText("Service name"), "Dup");
     await userEvent.click(screen.getByRole("button", { name: "Create" }));
@@ -160,7 +192,11 @@ describe("ProductDetail", () => {
   it("creates a sub-service under a node", async () => {
     vi.mocked(getProductServices).mockResolvedValue(tree);
     vi.mocked(createService).mockResolvedValue(tree[0]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(
       await screen.findByRole("button", { name: "Add sub-service to Connectivity" }),
     );
@@ -175,7 +211,11 @@ describe("ProductDetail", () => {
 
   it("shows the current parent in the drawer", async () => {
     vi.mocked(getProductServices).mockResolvedValue(tree);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Campus LAN"));
     expect(await screen.findByRole("combobox", { name: "Parent service" })).toHaveValue(
       "Connectivity",
@@ -185,7 +225,11 @@ describe("ProductDetail", () => {
   it("clearing the parent saves parent_service_id null", async () => {
     vi.mocked(getProductServices).mockResolvedValue(tree);
     vi.mocked(updateService).mockResolvedValue(tree[0]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Campus LAN"));
     await userEvent.click(await screen.findByRole("button", { name: "Clear Parent service" }));
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
@@ -198,7 +242,11 @@ describe("ProductDetail", () => {
 
   it("excludes self and descendants from parent options", async () => {
     vi.mocked(getProductServices).mockResolvedValue(tree);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Connectivity"));
     await userEvent.click(await screen.findByRole("combobox", { name: "Parent service" }));
     expect(await screen.findByText("No matches")).toBeInTheDocument();
@@ -212,7 +260,11 @@ describe("ProductDetail", () => {
     vi.mocked(removeServiceTechComponent).mockResolvedValue({
       components: [], systems: [], risk: "ok",
     });
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Connectivity"));
     expect(await screen.findByText("Provided by")).toBeInTheDocument();
     expect(screen.getAllByText("warning").length).toBeGreaterThan(0);
@@ -226,7 +278,11 @@ describe("ProductDetail", () => {
     vi.mocked(addServiceTechSystem).mockResolvedValue({
       components: [], systems: [systemFixture], risk: "danger",
     });
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByText("Connectivity"));
     await userEvent.click(await screen.findByRole("combobox", { name: "Add system" }));
     await userEvent.click(screen.getByText("Campus fabric (Network)"));

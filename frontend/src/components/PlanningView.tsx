@@ -16,6 +16,7 @@ import {
 } from "../lib/iterations";
 import { loadCapacityRows } from "../lib/capacity";
 import { computePlanningLinks } from "../lib/planningLinks";
+import PageHeader from "../shell/PageHeader";
 import type { Capacity, Item, LinkRow, PersonOption, Team } from "../types";
 import CapacityGrid from "./CapacityGrid";
 import FilterSelect from "./FilterSelect";
@@ -160,8 +161,9 @@ export default function PlanningView({
 
   if (!planningIntervals.length) {
     return (
-      <div className="p-8 text-gray-500">
-        No planning intervals yet. Set a Planning Interval on stories first.
+      <div className="flex min-h-0 flex-1 flex-col">
+        <PageHeader title="Planning" />
+        <div className="p-8 text-gray-500">No planning intervals yet. Set a Planning Interval on stories first.</div>
       </div>
     );
   }
@@ -175,6 +177,7 @@ export default function PlanningView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <PageHeader title="Planning" />
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect
           label="Planning Interval"

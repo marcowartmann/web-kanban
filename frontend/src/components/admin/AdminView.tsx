@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Navigate, NavLink, useParams } from "react-router";
 import { faBox, faBoxArchive, faCalendarDays, faCloudArrowUp, faFileImport, faLock, faScroll, faSitemap, faUser, faUsers } from "../../icons";
 import { useAuth } from "../../auth/AuthContext";
+import PageHeader from "../../shell/PageHeader";
 import AuditLogSection from "./AuditLogSection";
 import BackupSection from "./BackupSection";
 import CapacitySection from "./CapacitySection";
@@ -50,60 +51,59 @@ export default function AdminView({
   if (!section) return <Navigate to="/admin/users" replace />;
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Administration</h1>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Manage teams, people, planning intervals, and capacity.
-        </p>
-      </header>
-      <div className="flex items-start gap-6">
-        <nav aria-label="Admin sections" className="sticky top-8 w-52 shrink-0">
-          <ul className="flex flex-col gap-0.5">
-            {SECTIONS.map((s) => (
-              <li key={s.id}>
-                <NavLink
-                  to={`/admin/${s.id}`}
-                  className={({ isActive }) =>
-                    `flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
-                      isActive
-                        ? "bg-blue-50 font-medium text-blue-700"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`
-                  }
-                >
-                  <FontAwesomeIcon icon={s.icon} fixedWidth aria-hidden className="text-gray-400" />
-                  {s.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        {/* Only the active section mounts, so each visit refetches its data. */}
-        <div className="min-w-0 flex-1">
-          {section === "users" && <UsersSection currentUserId={user.id} />}
-          {section === "teams" && (
-            <div className="flex flex-col gap-4">
-              <TeamsSection
-                onChanged={() => {
-                  onChanged();
-                  setCapacityKey((k) => k + 1);
-                }}
-              />
-              <CapacitySection key={capacityKey} planningIntervals={planningIntervals} />
-              <DepartmentsSection onChanged={onChanged} />
+    <div className="flex min-h-0 flex-1 flex-col">
+      <PageHeader title="Administration" subtitle="Manage teams, people, planning intervals, and capacity." />
+      <div className="min-h-0 flex-1 overflow-auto">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <div className="flex items-start gap-6">
+            <nav aria-label="Admin sections" className="sticky top-8 w-52 shrink-0">
+              <ul className="flex flex-col gap-0.5">
+                {SECTIONS.map((s) => (
+                  <li key={s.id}>
+                    <NavLink
+                      to={`/admin/${s.id}`}
+                      className={({ isActive }) =>
+                        `flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition focus:outline-hidden focus:ring-2 focus:ring-blue-100 ${
+                          isActive
+                            ? "bg-blue-50 font-medium text-blue-700"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`
+                      }
+                    >
+                      <FontAwesomeIcon icon={s.icon} fixedWidth aria-hidden className="text-gray-400" />
+                      {s.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {/* Only the active section mounts, so each visit refetches its data. */}
+            <div className="min-w-0 flex-1">
+              {section === "users" && <UsersSection currentUserId={user.id} />}
+              {section === "teams" && (
+                <div className="flex flex-col gap-4">
+                  <TeamsSection
+                    onChanged={() => {
+                      onChanged();
+                      setCapacityKey((k) => k + 1);
+                    }}
+                  />
+                  <CapacitySection key={capacityKey} planningIntervals={planningIntervals} />
+                  <DepartmentsSection onChanged={onChanged} />
+                </div>
+              )}
+              {section === "intervals" && <PlanningIntervalsSection onChanged={onChanged} />}
+              {section === "containers" && (
+                <ContainersSection planningIntervals={planningIntervals} />
+              )}
+              {section === "catalog" && <CatalogSection />}
+              {section === "import" && <ImportSection onImported={onChanged} />}
+              {section === "snapshots" && <SnapshotsSection onChanged={onChanged} />}
+              {section === "backup" && <BackupSection />}
+              {section === "ldap" && <LdapSection />}
+              {section === "audit" && <AuditLogSection />}
             </div>
-          )}
-          {section === "intervals" && <PlanningIntervalsSection onChanged={onChanged} />}
-          {section === "containers" && (
-            <ContainersSection planningIntervals={planningIntervals} />
-          )}
-          {section === "catalog" && <CatalogSection />}
-          {section === "import" && <ImportSection onImported={onChanged} />}
-          {section === "snapshots" && <SnapshotsSection onChanged={onChanged} />}
-          {section === "backup" && <BackupSection />}
-          {section === "ldap" && <LdapSection />}
-          {section === "audit" && <AuditLogSection />}
+          </div>
         </div>
       </div>
     </div>

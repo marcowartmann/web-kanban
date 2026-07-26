@@ -79,6 +79,7 @@ describe("RoadmapView", () => {
 
   it("renders lanes with status-colored bars and month axis", async () => {
     render(<RoadmapView />);
+    expect(screen.getByRole("heading", { name: "Roadmap" })).toBeInTheDocument();
     expect(await screen.findByText("Campus")).toBeInTheDocument();
     expect(screen.getByText("Backbone")).toBeInTheDocument();
     const bar = await screen.findByText("Wi-Fi 7 rollout");
@@ -89,9 +90,17 @@ describe("RoadmapView", () => {
   it("adds a stream", async () => {
     render(<RoadmapView />);
     await screen.findByText("Campus");
+    await userEvent.click(screen.getByRole("button", { name: "+ Add stream" }));
     await userEvent.type(screen.getByPlaceholderText("New stream name"), "Datacenter");
     await userEvent.click(screen.getByRole("button", { name: "Add stream" }));
     expect(createStream).toHaveBeenCalledWith("Datacenter", 1);
+  });
+
+  it("Add stream lives in the page header and toggles the input row", async () => {
+    render(<RoadmapView />);
+    expect(screen.queryByPlaceholderText("New stream name")).not.toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("button", { name: /add stream/i }));
+    expect(screen.getByPlaceholderText("New stream name")).toBeInTheDocument();
   });
 
   it("reorders streams by swapping positions", async () => {

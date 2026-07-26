@@ -94,11 +94,7 @@ function RankingRoute() {
 
 function AdminRoute() {
   const w = useWork();
-  return (
-    <div className="min-h-0 flex-1 overflow-auto">
-      <AdminView onChanged={w.onChanged} planningIntervals={w.planningIntervals} />
-    </div>
-  );
+  return <AdminView onChanged={w.onChanged} planningIntervals={w.planningIntervals} />;
 }
 
 export default function App() {

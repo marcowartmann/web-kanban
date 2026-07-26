@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import type { Component, Product } from "../types";
 import ProductDetail from "./ProductDetail";
@@ -42,7 +43,11 @@ const product: Product = {
 describe("ProductDetail Components tab", () => {
   it("lists components with vendor, stage, and risk badge", async () => {
     vi.mocked(getProductComponents).mockResolvedValue([comp]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Components" }));
     expect(await screen.findByText("Catalyst 9300")).toBeInTheDocument();
     expect(screen.getByText("Cisco")).toBeInTheDocument();
@@ -53,7 +58,11 @@ describe("ProductDetail Components tab", () => {
   it("creates a component through the drawer", async () => {
     vi.mocked(getProductComponents).mockResolvedValue([]);
     vi.mocked(createComponent).mockResolvedValue(comp);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Components" }));
     await userEvent.click(await screen.findByRole("button", { name: "Add component" }));
     await userEvent.type(screen.getByLabelText("Component name"), "New Switch");
@@ -65,7 +74,11 @@ describe("ProductDetail Components tab", () => {
 
   it("opens edit mode with existing values", async () => {
     vi.mocked(getProductComponents).mockResolvedValue([comp]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Components" }));
     await userEvent.click(await screen.findByText("Catalyst 9300"));
     expect(await screen.findByDisplayValue("Catalyst 9300")).toBeInTheDocument();
@@ -76,7 +89,11 @@ describe("ProductDetail Components tab", () => {
   it("creates a component with a new vendor via the picker's on-the-fly create", async () => {
     vi.mocked(getProductComponents).mockResolvedValue([]);
     vi.mocked(createComponent).mockResolvedValue(comp);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Components" }));
     await userEvent.click(await screen.findByRole("button", { name: "Add component" }));
     await userEvent.type(screen.getByLabelText("Component name"), "New Switch");
@@ -91,7 +108,11 @@ describe("ProductDetail Components tab", () => {
 
   it("shows the read-only contract list with a status badge in edit mode", async () => {
     vi.mocked(getProductComponents).mockResolvedValue([comp]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Components" }));
     await userEvent.click(await screen.findByText("Catalyst 9300"));
     expect(await screen.findByText("SmartNet")).toBeInTheDocument();
@@ -101,7 +122,11 @@ describe("ProductDetail Components tab", () => {
   it("PATCHes yearly_run_cost only when it changes, leaving replacement_budget out", async () => {
     vi.mocked(getProductComponents).mockResolvedValue([comp]);
     vi.mocked(updateComponent).mockResolvedValue(comp);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Components" }));
     await userEvent.click(await screen.findByText("Catalyst 9300"));
     const costInput = await screen.findByLabelText("Yearly run cost");

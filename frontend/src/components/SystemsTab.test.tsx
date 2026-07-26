@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import type { CatalogSystem, Component, Product } from "../types";
 import ProductDetail from "./ProductDetail";
@@ -61,7 +62,11 @@ const system: CatalogSystem = {
 describe("ProductDetail Systems tab", () => {
   it("lists systems with member count and risk", async () => {
     vi.mocked(getProductSystems).mockResolvedValue([system]);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
     expect(await screen.findByText("Campus fabric")).toBeInTheDocument();
     expect(screen.getByText("1 components")).toBeInTheDocument();
@@ -72,7 +77,11 @@ describe("ProductDetail Systems tab", () => {
     vi.mocked(getProductSystems).mockResolvedValue([system]);
     vi.mocked(getProductComponents).mockResolvedValue([comp, comp2]);
     vi.mocked(setSystemMember).mockResolvedValue(system);
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
     await userEvent.click(await screen.findByText("Campus fabric"));
     await userEvent.click(await screen.findByRole("combobox", { name: "Add component member" }));
@@ -83,7 +92,11 @@ describe("ProductDetail Systems tab", () => {
   it("removes a member", async () => {
     vi.mocked(getProductSystems).mockResolvedValue([system]);
     vi.mocked(removeSystemMember).mockResolvedValue({ ...system, members: [] });
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
     await userEvent.click(await screen.findByText("Campus fabric"));
     await userEvent.click(await screen.findByRole("button", { name: "Remove Catalyst 9300" }));
@@ -97,7 +110,11 @@ describe("ProductDetail Systems tab", () => {
       ...system,
       members: [{ component: comp, quantity: 80 }, { component: comp2, quantity: null }],
     });
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
     await userEvent.click(await screen.findByText("Campus fabric"));
 
@@ -118,7 +135,11 @@ describe("ProductDetail Systems tab", () => {
       ...system,
       members: [{ component: comp, quantity: null }],
     });
-    render(<ProductDetail product={product} onBack={() => {}} />);
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: "Systems" }));
     await userEvent.click(await screen.findByText("Campus fabric"));
 

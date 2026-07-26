@@ -15,6 +15,7 @@ const story = (id: number, parent_id: number, iteration: number | null): Item =>
 it("renders feature lanes with stories in their iteration cells", () => {
   const items = [feature(1), story(11, 1, 1), story(12, 1, null)];
   render(<TimelineView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />);
+  expect(screen.getByRole("heading", { name: "Timeline" })).toBeInTheDocument();
   expect(screen.getByText("F1")).toBeInTheDocument();
   expect(screen.getByText("S11")).toBeInTheDocument();
   expect(screen.getByText("S12")).toBeInTheDocument(); // backlog visible by default (Show all)

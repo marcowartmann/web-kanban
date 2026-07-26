@@ -22,6 +22,7 @@ describe("ContractsView", () => {
   it("shows loading state while fetching", () => {
     vi.mocked(getContracts).mockReturnValue(new Promise(() => {}));
     render(<ContractsView />);
+    expect(screen.getByRole("heading", { name: "Contracts" })).toBeInTheDocument();
     expect(screen.getByText("Loading…")).toBeInTheDocument();
     expect(
       screen.queryByText("No contracts yet. Add them on a product's Contracts tab."),

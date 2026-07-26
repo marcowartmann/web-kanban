@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { getProduct } from "../api/client";
 import type { Product } from "../types";
 import ProductDetail from "./ProductDetail";
@@ -7,7 +7,6 @@ import ProductDetail from "./ProductDetail";
 /** Route wrapper: resolves :productId to a Product, with a not-found state. */
 export default function ProductDetailPage() {
   const { productId } = useParams();
-  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
   const id = Number(productId);
@@ -33,5 +32,5 @@ export default function ProductDetailPage() {
     );
   }
   if (!product) return <div className="min-h-0 flex-1 overflow-auto px-6 py-6 text-gray-500">Loading…</div>;
-  return <ProductDetail product={product} onBack={() => navigate("/products")} />;
+  return <ProductDetail product={product} />;
 }

@@ -6,6 +6,7 @@ import {
   getProductServices,
   getProductSystems,
 } from "../api/client";
+import PageHeader from "../shell/PageHeader";
 import type { CatalogService, CatalogSystem, Component, LifecycleState, Product, SupportContract } from "../types";
 import ComponentDrawer from "./ComponentDrawer";
 import ContractBadge from "./ContractBadge";
@@ -142,13 +143,7 @@ function ComponentRow({ component, onOpen }: { component: Component; onOpen: (c:
   );
 }
 
-export default function ProductDetail({
-  product,
-  onBack,
-}: {
-  product: Product;
-  onBack: () => void;
-}) {
+export default function ProductDetail({ product }: { product: Product }) {
   const [tab, setTab] = useState<"services" | "systems" | "components" | "contracts">("services");
   const [tree, setTree] = useState<CatalogService[]>([]);
   const [drawer, setDrawer] = useState<CatalogService | null>(null);
@@ -229,63 +224,60 @@ export default function ProductDetail({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
-        <button onClick={onBack} className="text-sm text-blue-600 hover:underline">
-          ← Back to products
-        </button>
-        <div className="mt-2 mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">{product.name}</h1>
-            <p className="text-sm text-gray-500">
-              {product.art_name}
-              {product.team_name ? ` · Team ${product.team_name}` : ""}
-            </p>
-            {product.description && (
-              <p className="mt-1 max-w-2xl text-sm text-gray-600">{product.description}</p>
+      <PageHeader
+        title={product.name}
+        subtitle={`${product.art_name}${product.team_name ? ` · Team ${product.team_name}` : ""}`}
+        backTo={{ label: "Back to products", to: "/products" }}
+        actions={
+          <>
+            {tab === "services" && (
+              <button
+                onClick={() => setAddTarget((t) => (t ? null : { parentId: null, parentName: null }))}
+                className={btnSecondary}
+              >
+                Add service
+              </button>
             )}
-          </div>
-          {tab === "services" && (
-            <button
-              onClick={() => setAddTarget((t) => (t ? null : { parentId: null, parentName: null }))}
-              className={btnSecondary}
-            >
-              Add service
-            </button>
-          )}
-          {tab === "systems" && (
-            <button
-              onClick={() => {
-                setEditingSystem(null);
-                setSystemDrawerOpen(true);
-              }}
-              className={btnSecondary}
-            >
-              Add system
-            </button>
-          )}
-          {tab === "components" && (
-            <button
-              onClick={() => {
-                setEditingComponent(null);
-                setComponentDrawerOpen(true);
-              }}
-              className={btnSecondary}
-            >
-              Add component
-            </button>
-          )}
-          {tab === "contracts" && (
-            <button
-              onClick={() => {
-                setEditingContract(null);
-                setContractDrawerOpen(true);
-              }}
-              className={btnSecondary}
-            >
-              Add contract
-            </button>
-          )}
-        </div>
+            {tab === "systems" && (
+              <button
+                onClick={() => {
+                  setEditingSystem(null);
+                  setSystemDrawerOpen(true);
+                }}
+                className={btnSecondary}
+              >
+                Add system
+              </button>
+            )}
+            {tab === "components" && (
+              <button
+                onClick={() => {
+                  setEditingComponent(null);
+                  setComponentDrawerOpen(true);
+                }}
+                className={btnSecondary}
+              >
+                Add component
+              </button>
+            )}
+            {tab === "contracts" && (
+              <button
+                onClick={() => {
+                  setEditingContract(null);
+                  setContractDrawerOpen(true);
+                }}
+                className={btnSecondary}
+              >
+                Add contract
+              </button>
+            )}
+          </>
+        }
+      />
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
+        {product.description && (
+          <p className="mb-4 max-w-2xl text-sm text-gray-600">{product.description}</p>
+        )}
 
         <div className="mb-5 flex gap-2">
           <button onClick={() => setTab("services")} className={pill(tab === "services")}>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createStream, deleteStream, getProductRoadmap, getProducts, updateStream } from "../api/client";
 import { assignRows, axisRange, barGeometry } from "../lib/roadmap";
+import PageHeader from "../shell/PageHeader";
 import type { Product, RoadmapItem, RoadmapStatus, Stream } from "../types";
 import ConfirmDialog from "./ConfirmDialog";
 import FilterSelect from "./FilterSelect";
@@ -30,6 +31,7 @@ export default function RoadmapView() {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [addingStream, setAddingStream] = useState(false);
   const [newStreamName, setNewStreamName] = useState("");
   const [renaming, setRenaming] = useState<{ id: number; name: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: number; name: string } | null>(null);
@@ -71,31 +73,38 @@ export default function RoadmapView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?.id]);
 
-  const run = async (fn: () => Promise<unknown>) => {
+  const run = async (fn: () => Promise<unknown>): Promise<boolean> => {
     setError(null);
     try {
       await fn();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed");
-      return;
+      return false;
     }
     try {
       await loadStreams();
     } catch {
       setError("Saved, but refreshing the roadmap failed — reload the page.");
+      return false;
     }
+    return true;
   };
 
   const allItems = useMemo(() => streams.flatMap((s) => s.items), [streams]);
   const range = useMemo(() => axisRange(allItems, new Date()), [allItems]);
 
-  const addStream = () =>
-    run(async () => {
-      const name = newStreamName.trim();
+  const addStream = async () => {
+    const name = newStreamName.trim();
+    let created = false;
+    const ok = await run(async () => {
       if (!name || !product) return;
       await createStream(name, product.id);
+      created = true;
       setNewStreamName("");
     });
+    // Keep the row open on error (or a no-op blank submit) so the user can retry.
+    if (ok && created) setAddingStream(false);
+  };
 
   const moveStream = (index: number, direction: -1 | 1) =>
     run(async () => {
@@ -154,6 +163,16 @@ export default function RoadmapView() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <PageHeader
+        title="Roadmap"
+        actions={
+          product && (
+            <button className={btnSecondary} onClick={() => setAddingStream((v) => !v)}>
+              + Add stream
+            </button>
+          )
+        }
+      />
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect
           label="Product"
@@ -171,6 +190,21 @@ export default function RoadmapView() {
       )}
 
       <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
+        {!loading && addingStream && product && (
+          <div className="mb-4 flex items-center gap-2">
+            <input
+              autoFocus
+              placeholder="New stream name"
+              value={newStreamName}
+              onChange={(e) => setNewStreamName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && void addStream()}
+              className={inputClass}
+            />
+            <button onClick={() => void addStream()} className={btnSecondary}>
+              Add stream
+            </button>
+          </div>
+        )}
         {loading ? (
           <div className="text-gray-500">Loading…</div>
         ) : streams.length === 0 ? (
@@ -292,21 +326,6 @@ export default function RoadmapView() {
               );
             })}
           </>
-        )}
-
-        {!loading && product && (
-          <div className="mt-4 flex items-center gap-2">
-            <input
-              placeholder="New stream name"
-              value={newStreamName}
-              onChange={(e) => setNewStreamName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && void addStream()}
-              className={inputClass}
-            />
-            <button onClick={() => void addStream()} className={btnSecondary}>
-              Add stream
-            </button>
-          </div>
         )}
       </div>
 

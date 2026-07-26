@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getContracts } from "../api/client";
+import PageHeader from "../shell/PageHeader";
 import type { SupportContract } from "../types";
 import ContractBadge from "./ContractBadge";
 import FilterSelect from "./FilterSelect";
@@ -36,6 +37,7 @@ export default function ContractsView() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <PageHeader title="Contracts" />
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 bg-surface px-6 py-3">
         <FilterSelect
           label="Product"

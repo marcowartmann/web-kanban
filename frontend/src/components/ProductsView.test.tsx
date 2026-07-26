@@ -26,6 +26,7 @@ describe("ProductsView", () => {
         <ProductsView />
       </MemoryRouter>,
     );
+    expect(screen.getByRole("heading", { name: "Products" })).toBeInTheDocument();
     expect(await screen.findByText("Platform ART")).toBeInTheDocument();
     expect(screen.getByText("Infra ART")).toBeInTheDocument();
     expect(screen.getByText("Network")).toBeInTheDocument();

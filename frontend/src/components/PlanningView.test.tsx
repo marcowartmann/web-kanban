@@ -43,6 +43,7 @@ it("shows Backlog + Iteration 1–5 + IP and a slot's Load / Cap", async () => {
   render(
     <PlanningView items={items} links={[]} planningIntervals={["PI1-Q3"]} onOpenCard={() => {}} onChanged={() => {}} />,
   );
+  expect(screen.getByRole("heading", { name: "Planning" })).toBeInTheDocument();
   expect(screen.getByText("Backlog")).toBeInTheDocument();
   expect(screen.getByText("IP")).toBeInTheDocument();
   expect(screen.getByText("Slotted Story")).toBeInTheDocument();

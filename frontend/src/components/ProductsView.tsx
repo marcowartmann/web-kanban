@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { getProducts } from "../api/client";
+import PageHeader from "../shell/PageHeader";
 import type { Product } from "../types";
 
 export default function ProductsView() {
@@ -30,6 +31,7 @@ export default function ProductsView() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <PageHeader title="Products" />
       <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
         {loading ? (
           <div className="text-gray-500">Loading…</div>

@@ -66,6 +66,7 @@ it("filters features by department", async () => {
 
 it("renders the WSJF list in descending score order", () => {
   renderView();
+  expect(screen.getByRole("heading", { name: "Ranking" })).toBeInTheDocument();
   const wsjf = screen.getByTestId("wsjf-list");
   const titles = within(wsjf).getAllByTestId("rank-title").map((n) => n.textContent);
   expect(titles).toEqual(["Bravo", "Alpha", "Charlie"]);
