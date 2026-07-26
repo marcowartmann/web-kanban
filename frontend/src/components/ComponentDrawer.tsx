@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createComponent, deleteComponent, getVendors, updateComponent } from "../api/client";
 import type { Component, LifecycleStage } from "../types";
 import ConfirmDialog from "./ConfirmDialog";
+import ContractBadge from "./ContractBadge";
 import PlainSelect from "./PlainSelect";
 import SearchableSelect from "./SearchableSelect";
 import { btnDangerGhost, btnPrimary, btnSecondary, captionClass, inputClass } from "./ui";
@@ -34,6 +35,12 @@ export default function ComponentDrawer({
   const [vendorName, setVendorName] = useState<string | null>(component?.vendor_name ?? null);
   const [stage, setStage] = useState<LifecycleStage>(component?.lifecycle_stage ?? "plan");
   const [quantity, setQuantity] = useState(component?.quantity != null ? String(component.quantity) : "");
+  const [yearlyRunCost, setYearlyRunCost] = useState(
+    component?.yearly_run_cost != null ? String(component.yearly_run_cost) : "",
+  );
+  const [replacementBudget, setReplacementBudget] = useState(
+    component?.replacement_budget != null ? String(component.replacement_budget) : "",
+  );
   const [eosAnnounced, setEosAnnounced] = useState(component?.eos_announced ?? "");
   const [endOfSale, setEndOfSale] = useState(component?.end_of_sale ?? "");
   const [endOfSupport, setEndOfSupport] = useState(component?.end_of_support ?? "");
@@ -42,6 +49,8 @@ export default function ComponentDrawer({
   const [error, setError] = useState<string | null>(null);
 
   const parsedQuantity = quantity.trim() === "" ? null : Number(quantity);
+  const parsedYearlyRunCost = yearlyRunCost.trim() === "" ? null : Number(yearlyRunCost);
+  const parsedReplacementBudget = replacementBudget.trim() === "" ? null : Number(replacementBudget);
 
   const save = async () => {
     setError(null);
@@ -55,6 +64,8 @@ export default function ComponentDrawer({
           vendor_name: vendorName,
           lifecycle_stage: stage,
           quantity: parsedQuantity,
+          yearly_run_cost: parsedYearlyRunCost,
+          replacement_budget: parsedReplacementBudget,
           eos_announced: eosAnnounced || null,
           end_of_sale: endOfSale || null,
           end_of_support: endOfSupport || null,
@@ -68,6 +79,10 @@ export default function ComponentDrawer({
         if (vendorName !== (component.vendor_name ?? null)) changes.vendor_name = vendorName;
         if (stage !== component.lifecycle_stage) changes.lifecycle_stage = stage;
         if (parsedQuantity !== component.quantity) changes.quantity = parsedQuantity;
+        if (parsedYearlyRunCost !== component.yearly_run_cost) changes.yearly_run_cost = parsedYearlyRunCost;
+        if (parsedReplacementBudget !== component.replacement_budget) {
+          changes.replacement_budget = parsedReplacementBudget;
+        }
         if (eosAnnounced !== (component.eos_announced ?? "")) changes.eos_announced = eosAnnounced || null;
         if (endOfSale !== (component.end_of_sale ?? "")) changes.end_of_sale = endOfSale || null;
         if (endOfSupport !== (component.end_of_support ?? "")) changes.end_of_support = endOfSupport || null;
@@ -161,6 +176,22 @@ export default function ComponentDrawer({
         onChange={(e) => setQuantity(e.target.value)}
         className={`${inputClass} mb-3`}
       />
+      <label className={captionClass}>Yearly run cost</label>
+      <input
+        type="number"
+        aria-label="Yearly run cost"
+        value={yearlyRunCost}
+        onChange={(e) => setYearlyRunCost(e.target.value)}
+        className={`${inputClass} mb-3`}
+      />
+      <label className={captionClass}>Replacement budget</label>
+      <input
+        type="number"
+        aria-label="Replacement budget"
+        value={replacementBudget}
+        onChange={(e) => setReplacementBudget(e.target.value)}
+        className={`${inputClass} mb-3`}
+      />
       <label className={captionClass}>EOS announced</label>
       <input
         type="date"
@@ -193,6 +224,22 @@ export default function ComponentDrawer({
         onChange={(e) => setEndOfLife(e.target.value)}
         className={`${inputClass} mb-4`}
       />
+
+      {component != null && (
+        <>
+          <h3 className="mb-2 text-sm font-semibold text-gray-700">Contracts</h3>
+          <ul className="mb-4 flex flex-col gap-1.5">
+            {component.contracts.map((c) => (
+              <li key={c.id} className="flex items-center gap-2 rounded-lg bg-gray-50 px-2.5 py-1.5 text-sm">
+                <span className="flex-1 truncate text-gray-800">{c.name}</span>
+                <ContractBadge status={c.status} />
+                <span className="text-xs text-gray-500">{c.end_date ?? "—"}</span>
+              </li>
+            ))}
+            {component.contracts.length === 0 && <li className="text-sm text-gray-400">None</li>}
+          </ul>
+        </>
+      )}
 
       <div className="mt-auto flex items-center justify-between gap-2 pt-4">
         {component != null ? (

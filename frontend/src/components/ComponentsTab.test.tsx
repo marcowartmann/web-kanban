@@ -10,7 +10,8 @@ const comp: Component = {
   lifecycle_stage: "operate", quantity: 120,
   eos_announced: null, end_of_sale: null,
   end_of_support: "2026-10-31", end_of_life: null,
-  yearly_run_cost: null, replacement_budget: null, risk: "warning", contracts: [],
+  yearly_run_cost: null, replacement_budget: null, risk: "warning",
+  contracts: [{ id: 7, name: "SmartNet", status: "expired", end_date: "2020-01-01" }],
 };
 
 vi.mock("../api/client", () => ({
@@ -31,7 +32,7 @@ vi.mock("../api/client", () => ({
   addServiceTechSystem: vi.fn(), removeServiceTechSystem: vi.fn(),
 }));
 
-import { createComponent, getProductComponents } from "../api/client";
+import { createComponent, getProductComponents, updateComponent } from "../api/client";
 
 const product: Product = {
   id: 1, name: "Network", description: null, art_id: 1, art_name: "ART",
@@ -86,5 +87,29 @@ describe("ProductDetail Components tab", () => {
     expect(vi.mocked(createComponent).mock.calls.at(-1)?.[0]).toMatchObject({
       name: "New Switch", product_id: 1, vendor_name: "NewVendor",
     });
+  });
+
+  it("shows the read-only contract list with a status badge in edit mode", async () => {
+    vi.mocked(getProductComponents).mockResolvedValue([comp]);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByText("Catalyst 9300"));
+    expect(await screen.findByText("SmartNet")).toBeInTheDocument();
+    expect(screen.getByText("expired")).toBeInTheDocument();
+  });
+
+  it("PATCHes yearly_run_cost only when it changes, leaving replacement_budget out", async () => {
+    vi.mocked(getProductComponents).mockResolvedValue([comp]);
+    vi.mocked(updateComponent).mockResolvedValue(comp);
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Components" }));
+    await userEvent.click(await screen.findByText("Catalyst 9300"));
+    const costInput = await screen.findByLabelText("Yearly run cost");
+    await userEvent.clear(costInput);
+    await userEvent.type(costInput, "1500");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    const patch = vi.mocked(updateComponent).mock.calls.at(-1)?.[1];
+    expect(patch).toMatchObject({ yearly_run_cost: 1500 });
+    expect(patch).not.toHaveProperty("replacement_budget");
   });
 });
