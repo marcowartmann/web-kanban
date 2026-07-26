@@ -1,5 +1,6 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import ProductsView from "./ProductsView";
 
@@ -15,24 +16,22 @@ vi.mock("../api/client", () => ({
   getServiceOptions: vi.fn().mockResolvedValue([]),
 }));
 
+import * as client from "../api/client";
 import { getProducts } from "../api/client";
 
 describe("ProductsView", () => {
   it("groups products by ART with service counts", async () => {
-    render(<ProductsView />);
+    render(
+      <MemoryRouter>
+        <ProductsView />
+      </MemoryRouter>,
+    );
     expect(await screen.findByText("Platform ART")).toBeInTheDocument();
     expect(screen.getByText("Infra ART")).toBeInTheDocument();
     expect(screen.getByText("Network")).toBeInTheDocument();
     expect(screen.getByText("3 services")).toBeInTheDocument();
     expect(screen.getByText("Team: Storage Team")).toBeInTheDocument();
   });
-
-  it("opens the product detail on click", async () => {
-    render(<ProductsView />);
-    await userEvent.click(await screen.findByText("Network"));
-    await waitFor(() => expect(screen.getByRole("button", { name: /back/i })).toBeInTheDocument());
-  });
-
 
   it("sorts ART groups alphabetically with No ART last", async () => {
     vi.mocked(getProducts).mockResolvedValueOnce([
@@ -43,10 +42,30 @@ describe("ProductsView", () => {
       { id: 5, name: "Alpha", description: null, art_id: 8, art_name: "Alpha ART",
         team_id: null, team_name: null, service_count: 0 },
     ]);
-    render(<ProductsView />);
+    render(
+      <MemoryRouter>
+        <ProductsView />
+      </MemoryRouter>,
+    );
     await screen.findByText("Zed");
     const headings = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
     expect(headings).toEqual(["Alpha ART", "Zulu ART", "No ART"]);
+  });
+
+  it("clicking a product card navigates to its detail route", async () => {
+    vi.spyOn(client, "getProducts").mockResolvedValue([
+      { id: 7, name: "Network", description: null, art_id: 1, art_name: "DP", team_id: 1, team_name: "Network", service_count: 2 },
+    ] as never);
+    render(
+      <MemoryRouter initialEntries={["/products"]}>
+        <Routes>
+          <Route path="/products" element={<ProductsView />} />
+          <Route path="/products/:productId" element={<div>DETAIL PROBE</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await userEvent.click(await screen.findByText("Network"));
+    expect(await screen.findByText("DETAIL PROBE")).toBeInTheDocument();
   });
 
 });

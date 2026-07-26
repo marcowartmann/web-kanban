@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { getProducts } from "../api/client";
 import type { Product } from "../types";
-import ProductDetail from "./ProductDetail";
 
 export default function ProductsView() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const load = useCallback(
     () => getProducts().then(setProducts).finally(() => setLoading(false)),
@@ -15,19 +15,6 @@ export default function ProductsView() {
   useEffect(() => {
     void load();
   }, [load]);
-
-  const selected = selectedId != null ? products.find((p) => p.id === selectedId) : null;
-  if (selected) {
-    return (
-      <ProductDetail
-        product={selected}
-        onBack={() => {
-          setSelectedId(null);
-          void load();
-        }}
-      />
-    );
-  }
 
   const byArt = new Map<string, Product[]>();
   for (const p of products) {
@@ -60,7 +47,7 @@ export default function ProductsView() {
                 {list.map((p) => (
                   <button
                     key={p.id}
-                    onClick={() => setSelectedId(p.id)}
+                    onClick={() => navigate(`/products/${p.id}`)}
                     className="rounded-xl border border-gray-200 bg-surface p-4 text-left shadow-xs transition hover:border-blue-300 hover:shadow-sm"
                   >
                     <div className="flex items-center justify-between gap-2">

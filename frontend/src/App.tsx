@@ -11,6 +11,7 @@ import StoryBoardModal from "./components/StoryBoardModal";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
+import ProductDetailPage from "./components/ProductDetailPage";
 import ProductsView from "./components/ProductsView";
 import RankingView from "./components/RankingView";
 import RoadmapView from "./components/RoadmapView";
@@ -243,6 +244,7 @@ export function AppShell() {
           }
         />
         <Route path="/products" element={<ProductsView />} />
+        <Route path="/products/:productId" element={<ProductDetailPage />} />
         <Route path="/lifecycle" element={<LifecycleView />} />
         <Route path="/contracts" element={<ContractsView />} />
         <Route path="/roadmap" element={<RoadmapView />} />
