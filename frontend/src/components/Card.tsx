@@ -2,13 +2,10 @@ import { useDraggable } from "@dnd-kit/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBan } from "../icons";
 import type { BoardCard } from "../types";
+import Badge, { type BadgeTone } from "./Badge";
 import ObjectiveLinkBadge from "./ObjectiveLinkBadge";
 
-const kindStyles: Record<string, string> = {
-  feature: "bg-blue-100 text-blue-800",
-  risk: "bg-red-100 text-red-800",
-  story: "bg-gray-100 text-gray-800",
-};
+const KIND_TONE: Record<string, BadgeTone> = { feature: "blue", risk: "red", story: "gray" };
 
 export default function Card({
   card,
@@ -39,21 +36,13 @@ export default function Card({
       >
         <div className="mb-1 flex items-center justify-between gap-2">
           <span className="flex items-center gap-1.5">
-            <span className={`rounded-sm px-1.5 py-0.5 text-xs ${kindStyles[card.kind] ?? "bg-gray-100 text-gray-800"}`}>
-              {card.type ?? card.kind}
-            </span>
+            <Badge tone={KIND_TONE[card.kind] ?? "gray"}>{card.type ?? card.kind}</Badge>
             <span className="text-xs text-gray-400">#{card.id}</span>
             <ObjectiveLinkBadge kind={card.kind} id={card.id} parentId={card.parent_id} />
             {card.kind === "risk" && card.risk_scope && (
-              <span
-                className={`rounded-sm px-1.5 py-0.5 text-xs font-medium ${
-                  card.risk_scope === "art"
-                    ? "bg-amber-100 text-amber-800"
-                    : "bg-slate-100 text-slate-700"
-                }`}
-              >
+              <Badge tone={card.risk_scope === "art" ? "amber" : "gray"}>
                 {card.risk_scope === "art" ? "ART" : "Team"}
-              </span>
+              </Badge>
             )}
           </span>
           {card.wsjf_score != null && (

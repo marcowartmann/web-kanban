@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ConflictError, createItem, getItem, updateItem } from "../api/client";
 import { groupByStatus } from "../lib/groupByStatus";
 import type { Item } from "../types";
+import Badge from "./Badge";
 import Column from "./Column";
 import InlineAddInput from "./InlineAddInput";
 
@@ -100,17 +101,17 @@ export default function StoryBoardModal({
       >
         <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-linear-to-b from-blue-50/90 via-blue-50/40 to-surface px-5 py-3.5">
           <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold text-gray-900">
-            <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-              Feature
+            <span className="shrink-0">
+              <Badge tone="blue">Feature</Badge>
             </span>
             {feature && <span className="shrink-0 text-xs text-gray-400">#{feature.id}</span>}
             <span className="truncate">{feature ? feature.title : "Loading…"}</span>
-            <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-gray-200">
-              {feature?.children?.length ?? 0} stories
+            <span className="shrink-0">
+              <Badge tone="gray">{feature?.children?.length ?? 0} stories</Badge>
             </span>
             {feature?.wsjf_score != null && (
-              <span className="shrink-0 rounded-full bg-amber-100/80 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                WSJF {feature.wsjf_score}
+              <span className="shrink-0">
+                <Badge tone="amber">WSJF {feature.wsjf_score}</Badge>
               </span>
             )}
           </h2>

@@ -14,6 +14,7 @@ import {
 } from "../api/client";
 import type { Container, Department, Item, ItemKind, ItemUpdate, PersonOption, RelationOption, Team } from "../types";
 import Avatar from "./Avatar";
+import Badge, { type BadgeTone } from "./Badge";
 import ConfirmDialog from "./ConfirmDialog";
 import Field from "./Field";
 import InlineAddInput from "./InlineAddInput";
@@ -32,10 +33,10 @@ const NUMERIC_FIELDS = new Set([
 
 const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
-const KIND_CHIP: Record<string, string> = {
-  feature: "bg-blue-100 text-blue-700",
-  story: "bg-slate-200 text-slate-700",
-  risk: "bg-red-100 text-red-700",
+const KIND_TONE: Record<string, BadgeTone> = {
+  feature: "blue",
+  story: "gray",
+  risk: "red",
 };
 // Soft kind-tinted band fading into the panel body.
 const KIND_BAND: Record<string, string> = {
@@ -470,13 +471,13 @@ export default function ItemDrawer({
                   <span className="min-w-0 flex-1 truncate">{child.title}</span>
                 )}
                 {child.status && (
-                  <span className="shrink-0 rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-medium text-gray-500 ring-1 ring-gray-200">
-                    {child.status}
+                  <span className="shrink-0">
+                    <Badge tone="gray">{child.status}</Badge>
                   </span>
                 )}
                 {child.story_points != null && (
-                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
-                    {child.story_points} SP
+                  <span className="shrink-0">
+                    <Badge tone="gray">{child.story_points} SP</Badge>
                   </span>
                 )}
                 <button
@@ -626,11 +627,7 @@ export default function ItemDrawer({
         <div className={KIND_BAND[item.kind] ?? "bg-surface"}>
           <div className="flex items-center justify-between gap-2 px-5 pt-3">
             <span className="flex min-w-0 items-center gap-2">
-              <span
-                className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${KIND_CHIP[item.kind] ?? "bg-gray-100 text-gray-700"}`}
-              >
-                {item.type ?? item.kind}
-              </span>
+              <Badge tone={KIND_TONE[item.kind] ?? "gray"}>{item.type ?? item.kind}</Badge>
               <button
                 aria-label="copy id"
                 title="Copy id"
@@ -639,11 +636,7 @@ export default function ItemDrawer({
               >
                 #{item.id}
               </button>
-              {item.wsjf_score != null && (
-                <span className="shrink-0 rounded-full bg-amber-100/80 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                  WSJF {item.wsjf_score}
-                </span>
-              )}
+              {item.wsjf_score != null && <Badge tone="amber">WSJF {item.wsjf_score}</Badge>}
             </span>
             <button
               onClick={onClose}

@@ -3,13 +3,12 @@ import { useEffect, useState } from "react";
 import { ConflictError, deleteUser, getDepartments, getTeams, listUsers } from "../../api/client";
 import { faUser } from "../../icons";
 import type { AuthUser, Department, Team } from "../../types";
+import Badge, { type BadgeTone } from "../Badge";
 import ConfirmDialog from "../ConfirmDialog";
 import UserModal from "./UserModal";
 
-const statusPill = (active: boolean) =>
-  active
-    ? "rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
-    : "rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700";
+const STATUS_TONE: Record<"active" | "inactive", BadgeTone> = { active: "emerald", inactive: "amber" };
+const AUTH_TONE: Record<"ldap" | "oidc" | "local", BadgeTone> = { ldap: "indigo", oidc: "violet", local: "gray" };
 
 export default function UsersSection({ currentUserId }: { currentUserId: number }) {
   const [users, setUsers] = useState<AuthUser[]>([]);
@@ -111,20 +110,14 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
                 <td className="px-2 py-2 text-gray-600">{u.team_name ?? "—"}</td>
                 <td className="px-2 py-2 text-gray-600">{u.role}</td>
                 <td className="px-2 py-2">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      u.auth_provider === "ldap"
-                        ? "bg-indigo-50 text-indigo-700"
-                        : u.auth_provider === "oidc"
-                          ? "bg-violet-50 text-violet-700"
-                          : "bg-gray-100 text-gray-500"
-                    }`}
-                  >
+                  <Badge tone={AUTH_TONE[u.auth_provider ?? "local"]}>
                     {u.auth_provider === "ldap" ? "LDAP" : u.auth_provider === "oidc" ? "OIDC" : "Local"}
-                  </span>
+                  </Badge>
                 </td>
                 <td className="px-2 py-2">
-                  <span className={statusPill(u.is_active)}>{u.is_active ? "active" : "inactive"}</span>
+                  <Badge tone={STATUS_TONE[u.is_active ? "active" : "inactive"]}>
+                    {u.is_active ? "active" : "inactive"}
+                  </Badge>
                 </td>
                 <td className="px-2 py-2 text-right">
                   <span className="inline-flex gap-1.5">

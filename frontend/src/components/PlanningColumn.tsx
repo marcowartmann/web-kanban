@@ -1,6 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import type { CardLinkInfo } from "../lib/planningLinks";
 import type { Item } from "../types";
+import Badge from "./Badge";
 import StoryPlanCard from "./StoryPlanCard";
 
 export default function PlanningColumn({
@@ -43,13 +44,10 @@ export default function PlanningColumn({
         <span>{title}</span>
         <span className="flex items-center gap-2 text-xs font-normal text-gray-500">
           {load != null && capacity != null && (
-            <span
-              title="Load / Capacity"
-              className={`rounded-full px-2 py-0.5 font-medium ${
-                over ? "bg-red-100 text-red-700" : "bg-surface text-gray-600"
-              }`}
-            >
-              {load} / {capacity} SP
+            <span title="Load / Capacity">
+              <Badge tone={over ? "red" : "gray"}>
+                {load} / {capacity} SP
+              </Badge>
             </span>
           )}
           <span className="rounded-full bg-gray-200 px-2 py-0.5">{stories.length}</span>

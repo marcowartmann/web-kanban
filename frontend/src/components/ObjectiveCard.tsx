@@ -2,6 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "../icons";
 import type { PIObjective } from "../types";
+import Badge from "./Badge";
 
 export default function ObjectiveCard({
   obj,
@@ -34,9 +35,9 @@ export default function ObjectiveCard({
       <div className="mb-1 flex items-center justify-between gap-2">
         {showTeam ? <span className="text-xs text-gray-400">{obj.team_name}</span> : <span />}
         {obj.state === "committed" && obj.is_key_delivery && (
-          <span className="rounded-sm bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
+          <Badge tone="amber">
             <FontAwesomeIcon icon={faStar} aria-hidden /> Key Delivery
-          </span>
+          </Badge>
         )}
       </div>
       <div className="font-medium text-gray-900">{obj.title}</div>
