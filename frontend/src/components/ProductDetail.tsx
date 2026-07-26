@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { createService, getProductComponents, getProductServices } from "../api/client";
-import type { CatalogService, Component, LifecycleState, Product } from "../types";
+import { createService, getProductComponents, getProductServices, getProductSystems } from "../api/client";
+import type { CatalogService, CatalogSystem, Component, LifecycleState, Product } from "../types";
 import ComponentDrawer from "./ComponentDrawer";
 import RiskBadge from "./RiskBadge";
 import ServiceDrawer from "./ServiceDrawer";
+import SystemDrawer from "./SystemDrawer";
 import { btnPrimary, btnSecondary, inputClass } from "./ui";
 
 // Flat "Parent › Child" path labels for the drawer's parent picker.
@@ -73,6 +74,21 @@ function ServiceNode({
   );
 }
 
+function SystemRow({ system, onOpen }: { system: CatalogSystem; onOpen: (s: CatalogSystem) => void }) {
+  return (
+    <div className="mb-1.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-surface px-3 py-2">
+      <button onClick={() => onOpen(system)} className="flex-1 text-left text-sm font-medium text-gray-800">
+        {system.name}
+      </button>
+      <span className="text-xs text-gray-500">{system.members.length} components</span>
+      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+        {system.lifecycle_stage}
+      </span>
+      <RiskBadge risk={system.risk} />
+    </div>
+  );
+}
+
 function ComponentRow({ component, onOpen }: { component: Component; onOpen: (c: Component) => void }) {
   return (
     <div className="mb-1.5 flex items-center gap-2 rounded-lg border border-gray-200 bg-surface px-3 py-2">
@@ -109,6 +125,10 @@ export default function ProductDetail({
   const [componentDrawerOpen, setComponentDrawerOpen] = useState(false);
   const [editingComponent, setEditingComponent] = useState<Component | null>(null);
 
+  const [systems, setSystems] = useState<CatalogSystem[]>([]);
+  const [systemDrawerOpen, setSystemDrawerOpen] = useState(false);
+  const [editingSystem, setEditingSystem] = useState<CatalogSystem | null>(null);
+
   const load = useCallback(
     () => getProductServices(product.id).then(setTree),
     [product.id],
@@ -121,9 +141,18 @@ export default function ProductDetail({
     () => getProductComponents(product.id).then(setComponents),
     [product.id],
   );
+  // The Systems tab's drawer needs the product's components too (member picker).
   useEffect(() => {
-    if (tab === "components") void loadComponents();
+    if (tab === "components" || tab === "systems") void loadComponents();
   }, [tab, loadComponents]);
+
+  const loadSystems = useCallback(
+    () => getProductSystems(product.id).then(setSystems),
+    [product.id],
+  );
+  useEffect(() => {
+    if (tab === "systems") void loadSystems();
+  }, [tab, loadSystems]);
 
   const pill = (active: boolean) =>
     `rounded-full border px-3 py-1 text-sm font-medium transition ${
@@ -172,6 +201,17 @@ export default function ProductDetail({
               className={btnSecondary}
             >
               Add service
+            </button>
+          )}
+          {tab === "systems" && (
+            <button
+              onClick={() => {
+                setEditingSystem(null);
+                setSystemDrawerOpen(true);
+              }}
+              className={btnSecondary}
+            >
+              Add system
             </button>
           )}
           {tab === "components" && (
@@ -240,7 +280,24 @@ export default function ProductDetail({
           </>
         )}
 
-        {tab === "systems" && <div />}
+        {tab === "systems" && (
+          <>
+            {systems.length === 0 ? (
+              <div className="py-12 text-center text-sm text-gray-400">No systems yet.</div>
+            ) : (
+              systems.map((s) => (
+                <SystemRow
+                  key={s.id}
+                  system={s}
+                  onOpen={(sys) => {
+                    setEditingSystem(sys);
+                    setSystemDrawerOpen(true);
+                  }}
+                />
+              ))
+            )}
+          </>
+        )}
 
         {tab === "components" && (
           <>
@@ -284,6 +341,18 @@ export default function ProductDetail({
           onClose={() => setComponentDrawerOpen(false)}
           onChanged={async () => {
             await loadComponents();
+          }}
+        />
+      )}
+      {systemDrawerOpen && (
+        <SystemDrawer
+          key={editingSystem?.id ?? "new"}
+          system={editingSystem}
+          productId={product.id}
+          components={components}
+          onClose={() => setSystemDrawerOpen(false)}
+          onChanged={async () => {
+            await loadSystems();
           }}
         />
       )}
