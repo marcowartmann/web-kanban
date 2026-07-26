@@ -835,8 +835,6 @@ class PostgresContractRepository:
         today = today or date.today()
         out = [_to_contract(self.db, r, today)
                for r in self.db.scalars(select(m.SupportContract))]
-        order = {ContractStatus.EXPIRED: 0, ContractStatus.EXPIRING: 1,
-                 ContractStatus.ACTIVE: 1}
 
         def key(c: domain.SupportContract):
             # expired first; then by soonest end date; evergreen (no end) last

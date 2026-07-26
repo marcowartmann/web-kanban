@@ -11,7 +11,6 @@ from typing import Protocol
 from app.catalog.domain import (
     Art,
     Component,
-    ContractStatus,
     Criticality,
     DependencyType,
     LifecycleStage,

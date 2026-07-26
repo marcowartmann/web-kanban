@@ -3,7 +3,14 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.catalog.domain import Criticality, DependencyType, LifecycleStage, LifecycleState, RiskLevel
+from app.catalog.domain import (
+    ContractStatus,
+    Criticality,
+    DependencyType,
+    LifecycleStage,
+    LifecycleState,
+    RiskLevel,
+)
 from app.models import ItemKind, ObjectiveState
 
 
@@ -707,6 +714,67 @@ class VendorRead(BaseModel):
     notes: str | None = None
 
 
+class ContractSummaryRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    status: ContractStatus
+    end_date: date | None = None
+
+
+class ContractComponentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    product_name: str | None = None
+
+
+class ContractRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    contract_no: str | None = None
+    product_id: int
+    product_name: str | None = None
+    vendor_id: int | None = None
+    vendor_name: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    yearly_cost: float | None = None
+    notice_period_days: int | None = None
+    notes: str | None = None
+    status: ContractStatus
+    components: list[ContractComponentRead] = []
+
+
+class ContractCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    product_id: int
+    contract_no: str | None = Field(default=None, max_length=64)
+    vendor_name: str | None = Field(default=None, max_length=128)
+    start_date: date | None = None
+    end_date: date | None = None
+    yearly_cost: float | None = Field(default=None, ge=0)
+    notice_period_days: int | None = Field(default=None, ge=0)
+    notes: str | None = None
+
+
+class ContractUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    contract_no: str | None = Field(default=None, max_length=64)
+    vendor_name: str | None = Field(default=None, max_length=128)
+    start_date: date | None = None
+    end_date: date | None = None
+    yearly_cost: float | None = Field(default=None, ge=0)
+    notice_period_days: int | None = Field(default=None, ge=0)
+    notes: str | None = None
+
+
+class ContractComponentLink(BaseModel):
+    component_id: int
+
+
 class ComponentRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -723,7 +791,10 @@ class ComponentRead(BaseModel):
     end_of_sale: date | None = None
     end_of_support: date | None = None
     end_of_life: date | None = None
+    yearly_run_cost: float | None = None
+    replacement_budget: float | None = None
     risk: RiskLevel
+    contracts: list[ContractSummaryRead] = []
 
 
 class ComponentCreate(BaseModel):
@@ -738,6 +809,8 @@ class ComponentCreate(BaseModel):
     end_of_sale: date | None = None
     end_of_support: date | None = None
     end_of_life: date | None = None
+    yearly_run_cost: float | None = Field(default=None, ge=0)
+    replacement_budget: float | None = Field(default=None, ge=0)
 
 
 class ComponentUpdate(BaseModel):
@@ -752,6 +825,8 @@ class ComponentUpdate(BaseModel):
     end_of_sale: date | None = None
     end_of_support: date | None = None
     end_of_life: date | None = None
+    yearly_run_cost: float | None = Field(default=None, ge=0)
+    replacement_budget: float | None = Field(default=None, ge=0)
 
 
 class SystemMemberRead(BaseModel):
