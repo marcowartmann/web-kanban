@@ -356,3 +356,52 @@ export interface ServiceDependencies {
   outbound: ServiceDependencyRead[];
   inbound: ServiceDependencyRead[];
 }
+
+export type LifecycleStage = "plan" | "build" | "operate" | "phase_out" | "retired";
+export type RiskLevel = "ok" | "warning" | "danger";
+
+export interface Vendor {
+  id: number;
+  name: string;
+  notes: string | null;
+}
+
+export interface Component {
+  id: number;
+  name: string;
+  model: string | null;
+  description: string | null;
+  product_id: number;
+  product_name: string | null;
+  vendor_id: number | null;
+  vendor_name: string | null;
+  lifecycle_stage: LifecycleStage;
+  quantity: number | null;
+  eos_announced: string | null;
+  end_of_sale: string | null;
+  end_of_support: string | null;
+  end_of_life: string | null;
+  risk: RiskLevel;
+}
+
+export interface SystemMember {
+  component: Component;
+  quantity: number | null;
+}
+
+export interface CatalogSystem {
+  id: number;
+  name: string;
+  description: string | null;
+  product_id: number;
+  product_name: string | null;
+  lifecycle_stage: LifecycleStage;
+  risk: RiskLevel;
+  members: SystemMember[];
+}
+
+export interface ServiceTech {
+  components: Component[];
+  systems: CatalogSystem[];
+  risk: RiskLevel;
+}

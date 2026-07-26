@@ -21,6 +21,26 @@ import {
   updateProduct,
   updateService,
 } from "./client";
+import {
+  addServiceTechComponent,
+  addServiceTechSystem,
+  createComponent,
+  createSystem,
+  deleteComponent,
+  deleteSystem,
+  getLifecycle,
+  getProductComponents,
+  getProductSystems,
+  getServiceTech,
+  getSystems,
+  getVendors,
+  removeServiceTechComponent,
+  removeServiceTechSystem,
+  removeSystemMember,
+  setSystemMember,
+  updateComponent,
+  updateSystem,
+} from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -341,6 +361,145 @@ describe("api client", () => {
     const spy = mockFetch(204, null);
     await removeServiceDependency(5, 9);
     expect(spy.mock.calls[0][0]).toBe("/api/v1/services/5/dependencies/9");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getVendors GETs /api/v1/vendors", async () => {
+    const spy = mockFetch(200, [{ id: 1, name: "Cisco", notes: null }]);
+    const vendors = await getVendors();
+    expect(spy).toHaveBeenCalledWith("/api/v1/vendors", undefined);
+    expect(vendors[0].name).toBe("Cisco");
+  });
+
+  it("getProductComponents GETs nested route", async () => {
+    const spy = mockFetch(200, []);
+    await getProductComponents(4);
+    expect(spy).toHaveBeenCalledWith("/api/v1/products/4/components", undefined);
+  });
+
+  it("getLifecycle GETs /api/v1/lifecycle", async () => {
+    const spy = mockFetch(200, []);
+    await getLifecycle();
+    expect(spy).toHaveBeenCalledWith("/api/v1/lifecycle", undefined);
+  });
+
+  it("createComponent POSTs payload", async () => {
+    const spy = mockFetch(201, { id: 1 });
+    await createComponent({ name: "C", product_id: 2, vendor_name: "Cisco" });
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/components");
+    expect(spy.mock.calls[0][1]?.method).toBe("POST");
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({
+      name: "C",
+      product_id: 2,
+      vendor_name: "Cisco",
+    });
+  });
+
+  it("updateComponent PATCHes changes", async () => {
+    const spy = mockFetch(200, { id: 1, name: "C2" });
+    await updateComponent(1, { lifecycle_stage: "operate" });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/components/1");
+    expect(init?.method).toBe("PATCH");
+    expect(JSON.parse(init?.body as string)).toEqual({ lifecycle_stage: "operate" });
+  });
+
+  it("deleteComponent sends DELETE", async () => {
+    const spy = mockFetch(204, null);
+    await deleteComponent(1);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/components/1");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getProductSystems GETs nested route", async () => {
+    const spy = mockFetch(200, []);
+    await getProductSystems(4);
+    expect(spy).toHaveBeenCalledWith("/api/v1/products/4/systems", undefined);
+  });
+
+  it("getSystems GETs the flat list", async () => {
+    const spy = mockFetch(200, []);
+    await getSystems();
+    expect(spy).toHaveBeenCalledWith("/api/v1/systems", undefined);
+  });
+
+  it("createSystem POSTs payload", async () => {
+    const spy = mockFetch(201, { id: 1, members: [] });
+    await createSystem({ name: "S", product_id: 2 });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/systems");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "S", product_id: 2 });
+  });
+
+  it("updateSystem PATCHes changes", async () => {
+    const spy = mockFetch(200, { id: 1, members: [] });
+    await updateSystem(1, { lifecycle_stage: "build" });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/systems/1");
+    expect(init?.method).toBe("PATCH");
+    expect(JSON.parse(init?.body as string)).toEqual({ lifecycle_stage: "build" });
+  });
+
+  it("deleteSystem sends DELETE", async () => {
+    const spy = mockFetch(204, null);
+    await deleteSystem(1);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/systems/1");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("setSystemMember PUTs component + quantity", async () => {
+    const spy = mockFetch(200, { id: 1, members: [] });
+    await setSystemMember(3, 7, 40);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/systems/3/components");
+    expect(spy.mock.calls[0][1]?.method).toBe("PUT");
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({ component_id: 7, quantity: 40 });
+  });
+
+  it("setSystemMember defaults quantity to null when omitted", async () => {
+    const spy = mockFetch(200, { id: 1, members: [] });
+    await setSystemMember(3, 7);
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({ component_id: 7, quantity: null });
+  });
+
+  it("removeSystemMember DELETEs membership", async () => {
+    const spy = mockFetch(200, { id: 1, members: [] });
+    await removeSystemMember(3, 7);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/systems/3/components/7");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getServiceTech GETs the tech route", async () => {
+    const spy = mockFetch(200, { components: [], systems: [], risk: "ok" });
+    await getServiceTech(5);
+    expect(spy).toHaveBeenCalledWith("/api/v1/services/5/tech", undefined);
+  });
+
+  it("addServiceTechComponent POSTs to tech route", async () => {
+    const spy = mockFetch(201, { components: [], systems: [], risk: "ok" });
+    await addServiceTechComponent(5, 8);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/services/5/tech/components");
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({ component_id: 8 });
+  });
+
+  it("removeServiceTechComponent DELETEs", async () => {
+    const spy = mockFetch(200, { components: [], systems: [], risk: "ok" });
+    await removeServiceTechComponent(5, 8);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/services/5/tech/components/8");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("addServiceTechSystem POSTs to tech route", async () => {
+    const spy = mockFetch(201, { components: [], systems: [], risk: "ok" });
+    await addServiceTechSystem(5, 9);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/services/5/tech/systems");
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string)).toEqual({ system_id: 9 });
+  });
+
+  it("removeServiceTechSystem DELETEs", async () => {
+    const spy = mockFetch(200, { components: [], systems: [], risk: "ok" });
+    await removeServiceTechSystem(5, 9);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/services/5/tech/systems/9");
     expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 });

@@ -7,7 +7,9 @@ import type {
   Board,
   Capacity,
   CatalogService,
+  CatalogSystem,
   Comment,
+  Component,
   Container,
   Department,
   DependencyCriticality,
@@ -19,6 +21,7 @@ import type {
   ItemUpdate,
   Lane,
   LdapConfig,
+  LifecycleStage,
   LifecycleState,
   LinkRow,
   ObjectiveState,
@@ -31,8 +34,10 @@ import type {
   ServiceDependencies,
   ServiceDependencyRead,
   ServiceOption,
+  ServiceTech,
   SnapshotInfo,
   Team,
+  Vendor,
 } from "../types";
 
 /** Versioned API base. Breaking changes bump this (see the /api/v1 spec). */
@@ -585,4 +590,112 @@ export function addServiceDependency(
 
 export function removeServiceDependency(id: number, depId: number): Promise<void> {
   return request<void>(`${API}/services/${id}/dependencies/${depId}`, { method: "DELETE" });
+}
+
+// --- Catalog: vendors, components, systems, tech ----------------------------
+
+export function getVendors(): Promise<Vendor[]> {
+  return request<Vendor[]>(`${API}/vendors`);
+}
+
+export function getProductComponents(productId: number): Promise<Component[]> {
+  return request<Component[]>(`${API}/products/${productId}/components`);
+}
+
+export function getLifecycle(): Promise<Component[]> {
+  return request<Component[]>(`${API}/lifecycle`);
+}
+
+interface ComponentPayload {
+  name: string;
+  product_id: number;
+  model?: string | null;
+  description?: string | null;
+  vendor_name?: string | null;
+  lifecycle_stage?: LifecycleStage;
+  quantity?: number | null;
+  eos_announced?: string | null;
+  end_of_sale?: string | null;
+  end_of_support?: string | null;
+  end_of_life?: string | null;
+}
+
+export function createComponent(payload: ComponentPayload): Promise<Component> {
+  return request<Component>(`${API}/components`, json(payload));
+}
+
+export function updateComponent(id: number, changes: Partial<ComponentPayload>): Promise<Component> {
+  return request<Component>(`${API}/components/${id}`, { ...json(changes), method: "PATCH" });
+}
+
+export function deleteComponent(id: number): Promise<void> {
+  return request<void>(`${API}/components/${id}`, { method: "DELETE" });
+}
+
+export function getProductSystems(productId: number): Promise<CatalogSystem[]> {
+  return request<CatalogSystem[]>(`${API}/products/${productId}/systems`);
+}
+
+export function getSystems(): Promise<CatalogSystem[]> {
+  return request<CatalogSystem[]>(`${API}/systems`);
+}
+
+interface SystemPayload {
+  name: string;
+  product_id: number;
+  description?: string | null;
+  lifecycle_stage?: LifecycleStage;
+}
+
+export function createSystem(payload: SystemPayload): Promise<CatalogSystem> {
+  return request<CatalogSystem>(`${API}/systems`, json(payload));
+}
+
+export function updateSystem(id: number, changes: Partial<SystemPayload>): Promise<CatalogSystem> {
+  return request<CatalogSystem>(`${API}/systems/${id}`, { ...json(changes), method: "PATCH" });
+}
+
+export function deleteSystem(id: number): Promise<void> {
+  return request<void>(`${API}/systems/${id}`, { method: "DELETE" });
+}
+
+export function setSystemMember(
+  systemId: number,
+  componentId: number,
+  quantity?: number | null,
+): Promise<CatalogSystem> {
+  return request<CatalogSystem>(`${API}/systems/${systemId}/components`, {
+    ...json({ component_id: componentId, quantity: quantity ?? null }),
+    method: "PUT",
+  });
+}
+
+export function removeSystemMember(systemId: number, componentId: number): Promise<CatalogSystem> {
+  return request<CatalogSystem>(`${API}/systems/${systemId}/components/${componentId}`, {
+    method: "DELETE",
+  });
+}
+
+export function getServiceTech(serviceId: number): Promise<ServiceTech> {
+  return request<ServiceTech>(`${API}/services/${serviceId}/tech`);
+}
+
+export function addServiceTechComponent(serviceId: number, componentId: number): Promise<ServiceTech> {
+  return request<ServiceTech>(`${API}/services/${serviceId}/tech/components`, json({ component_id: componentId }));
+}
+
+export function removeServiceTechComponent(serviceId: number, componentId: number): Promise<ServiceTech> {
+  return request<ServiceTech>(`${API}/services/${serviceId}/tech/components/${componentId}`, {
+    method: "DELETE",
+  });
+}
+
+export function addServiceTechSystem(serviceId: number, systemId: number): Promise<ServiceTech> {
+  return request<ServiceTech>(`${API}/services/${serviceId}/tech/systems`, json({ system_id: systemId }));
+}
+
+export function removeServiceTechSystem(serviceId: number, systemId: number): Promise<ServiceTech> {
+  return request<ServiceTech>(`${API}/services/${serviceId}/tech/systems/${systemId}`, {
+    method: "DELETE",
+  });
 }
