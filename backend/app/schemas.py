@@ -731,7 +731,7 @@ class ComponentCreate(BaseModel):
     product_id: int
     model: str | None = Field(default=None, max_length=64)
     description: str | None = None
-    vendor_name: str | None = None
+    vendor_name: str | None = Field(default=None, max_length=128)
     lifecycle_stage: LifecycleStage = LifecycleStage.PLAN
     quantity: int | None = Field(default=None, ge=0)
     eos_announced: date | None = None
@@ -745,7 +745,7 @@ class ComponentUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=128)
     model: str | None = Field(default=None, max_length=64)
     description: str | None = None
-    vendor_name: str | None = None
+    vendor_name: str | None = Field(default=None, max_length=128)
     lifecycle_stage: LifecycleStage | None = None
     quantity: int | None = Field(default=None, ge=0)
     eos_announced: date | None = None

@@ -28,6 +28,21 @@ def test_component_crud_any_user(member_client, product_id):
     assert member_client.delete(f"/api/v1/components/{cid}").status_code == 204
 
 
+def test_component_create_vendor_name_too_long_422(member_client, product_id):
+    r = member_client.post("/api/v1/components", json={
+        "name": "X", "product_id": product_id, "vendor_name": "x" * 129,
+    })
+    assert r.status_code == 422
+
+
+def test_component_update_vendor_name_too_long_422(member_client, product_id):
+    cid = member_client.post(
+        "/api/v1/components", json={"name": "X", "product_id": product_id}
+    ).json()["id"]
+    r = member_client.patch(f"/api/v1/components/{cid}", json={"vendor_name": "x" * 129})
+    assert r.status_code == 422
+
+
 def test_component_duplicate_name_422(member_client, product_id):
     member_client.post("/api/v1/components", json={"name": "X", "product_id": product_id})
     assert member_client.post(
