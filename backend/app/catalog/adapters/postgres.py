@@ -18,8 +18,12 @@ from app.catalog.domain import (
     LifecycleStage,
     LifecycleState,
     RiskLevel,
+    RoadmapItem,
+    RoadmapStatus,
+    Stream,
     component_risk,
     contract_status,
+    validate_date_range,
     worst_risk,
 )
 
@@ -286,6 +290,12 @@ class PostgresProductRepository:
         )
         if n_ct:
             raise CatalogInUse(f"Product has {n_ct} contract(s); delete them first")
+        n_streams = self.db.scalar(
+            select(func.count()).select_from(m.Stream)
+            .where(m.Stream.product_id == product_id)
+        )
+        if n_streams:
+            raise CatalogInUse(f"Product has {n_streams} stream(s); delete them first")
         self.db.delete(row)
         self.db.flush()
 
@@ -914,3 +924,190 @@ class PostgresContractRepository:
             m.contract_components.c.contract_id == contract_id,
             m.contract_components.c.component_id == component_id))
         return _to_contract(self.db, row, date.today())
+
+
+def _roadmap_item_feature_rows(db: Session, item_id: int) -> list[m.Item]:
+    return list(db.scalars(
+        select(m.Item)
+        .join(m.roadmap_item_features,
+              m.roadmap_item_features.c.feature_id == m.Item.id)
+        .where(m.roadmap_item_features.c.roadmap_item_id == item_id)
+        .order_by(m.Item.title)
+    ))
+
+
+def _to_roadmap_item(db: Session, row: m.RoadmapItem) -> RoadmapItem:
+    return RoadmapItem(
+        id=row.id, title=row.title, stream_id=row.stream_id,
+        start_date=row.start_date, end_date=row.end_date,
+        description=row.description, status=RoadmapStatus(row.status),
+        features=[
+            domain.LinkedFeature(id=f.id, title=f.title, status=f.status)
+            for f in _roadmap_item_feature_rows(db, row.id)
+        ],
+    )
+
+
+def _to_stream(db: Session, row: m.Stream) -> Stream:
+    item_rows = db.scalars(
+        select(m.RoadmapItem)
+        .where(m.RoadmapItem.stream_id == row.id)
+        .order_by(m.RoadmapItem.start_date, m.RoadmapItem.id)
+    )
+    return Stream(
+        id=row.id, name=row.name, product_id=row.product_id, position=row.position,
+        items=[_to_roadmap_item(db, r) for r in item_rows],
+    )
+
+
+class PostgresStreamRepository:
+    read_only = False
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def _row(self, stream_id: int) -> m.Stream:
+        row = self.db.get(m.Stream, stream_id)
+        if row is None:
+            raise CatalogNotFound("Stream not found")
+        return row
+
+    def _validate_name(self, *, name: str, product_id: int, exclude_id: int | None) -> None:
+        q = select(m.Stream).where(m.Stream.product_id == product_id, m.Stream.name == name)
+        if exclude_id is not None:
+            q = q.where(m.Stream.id != exclude_id)
+        if self.db.scalar(q):
+            raise CatalogRuleViolation("A stream with this name already exists in this product")
+
+    def list(self, product_id: int) -> list[Stream]:
+        rows = self.db.scalars(
+            select(m.Stream).where(m.Stream.product_id == product_id)
+            .order_by(m.Stream.position, m.Stream.name)
+        )
+        return [_to_stream(self.db, r) for r in rows]
+
+    def get(self, stream_id: int) -> Stream:
+        return _to_stream(self.db, self._row(stream_id))
+
+    def create(self, *, name: str, product_id: int) -> Stream:
+        if self.db.get(m.Product, product_id) is None:
+            raise CatalogRuleViolation("product_id does not exist")
+        self._validate_name(name=name, product_id=product_id, exclude_id=None)
+        max_position = self.db.scalar(
+            select(func.max(m.Stream.position)).where(m.Stream.product_id == product_id)
+        )
+        position = (max_position if max_position is not None else -1) + 1
+        row = m.Stream(name=name, product_id=product_id, position=position)
+        self.db.add(row)
+        self.db.flush()
+        return _to_stream(self.db, row)
+
+    def update(self, stream_id: int, changes: dict) -> Stream:
+        row = self._row(stream_id)
+        if "name" in changes and changes["name"] != row.name:
+            self._validate_name(name=changes["name"], product_id=row.product_id,
+                                exclude_id=stream_id)
+        for key in ("name", "position"):
+            if key in changes:
+                setattr(row, key, changes[key])
+        self.db.flush()
+        return _to_stream(self.db, row)
+
+    def delete(self, stream_id: int) -> None:
+        row = self._row(stream_id)
+        n = self.db.scalar(
+            select(func.count()).select_from(m.RoadmapItem)
+            .where(m.RoadmapItem.stream_id == stream_id)
+        )
+        if n:
+            raise CatalogInUse(f"Stream has {n} roadmap item(s); delete them first")
+        self.db.delete(row)
+        self.db.flush()
+
+
+_ROADMAP_ITEM_FIELDS = ("title", "description", "status", "start_date", "end_date", "stream_id")
+
+
+class PostgresRoadmapItemRepository:
+    read_only = False
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def _row(self, item_id: int) -> m.RoadmapItem:
+        row = self.db.get(m.RoadmapItem, item_id)
+        if row is None:
+            raise CatalogNotFound("Roadmap item not found")
+        return row
+
+    def get(self, item_id: int) -> RoadmapItem:
+        return _to_roadmap_item(self.db, self._row(item_id))
+
+    def create(self, *, title: str, stream_id: int, start_date: date, end_date: date,
+               description: str | None = None,
+               status: RoadmapStatus = RoadmapStatus.IDEA) -> RoadmapItem:
+        if self.db.get(m.Stream, stream_id) is None:
+            raise CatalogRuleViolation("stream_id does not exist")
+        validate_date_range(start_date, end_date)
+        row = m.RoadmapItem(
+            title=title, stream_id=stream_id, start_date=start_date, end_date=end_date,
+            description=description, status=status,
+        )
+        self.db.add(row)
+        self.db.flush()
+        return _to_roadmap_item(self.db, row)
+
+    def update(self, item_id: int, changes: dict) -> RoadmapItem:
+        row = self._row(item_id)
+        if "stream_id" in changes:
+            target = self.db.get(m.Stream, changes["stream_id"])
+            if target is None:
+                raise CatalogRuleViolation("stream_id does not exist")
+            current_stream = self.db.get(m.Stream, row.stream_id)
+            if target.product_id != current_stream.product_id:
+                raise CatalogRuleViolation("Target stream must belong to the same product")
+        validate_date_range(
+            changes.get("start_date", row.start_date), changes.get("end_date", row.end_date)
+        )
+        for key in _ROADMAP_ITEM_FIELDS:
+            if key in changes:
+                setattr(row, key, changes[key])
+        self.db.flush()
+        return _to_roadmap_item(self.db, row)
+
+    def delete(self, item_id: int) -> None:
+        row = self._row(item_id)
+        # Link rows go with the item (explicit for the SQLite fixtures,
+        # which don't enforce ON DELETE CASCADE).
+        self.db.execute(m.roadmap_item_features.delete().where(
+            m.roadmap_item_features.c.roadmap_item_id == item_id))
+        self.db.delete(row)
+        self.db.flush()
+
+    def _link(self, item_id: int, feature_id: int):
+        return self.db.execute(
+            select(m.roadmap_item_features).where(
+                m.roadmap_item_features.c.roadmap_item_id == item_id,
+                m.roadmap_item_features.c.feature_id == feature_id,
+            )
+        ).first()
+
+    def link_feature(self, item_id: int, feature_id: int) -> RoadmapItem:
+        row = self._row(item_id)
+        feature = self.db.get(m.Item, feature_id)
+        if feature is None or feature.kind != m.ItemKind.FEATURE:
+            raise CatalogRuleViolation("Only features can be linked")
+        if self._link(item_id, feature_id):
+            raise CatalogRuleViolation("This link already exists")
+        self.db.execute(m.roadmap_item_features.insert().values(
+            roadmap_item_id=item_id, feature_id=feature_id))
+        return _to_roadmap_item(self.db, row)
+
+    def unlink_feature(self, item_id: int, feature_id: int) -> RoadmapItem:
+        row = self._row(item_id)
+        if not self._link(item_id, feature_id):
+            raise CatalogNotFound("Link not found")
+        self.db.execute(m.roadmap_item_features.delete().where(
+            m.roadmap_item_features.c.roadmap_item_id == item_id,
+            m.roadmap_item_features.c.feature_id == feature_id))
+        return _to_roadmap_item(self.db, row)

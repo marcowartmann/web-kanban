@@ -10,7 +10,9 @@ from app.catalog.adapters.postgres import (
     PostgresComponentRepository,
     PostgresContractRepository,
     PostgresProductRepository,
+    PostgresRoadmapItemRepository,
     PostgresServiceRepository,
+    PostgresStreamRepository,
     PostgresSystemRepository,
     PostgresVendorRepository,
 )
@@ -43,3 +45,11 @@ def get_system_repo(db: Session = Depends(get_db)) -> ports.SystemRepository:
 
 def get_contract_repo(db: Session = Depends(get_db)) -> ports.ContractRepository:
     return PostgresContractRepository(db)
+
+
+def get_stream_repo(db: Session = Depends(get_db)) -> ports.StreamRepository:
+    return PostgresStreamRepository(db)
+
+
+def get_roadmap_item_repo(db: Session = Depends(get_db)) -> ports.RoadmapItemRepository:
+    return PostgresRoadmapItemRepository(db)
