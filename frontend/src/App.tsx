@@ -1,14 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Navigate, NavLink, Route, Routes } from "react-router";
-import BoardTabs from "./components/BoardTabs";
-import BoardView from "./components/BoardView";
-import PIObjectivesBoard, { canAddObjective } from "./components/PIObjectivesBoard";
+import BoardPage from "./components/BoardPage";
 import ContractsView from "./components/ContractsView";
-import ItemDrawer from "./components/ItemDrawer";
 import LifecycleView from "./components/LifecycleView";
-import NewItemBar from "./components/NewItemBar";
-import StoryBoardModal from "./components/StoryBoardModal";
-import Toolbar, { type BoardFilters } from "./components/Toolbar";
 import AdminView from "./components/admin/AdminView";
 import PlanningView from "./components/PlanningView";
 import ProductDetailPage from "./components/ProductDetailPage";
@@ -18,102 +11,12 @@ import RoadmapView from "./components/RoadmapView";
 import TimelineView from "./components/TimelineView";
 import ThemeToggle from "./components/ThemeToggle";
 import UserMenu from "./components/UserMenu";
-import { btnPrimary, btnSecondary } from "./components/ui";
-import PageHeader from "./shell/PageHeader";
+import WorkLayout, { useWork } from "./shell/WorkLayout";
 import { useAuth } from "./auth/AuthContext";
-import { useBoard } from "./hooks/useBoard";
-import { getContainers, getDepartments, getObjectiveLinkedFeatures, getPersonOptions, getTeams } from "./api/client";
-import { ObjectiveLinksContext } from "./objectives/links";
-import { statusOptionsByKind } from "./lib/boardLanes";
-import type { Container, Department, PersonOption, Team } from "./types";
 
 export function AppShell() {
   const { user, setUser } = useAuth();
   const isAdmin = user.role === "admin";
-  const { boards, items, links, planningIntervals, loading, error, reload } = useBoard();
-  const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
-  const [objectivesTab, setObjectivesTab] = useState(false);
-  // Panels are docked right-to-left: the rightmost is the primary item, and a
-  // related item docks beside it as [story, feature] (feature always on the right).
-  const [panels, setPanels] = useState<number[]>([]);
-  const [openStoriesFeatureId, setOpenStoriesFeatureId] = useState<number | null>(null);
-
-  const openItem = (id: number) => setPanels([id]);
-  // A child story docks to the LEFT of the feature (the rightmost panel).
-  const openChild = (storyId: number) =>
-    setPanels((p) => {
-      const feature = p[p.length - 1];
-      return feature != null ? [storyId, feature] : [storyId];
-    });
-  // A parent feature docks to the RIGHT; the story shifts to the left.
-  const openParent = (featureId: number) =>
-    setPanels((p) => {
-      const story = p[0];
-      return story != null ? [story, featureId] : [featureId];
-    });
-  // A linked item docks to the left of the current stack (dependency navigation).
-  const openItemDocked = (id: number) =>
-    setPanels((p) => (p.includes(id) ? p : [id, ...p]));
-  const closePanel = (id: number) => setPanels((p) => p.filter((x) => x !== id));
-  const closePanels = () => setPanels([]);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [filters, setFilters] = useState<BoardFilters>({});
-  const [objTeam, setObjTeam] = useState<string | null>(null);
-  const [addObjectiveSignal, setAddObjectiveSignal] = useState(0);
-  const [laneEditing, setLaneEditing] = useState(false);
-  const [people, setPeople] = useState<PersonOption[]>([]);
-  const [teamOptions, setTeamOptions] = useState<Team[]>([]);
-  const [containers, setContainers] = useState<Container[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [objectiveLinks, setObjectiveLinks] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    if (activeBoardId == null && boards.length) setActiveBoardId(boards[0].id);
-  }, [boards, activeBoardId]);
-
-  useEffect(() => {
-    void getPersonOptions().then(setPeople);
-  }, [refreshKey]);
-
-  useEffect(() => {
-    void getTeams().then(setTeamOptions);
-    void getContainers().then(setContainers);
-    void getDepartments().then(setDepartments);
-    void getObjectiveLinkedFeatures().then((ids) => setObjectiveLinks(new Set(ids)));
-  }, [refreshKey]);
-
-  const statusOptions = useMemo(() => statusOptionsByKind(boards), [boards]);
-
-  const activeBoard = boards.find((b) => b.id === activeBoardId) ?? null;
-
-  const teams = useMemo(
-    () => [...new Set(items.map((i) => i.leading_team).filter(Boolean) as string[])].sort(),
-    [items],
-  );
-  const assignees = useMemo(
-    () => [...new Set(items.map((i) => i.assignee).filter(Boolean) as string[])].sort(),
-    [items],
-  );
-  const containerNames = useMemo(
-    () => [...new Set(containers.map((c) => c.name))].sort(),
-    [containers],
-  );
-  const departmentNames = useMemo(
-    () => [...new Set(departments.map((d) => d.name))].sort(),
-    [departments],
-  );
-
-  const selectBoard = (id: number) => {
-    setObjectivesTab(false);
-    setActiveBoardId(id);
-    setFilters((f) => ({ ...f, kinds: undefined })); // reset kind narrowing per board
-  };
-
-  const handleChanged = () => {
-    closePanels();
-    setRefreshKey((k) => k + 1);
-    void reload();
-  };
 
   const navLink = (target: string, label: string) => (
     <NavLink
@@ -128,87 +31,7 @@ export function AppShell() {
     </NavLink>
   );
 
-  const objTeamObj = objTeam ? teamOptions.find((t) => t.name === objTeam) ?? null : null;
-  const boardActions = objectivesTab ? (
-    <button
-      onClick={() => setAddObjectiveSignal((s) => s + 1)}
-      disabled={!canAddObjective(user, objTeamObj)}
-      title={canAddObjective(user, objTeamObj) ? undefined : "Select your team first"}
-      className={btnPrimary}
-    >
-      + New objective
-    </button>
-  ) : (
-    <>
-      <NewItemBar onCreated={handleChanged} />
-      {isAdmin && activeBoard && (
-        <button onClick={() => setLaneEditing((v) => !v)} className={btnSecondary}>
-          {laneEditing ? "Done" : "Edit lanes"}
-        </button>
-      )}
-    </>
-  );
-
-  const boardElement = (
-    <>
-      <PageHeader title="Board" actions={boardActions} />
-      {loading && !activeBoard ? (
-        <div className="p-8 text-gray-500">Loading board…</div>
-      ) : error ? (
-        <div className="p-8 text-red-600">{error}</div>
-      ) : activeBoard ? (
-        <>
-          <BoardTabs
-            boards={boards}
-            activeId={objectivesTab ? null : activeBoardId}
-            onSelect={selectBoard}
-            objectivesActive={objectivesTab}
-            onSelectObjectives={() => setObjectivesTab(true)}
-          />
-          {objectivesTab ? (
-            <PIObjectivesBoard
-              teams={teamOptions}
-              planningIntervals={planningIntervals}
-              user={user}
-              features={items.filter((i) => i.kind === "feature")}
-              onChanged={handleChanged}
-              team={objTeam}
-              onTeamChange={setObjTeam}
-              addSignal={addObjectiveSignal}
-            />
-          ) : (
-            <>
-              <Toolbar
-                filters={filters}
-                onChange={setFilters}
-                planningIntervals={planningIntervals}
-                teams={teams}
-                assignees={assignees}
-                containerNames={containerNames}
-                departmentNames={departmentNames}
-                kindOptions={activeBoard.kinds}
-              />
-              <BoardView
-                board={activeBoard}
-                items={items}
-                links={links}
-                filters={filters}
-                containers={containers}
-                onOpenCard={openItem}
-                onOpenStories={setOpenStoriesFeatureId}
-                onChanged={handleChanged}
-                canEditLanes={isAdmin}
-                laneEditing={laneEditing}
-              />
-            </>
-          )}
-        </>
-      ) : null}
-    </>
-  );
-
   return (
-    <ObjectiveLinksContext.Provider value={objectiveLinks}>
     <div className="flex h-screen flex-col overflow-hidden bg-canvas">
       <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-surface px-6 py-4">
         <div className="flex items-center gap-4">
@@ -232,111 +55,81 @@ export function AppShell() {
       </header>
 
       <Routes>
-        <Route path="/board" element={boardElement} />
-        <Route
-          path="/planning"
-          element={
-            <PlanningView
-              items={items}
-              links={links}
-              planningIntervals={planningIntervals}
-              departmentNames={departmentNames}
-              onOpenCard={openItem}
-              onChanged={handleChanged}
-            />
-          }
-        />
-        <Route
-          path="/timeline"
-          element={
-            <TimelineView
-              items={items}
-              links={links}
-              planningIntervals={planningIntervals}
-              departmentNames={departmentNames}
-              onOpenCard={openItem}
-              onChanged={handleChanged}
-            />
-          }
-        />
-        <Route
-          path="/ranking"
-          element={
-            <RankingView
-              items={items}
-              planningIntervals={planningIntervals}
-              teams={teams}
-              containers={containers}
-              departmentNames={departmentNames}
-              user={user}
-              onOpenCard={openItem}
-              onChanged={handleChanged}
-            />
-          }
-        />
+        <Route element={<WorkLayout />}>
+          <Route path="/board" element={<BoardPage />} />
+          <Route path="/planning" element={<PlanningRoute />} />
+          <Route path="/timeline" element={<TimelineRoute />} />
+          <Route path="/ranking" element={<RankingRoute />} />
+          <Route
+            path="/admin"
+            element={isAdmin ? <Navigate to="/admin/users" replace /> : <Navigate to="/board" replace />}
+          />
+          <Route
+            path="/admin/:section"
+            element={isAdmin ? <AdminRoute /> : <Navigate to="/board" replace />}
+          />
+        </Route>
         <Route path="/products" element={<ProductsView />} />
         <Route path="/products/:productId" element={<ProductDetailPage />} />
         <Route path="/lifecycle" element={<LifecycleView />} />
         <Route path="/contracts" element={<ContractsView />} />
         <Route path="/roadmap" element={<RoadmapView />} />
-        <Route
-          path="/admin"
-          element={isAdmin ? <Navigate to="/admin/users" replace /> : <Navigate to="/board" replace />}
-        />
-        <Route
-          path="/admin/:section"
-          element={
-            isAdmin ? (
-              <div className="min-h-0 flex-1 overflow-auto">
-                <AdminView onChanged={handleChanged} planningIntervals={planningIntervals} />
-              </div>
-            ) : (
-              <Navigate to="/board" replace />
-            )
-          }
-        />
         <Route path="*" element={<Navigate to="/board" replace />} />
       </Routes>
-
-      {openStoriesFeatureId != null && (
-        <StoryBoardModal
-          featureId={openStoriesFeatureId}
-          refreshSignal={refreshKey}
-          onClose={() => setOpenStoriesFeatureId(null)}
-          onOpenItem={openItem}
-          onChanged={handleChanged}
-        />
-      )}
-      {panels.length > 0 && (
-        <div
-          className="fixed inset-0 z-30 flex justify-end bg-black/30"
-          onClick={closePanels}
-        >
-          {panels.map((id) => (
-            <ItemDrawer
-              key={id}
-              itemId={id}
-              compact={panels.length > 1}
-              people={people}
-              statusOptionsByKind={statusOptions}
-              planningIntervalOptions={planningIntervals}
-              leadingTeamOptions={teamOptions.map((t) => t.name)}
-              containers={containers}
-              departments={departments}
-              teams={teamOptions}
-              openIds={panels}
-              onClose={() => closePanel(id)}
-              onChanged={handleChanged}
-              onOpenParent={openParent}
-              onOpenChild={openChild}
-              onOpenItem={openItemDocked}
-              onLinksChanged={reload}
-            />
-          ))}
-        </div>
-      )}
     </div>
-    </ObjectiveLinksContext.Provider>
+  );
+}
+
+function PlanningRoute() {
+  const w = useWork();
+  return (
+    <PlanningView
+      items={w.items}
+      links={w.links}
+      planningIntervals={w.planningIntervals}
+      departmentNames={w.departmentNames}
+      onOpenCard={w.openItem}
+      onChanged={w.onChanged}
+    />
+  );
+}
+
+function TimelineRoute() {
+  const w = useWork();
+  return (
+    <TimelineView
+      items={w.items}
+      links={w.links}
+      planningIntervals={w.planningIntervals}
+      departmentNames={w.departmentNames}
+      onOpenCard={w.openItem}
+      onChanged={w.onChanged}
+    />
+  );
+}
+
+function RankingRoute() {
+  const w = useWork();
+  return (
+    <RankingView
+      items={w.items}
+      planningIntervals={w.planningIntervals}
+      teams={w.teams}
+      containers={w.containers}
+      departmentNames={w.departmentNames}
+      user={w.user}
+      onOpenCard={w.openItem}
+      onChanged={w.onChanged}
+    />
+  );
+}
+
+function AdminRoute() {
+  const w = useWork();
+  return (
+    <div className="min-h-0 flex-1 overflow-auto">
+      <AdminView onChanged={w.onChanged} planningIntervals={w.planningIntervals} />
+    </div>
   );
 }
 
