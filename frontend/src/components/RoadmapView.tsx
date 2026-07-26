@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createStream, deleteStream, getProductRoadmap, getProducts, updateStream } from "../api/client";
+import { faEllipsisVertical, faPlus } from "../icons";
 import { assignRows, axisRange, barGeometry } from "../lib/roadmap";
 import PageHeader from "../shell/PageHeader";
 import type { Product, RoadmapItem, RoadmapStatus, Stream } from "../types";
 import ConfirmDialog from "./ConfirmDialog";
 import FilterSelect from "./FilterSelect";
 import RoadmapItemDrawer from "./RoadmapItemDrawer";
-import { btnDangerGhost, btnGhost, btnSecondary, inputClass } from "./ui";
+import { btnSecondary, inputClass, popoverClass } from "./ui";
 
 // Bar stacking: each overlap row is 32px tall (24px bar + 8px gap), lanes
 // carry 8px padding above and below the rows.
@@ -20,6 +22,73 @@ const STATUS_CLASSES: Record<RoadmapStatus, string> = {
   done: "bg-emerald-100 text-emerald-800",
   cancelled: "bg-gray-100 text-gray-400 line-through",
 };
+
+function StreamMenu({
+  name, index, count, onMove, onRename, onDelete,
+}: {
+  name: string;
+  index: number;
+  count: number;
+  onMove: (direction: -1 | 1) => void;
+  onRename: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  const itemClass =
+    "flex w-full items-center rounded-lg px-3 py-1.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40";
+  const act = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Stream actions for ${name}`}
+        onClick={() => setOpen((o) => !o)}
+        className="rounded-lg px-1.5 py-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+      >
+        <FontAwesomeIcon icon={faEllipsisVertical} />
+      </button>
+      {open && (
+        <div role="menu" className={`absolute left-0 z-20 mt-1 w-40 ${popoverClass}`}>
+          <button role="menuitem" disabled={index === 0} onClick={act(() => onMove(-1))} className={itemClass}>
+            Move up
+          </button>
+          <button role="menuitem" disabled={index === count - 1} onClick={act(() => onMove(1))} className={itemClass}>
+            Move down
+          </button>
+          <button role="menuitem" onClick={act(onRename)} className={itemClass}>
+            Rename
+          </button>
+          <button
+            role="menuitem"
+            onClick={act(onDelete)}
+            className="flex w-full items-center rounded-lg px-3 py-1.5 text-left text-sm text-red-600 transition hover:bg-red-50"
+          >
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** Top-level Gantt-style roadmap: per-product streams (lanes) holding
  *  date-ranged items rendered as status-colored bars against a shared month
@@ -240,7 +309,7 @@ export default function RoadmapView() {
               const laneRows = assignRows(stream.items);
               return (
               <div key={stream.id} className="flex border-b border-gray-100 py-1.5">
-                <div className="flex w-56 shrink-0 flex-col gap-1 pr-3">
+                <div className="flex w-56 shrink-0 items-center gap-1 pr-3">
                   {renaming?.id === stream.id ? (
                     <input
                       autoFocus
@@ -254,40 +323,26 @@ export default function RoadmapView() {
                       className={inputClass}
                     />
                   ) : (
-                    <span className="truncate text-sm font-medium text-gray-800">{stream.name}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">
+                      {stream.name}
+                    </span>
                   )}
-                  <div className="flex items-center gap-1">
-                    <button
-                      aria-label={`Move ${stream.name} up`}
-                      disabled={index === 0}
-                      onClick={() => void moveStream(index, -1)}
-                      className={`${btnGhost} px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30`}
-                    >
-                      ▲
-                    </button>
-                    <button
-                      aria-label={`Move ${stream.name} down`}
-                      disabled={index === streams.length - 1}
-                      onClick={() => void moveStream(index, 1)}
-                      className={`${btnGhost} px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30`}
-                    >
-                      ▼
-                    </button>
-                    <button
-                      aria-label={`Rename ${stream.name}`}
-                      onClick={() => setRenaming({ id: stream.id, name: stream.name })}
-                      className={`${btnGhost} px-1.5 py-0.5 text-xs`}
-                    >
-                      Rename
-                    </button>
-                    <button
-                      aria-label={`Delete ${stream.name}`}
-                      onClick={() => setConfirmDelete({ id: stream.id, name: stream.name })}
-                      className={`${btnDangerGhost} px-1.5 py-0.5 text-xs`}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Add item to ${stream.name}`}
+                    onClick={() => openCreate(stream.id)}
+                    className="rounded-lg px-1.5 py-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                  >
+                    <FontAwesomeIcon icon={faPlus} />
+                  </button>
+                  <StreamMenu
+                    name={stream.name}
+                    index={index}
+                    count={streams.length}
+                    onMove={(d) => void moveStream(index, d)}
+                    onRename={() => setRenaming({ id: stream.id, name: stream.name })}
+                    onDelete={() => setConfirmDelete({ id: stream.id, name: stream.name })}
+                  />
                 </div>
                 <div
                   className="relative flex-1"
@@ -315,12 +370,6 @@ export default function RoadmapView() {
                       </button>
                     );
                   })}
-                  <button
-                    onClick={() => openCreate(stream.id)}
-                    className={`${btnGhost} absolute right-1 top-1 px-1.5 py-0.5 text-xs`}
-                  >
-                    Add item
-                  </button>
                 </div>
               </div>
               );

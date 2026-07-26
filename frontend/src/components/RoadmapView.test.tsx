@@ -60,6 +60,10 @@ import {
 
 const itemFixture = streams[0].items[0];
 
+async function openStreamMenu(name: string) {
+  await userEvent.click(await screen.findByRole("button", { name: `Stream actions for ${name}` }));
+}
+
 describe("RoadmapView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -103,12 +107,18 @@ describe("RoadmapView", () => {
     expect(screen.getByPlaceholderText("New stream name")).toBeInTheDocument();
   });
 
-  it("reorders streams by swapping positions", async () => {
+  it("reorders streams via the kebab menu", async () => {
     render(<RoadmapView />);
-    await screen.findByText("Campus");
-    await userEvent.click(screen.getByRole("button", { name: "Move Backbone up" }));
+    await openStreamMenu("Campus");
+    await userEvent.click(screen.getByRole("menuitem", { name: "Move down" }));
     expect(updateStream).toHaveBeenCalledWith(2, { position: 0 });
     expect(updateStream).toHaveBeenCalledWith(1, { position: 1 });
+  });
+
+  it("Move up is disabled for the first stream", async () => {
+    render(<RoadmapView />);
+    await openStreamMenu("Campus");
+    expect(screen.getByRole("menuitem", { name: "Move up" })).toBeDisabled();
   });
 
   it("reorders self-heals when stored positions are duplicated", async () => {
@@ -120,8 +130,8 @@ describe("RoadmapView", () => {
     ];
     vi.mocked(getProductRoadmap).mockResolvedValueOnce(corruptedStreams);
     render(<RoadmapView />);
-    await screen.findByText("Campus");
-    await userEvent.click(screen.getByRole("button", { name: "Move Backbone up" }));
+    await openStreamMenu("Backbone");
+    await userEvent.click(screen.getByRole("menuitem", { name: "Move up" }));
     // Index-derived positions ensure distinct calls even from corrupted state:
     // Backbone (id 2) at index 1, moving up (direction -1) → position 0
     // Campus (id 1) at index 0 → position 1
@@ -131,19 +141,25 @@ describe("RoadmapView", () => {
 
   it("renames a stream inline", async () => {
     render(<RoadmapView />);
-    await screen.findByText("Campus");
-    await userEvent.click(screen.getByRole("button", { name: "Rename Campus" }));
+    await openStreamMenu("Campus");
+    await userEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
     const input = screen.getByRole("textbox", { name: "Rename Campus" });
     await userEvent.clear(input);
     await userEvent.type(input, "Campus LAN{Enter}");
     expect(updateStream).toHaveBeenCalledWith(1, { name: "Campus LAN" });
   });
 
+  it("adds an item from the stream gutter", async () => {
+    render(<RoadmapView />);
+    await userEvent.click(await screen.findByRole("button", { name: "Add item to Campus" }));
+    expect(await screen.findByRole("heading", { name: /new roadmap item/i })).toBeInTheDocument();
+  });
+
   it("creates an item from a lane's Add item button", async () => {
     vi.mocked(createRoadmapItem).mockResolvedValue(itemFixture);
     render(<RoadmapView />);
     await screen.findByText("Campus");
-    await userEvent.click(screen.getAllByRole("button", { name: "Add item" })[0]);
+    await userEvent.click(screen.getByRole("button", { name: "Add item to Campus" }));
     await userEvent.type(screen.getByLabelText("Title"), "New thing");
     await userEvent.type(screen.getByLabelText("Start date"), "2026-09-01");
     await userEvent.type(screen.getByLabelText("End date"), "2026-12-31");
@@ -157,7 +173,7 @@ describe("RoadmapView", () => {
   it("blocks save when dates are inverted", async () => {
     render(<RoadmapView />);
     await screen.findByText("Campus");
-    await userEvent.click(screen.getAllByRole("button", { name: "Add item" })[0]);
+    await userEvent.click(screen.getByRole("button", { name: "Add item to Campus" }));
     await userEvent.type(screen.getByLabelText("Title"), "Bad");
     await userEvent.type(screen.getByLabelText("Start date"), "2026-12-31");
     await userEvent.type(screen.getByLabelText("End date"), "2026-01-01");
