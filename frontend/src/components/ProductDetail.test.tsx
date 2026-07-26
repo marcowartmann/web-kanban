@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { CatalogService, Product } from "../types";
+import type { CatalogService, CatalogSystem, Component, Product } from "../types";
 import ProductDetail from "./ProductDetail";
 
 const tree: CatalogService[] = [
@@ -17,23 +17,47 @@ const tree: CatalogService[] = [
   },
 ];
 
+const comp: Component = {
+  id: 1, name: "Catalyst 9300", model: "C9300-48P", description: null,
+  product_id: 1, product_name: "Network", vendor_id: 1, vendor_name: "Cisco",
+  lifecycle_stage: "operate", quantity: 120,
+  eos_announced: null, end_of_sale: null,
+  end_of_support: "2026-10-31", end_of_life: null, risk: "warning",
+};
+
+const systemFixture: CatalogSystem = {
+  id: 9, name: "Campus fabric", description: null, product_id: 2, product_name: "Network",
+  lifecycle_stage: "operate", risk: "danger", members: [],
+};
+
 vi.mock("../api/client", () => ({
   getProductServices: vi.fn().mockResolvedValue([]),
   getPersonOptions: vi.fn().mockResolvedValue([]),
   getServiceOptions: vi.fn().mockResolvedValue([]),
   getServiceDependencies: vi.fn().mockResolvedValue({ outbound: [], inbound: [] }),
+  getServiceTech: vi.fn().mockResolvedValue({ components: [], systems: [], risk: "ok" }),
+  getSystems: vi.fn().mockResolvedValue([]),
+  getLifecycle: vi.fn().mockResolvedValue([]),
   createService: vi.fn(),
   updateService: vi.fn(),
   deleteService: vi.fn(),
   addServiceDependency: vi.fn(),
   removeServiceDependency: vi.fn(),
+  addServiceTechComponent: vi.fn(),
+  removeServiceTechComponent: vi.fn(),
+  addServiceTechSystem: vi.fn(),
+  removeServiceTechSystem: vi.fn(),
 }));
 
 import {
+  addServiceTechSystem,
   createService,
   getProductServices,
   getServiceDependencies,
+  getServiceTech,
+  getSystems,
   removeServiceDependency,
+  removeServiceTechComponent,
   updateService,
 } from "../api/client";
 
@@ -177,6 +201,35 @@ describe("ProductDetail", () => {
     await userEvent.click(await screen.findByText("Connectivity"));
     await userEvent.click(await screen.findByRole("combobox", { name: "Parent service" }));
     expect(await screen.findByText("No matches")).toBeInTheDocument();
+  });
+
+  it("shows Provided by with rolled-up risk and unlink", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    vi.mocked(getServiceTech).mockResolvedValue({
+      components: [comp], systems: [], risk: "warning",
+    });
+    vi.mocked(removeServiceTechComponent).mockResolvedValue({
+      components: [], systems: [], risk: "ok",
+    });
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByText("Connectivity"));
+    expect(await screen.findByText("Provided by")).toBeInTheDocument();
+    expect(screen.getAllByText("warning").length).toBeGreaterThan(0);
+    await userEvent.click(screen.getByRole("button", { name: "Unlink Catalyst 9300" }));
+    expect(removeServiceTechComponent).toHaveBeenCalledWith(1, 1);
+  });
+
+  it("links a system from the picker", async () => {
+    vi.mocked(getProductServices).mockResolvedValue(tree);
+    vi.mocked(getSystems).mockResolvedValue([systemFixture]);
+    vi.mocked(addServiceTechSystem).mockResolvedValue({
+      components: [], systems: [systemFixture], risk: "danger",
+    });
+    render(<ProductDetail product={product} onBack={() => {}} />);
+    await userEvent.click(await screen.findByText("Connectivity"));
+    await userEvent.click(await screen.findByRole("combobox", { name: "Add system" }));
+    await userEvent.click(screen.getByText("Campus fabric (Network)"));
+    expect(addServiceTechSystem).toHaveBeenCalledWith(1, 9);
   });
 
 });

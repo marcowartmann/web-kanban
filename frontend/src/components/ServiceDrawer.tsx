@@ -1,23 +1,34 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   addServiceDependency,
+  addServiceTechComponent,
+  addServiceTechSystem,
   deleteService,
+  getLifecycle,
   getPersonOptions,
   getServiceDependencies,
   getServiceOptions,
+  getServiceTech,
+  getSystems,
   removeServiceDependency,
+  removeServiceTechComponent,
+  removeServiceTechSystem,
   updateService,
 } from "../api/client";
 import type {
   CatalogService,
+  CatalogSystem,
+  Component,
   DependencyCriticality,
   DependencyType,
   PersonOption,
   ServiceDependencies,
   ServiceOption,
+  ServiceTech,
 } from "../types";
 import ConfirmDialog from "./ConfirmDialog";
 import PlainSelect from "./PlainSelect";
+import RiskBadge from "./RiskBadge";
 import SearchableSelect from "./SearchableSelect";
 import { btnDangerGhost, btnPrimary, btnSecondary, captionClass, inputClass } from "./ui";
 
@@ -52,6 +63,9 @@ export default function ServiceDrawer({
   const [depTarget, setDepTarget] = useState<string | null>(null);
   const [depType, setDepType] = useState<DependencyType>("requires");
   const [depCrit, setDepCrit] = useState<DependencyCriticality>("important");
+  const [tech, setTech] = useState<ServiceTech>({ components: [], systems: [], risk: "ok" });
+  const [allSystems, setAllSystems] = useState<CatalogSystem[]>([]);
+  const [allComponents, setAllComponents] = useState<Component[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,14 +73,28 @@ export default function ServiceDrawer({
     () => getServiceDependencies(service.id).then(setDeps),
     [service.id],
   );
+  const loadTech = useCallback(
+    () => getServiceTech(service.id).then(setTech),
+    [service.id],
+  );
   useEffect(() => {
     void loadDeps();
+    void loadTech();
     void getPersonOptions().then(setPeople);
     void getServiceOptions().then(setOptions);
-  }, [loadDeps]);
+    void getSystems().then(setAllSystems);
+    void getLifecycle().then(setAllComponents);
+  }, [loadDeps, loadTech]);
 
   const optionLabel = (o: ServiceOption) => `${o.name} (${o.product_name ?? "?"})`;
   const pickable = options.filter((o) => o.id !== service.id);
+
+  const systemLabel = (s: CatalogSystem) => `${s.name} (${s.product_name ?? "?"})`;
+  const componentLabel = (c: Component) => `${c.name} (${c.product_name ?? "?"})`;
+  const linkedSystemIds = new Set(tech.systems.map((s) => s.id));
+  const linkedComponentIds = new Set(tech.components.map((c) => c.id));
+  const addableSystems = allSystems.filter((s) => !linkedSystemIds.has(s.id));
+  const addableComponents = allComponents.filter((c) => !linkedComponentIds.has(c.id));
 
   const save = async () => {
     setError(null);
@@ -119,6 +147,42 @@ export default function ServiceDrawer({
     }
   };
 
+  const addSystem = async (systemId: number) => {
+    setError(null);
+    try {
+      setTech(await addServiceTechSystem(service.id, systemId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not add system");
+    }
+  };
+
+  const removeSystem = async (systemId: number) => {
+    setError(null);
+    try {
+      setTech(await removeServiceTechSystem(service.id, systemId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not remove system");
+    }
+  };
+
+  const addComponent = async (componentId: number) => {
+    setError(null);
+    try {
+      setTech(await addServiceTechComponent(service.id, componentId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not add component");
+    }
+  };
+
+  const removeComponent = async (componentId: number) => {
+    setError(null);
+    try {
+      setTech(await removeServiceTechComponent(service.id, componentId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not remove component");
+    }
+  };
+
   const remove = async () => {
     setError(null);
     try {
@@ -137,7 +201,10 @@ export default function ServiceDrawer({
       className="fixed inset-y-0 right-0 z-40 flex w-[26rem] flex-col overflow-y-auto border-l border-gray-200 bg-surface p-5 shadow-2xl"
     >
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">Edit service</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold text-gray-900">Edit service</h2>
+          <RiskBadge risk={tech.risk} />
+        </div>
         <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600">
           ✕
         </button>
@@ -246,6 +313,65 @@ export default function ServiceDrawer({
         ))}
         {deps.inbound.length === 0 && <li className="text-sm text-gray-400">None</li>}
       </ul>
+
+      <h3 className="mb-2 mt-2 text-sm font-semibold text-gray-700">Provided by</h3>
+      <ul className="mb-2 flex flex-col gap-1.5">
+        {tech.systems.map((s) => (
+          <li key={`system-${s.id}`} className="flex items-center gap-2 rounded-lg bg-gray-50 px-2.5 py-1.5 text-sm">
+            <span className="flex-1 truncate text-gray-800">{s.name}</span>
+            <RiskBadge risk={s.risk} />
+            <button
+              aria-label={`Unlink ${s.name}`}
+              onClick={() => void removeSystem(s.id)}
+              className="text-xs text-gray-400 hover:text-red-600"
+            >
+              ✕
+            </button>
+          </li>
+        ))}
+        {tech.components.map((c) => (
+          <li key={`component-${c.id}`} className="flex items-center gap-2 rounded-lg bg-gray-50 px-2.5 py-1.5 text-sm">
+            <span className="flex-1 truncate text-gray-800">{c.name}</span>
+            <RiskBadge risk={c.risk} />
+            <button
+              aria-label={`Unlink ${c.name}`}
+              onClick={() => void removeComponent(c.id)}
+              className="text-xs text-gray-400 hover:text-red-600"
+            >
+              ✕
+            </button>
+          </li>
+        ))}
+        {tech.systems.length === 0 && tech.components.length === 0 && (
+          <li className="text-sm text-gray-400">None</li>
+        )}
+      </ul>
+      <div className="mb-1.5">
+        <SearchableSelect
+          ariaLabel="Add system"
+          value={null}
+          options={addableSystems.map(systemLabel)}
+          onChange={(picked) => {
+            if (!picked) return;
+            const target = addableSystems.find((s) => systemLabel(s) === picked);
+            if (target) void addSystem(target.id);
+          }}
+          placeholder="Add system…"
+        />
+      </div>
+      <div className="mb-4">
+        <SearchableSelect
+          ariaLabel="Add component"
+          value={null}
+          options={addableComponents.map(componentLabel)}
+          onChange={(picked) => {
+            if (!picked) return;
+            const target = addableComponents.find((c) => componentLabel(c) === picked);
+            if (target) void addComponent(target.id);
+          }}
+          placeholder="Add component…"
+        />
+      </div>
 
       <div className="mt-auto flex items-center justify-between gap-2 pt-4">
         <button onClick={() => setConfirmDelete(true)} className={btnDangerGhost}>
