@@ -1,0 +1,46 @@
+import { describe, expect, it } from "vitest";
+import { axisRange, barGeometry } from "./roadmap";
+
+const TODAY = new Date(Date.UTC(2026, 6, 26)); // 2026-07-26
+
+describe("axisRange", () => {
+  it("pads to whole months and includes today", () => {
+    const r = axisRange(
+      [{ start_date: "2026-01-15", end_date: "2026-03-10" }],
+      TODAY,
+    );
+    expect(new Date(r.startMs).toISOString().slice(0, 10)).toBe("2026-01-01");
+    // latest month is July (today) -> exclusive end = Aug 1
+    expect(new Date(r.endMs).toISOString().slice(0, 10)).toBe("2026-08-01");
+    expect(r.months).toHaveLength(7);
+    expect(r.months[0].label).toBe("Jan 26");
+    expect(r.months[0].leftPct).toBe(0);
+    expect(r.todayPct).toBeGreaterThan(85);
+  });
+
+  it("with no items spans today's month alone", () => {
+    const r = axisRange([], TODAY);
+    expect(r.months).toHaveLength(1);
+    expect(r.months[0].label).toBe("Jul 26");
+  });
+});
+
+describe("barGeometry", () => {
+  const range = axisRange(
+    [{ start_date: "2026-01-01", end_date: "2026-06-30" }],
+    TODAY,
+  ); // axis Jan 1 .. Aug 1 (212 days)
+
+  it("computes left and width percentages", () => {
+    const g = barGeometry({ start_date: "2026-01-01", end_date: "2026-06-30" }, range);
+    expect(g.leftPct).toBe(0);
+    expect(g.widthPct).toBeCloseTo((181 / 212) * 100, 1);
+  });
+
+  it("floors tiny bars at 1.5% and clamps into the axis", () => {
+    const g = barGeometry({ start_date: "2026-02-01", end_date: "2026-02-01" }, range);
+    expect(g.widthPct).toBe(1.5);
+    expect(g.leftPct).toBeGreaterThan(0);
+    expect(g.leftPct + g.widthPct).toBeLessThanOrEqual(100);
+  });
+});
