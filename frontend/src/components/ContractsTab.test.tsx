@@ -66,7 +66,7 @@ describe("ProductDetail Contracts tab", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Contracts" }));
     expect(await screen.findByText("SmartNet")).toBeInTheDocument();
     expect(screen.getByText("expiring")).toBeInTheDocument();
-    expect(screen.getAllByText(/15’000|15,000/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/15’000|15,000/)).toHaveLength(2);
     expect(screen.getByText(/1’200|1,200/)).toBeInTheDocument();
   });
 
