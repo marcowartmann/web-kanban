@@ -160,9 +160,11 @@ Menu({ trigger: (props: TriggerProps) => ReactNode; items: MenuItem[]; ariaLabel
 
 Accessible popover menu extracted from the StreamMenu pattern: outside-click
 and Escape close, arrow-key roving focus, Home/End, Enter/Space select,
-focus returns to the trigger on close. Adopted by RoadmapView's StreamMenu
-and by UserMenu (its two items become MenuItems; the header block and
-popover styling stay). Closes phase A's deferred ARIA finding.
+focus returns to the trigger on close. Adopted by RoadmapView's StreamMenu.
+UserMenu keeps its own popover (it carries a non-item header block the Menu
+API deliberately doesn't model — YAGNI) but adopts the same keyboard
+contract inline: arrow-key focus movement between its menu items and
+focus-return-to-trigger on Escape. Closes phase A's deferred ARIA finding.
 
 ## 3. DrawerShell + interaction unification
 
