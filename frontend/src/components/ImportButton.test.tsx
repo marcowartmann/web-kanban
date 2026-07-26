@@ -99,3 +99,21 @@ it("reports preview failures in the status line", async () => {
   expect(await screen.findByText(/Import failed: 400 Bad Request/)).toBeInTheDocument();
   expect(screen.queryByText("Replace all data from CSV?")).not.toBeInTheDocument();
 });
+
+it("Escape closes the modal", async () => {
+  mockPreview();
+  render(<ImportButton onImported={() => {}} />);
+  await openModal();
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByText("Replace all data from CSV?")).not.toBeInTheDocument();
+});
+
+it("Escape does not close while import is pending", async () => {
+  mockPreview();
+  vi.spyOn(client, "importCsv").mockImplementation(() => new Promise(() => {})); // never resolves
+  render(<ImportButton onImported={() => {}} />);
+  await openModal();
+  await userEvent.click(await screen.findByRole("button", { name: "Replace all data" }));
+  await userEvent.keyboard("{Escape}");
+  expect(screen.getByText("Replace all data from CSV?")).toBeInTheDocument();
+});

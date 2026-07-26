@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ConflictError, createItem, getItem, updateItem } from "../api/client";
 import { groupByStatus } from "../lib/groupByStatus";
 import type { Item } from "../types";
+import { zModal } from "./ui";
 import Badge from "./Badge";
 import Banner from "./Banner";
 import Column from "./Column";
@@ -91,9 +92,15 @@ export default function StoryBoardModal({
   const columns = groupByStatus(feature?.children ?? []);
   const isEmpty = columns.every((c) => c.cards.length === 0);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <div
-      className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 p-6 backdrop-blur-xs"
+      className={`fixed inset-0 ${zModal} flex items-center justify-center bg-black/40 p-6 backdrop-blur-xs`}
       onClick={onClose}
     >
       <div

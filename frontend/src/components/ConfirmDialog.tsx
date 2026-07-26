@@ -1,4 +1,4 @@
-import { btnDanger, btnGhost, modalPanelClass, overlayClass } from "./ui";
+import { btnDanger, btnGhost, modalPanelClass, overlayClass, zConfirm } from "./ui";
 
 /** Styled replacement for window.confirm — always danger-flavored, since it
  *  guards destructive actions. Cancel is autofocused so Enter can never
@@ -21,7 +21,7 @@ export default function ConfirmDialog({
     <div
       role="alertdialog"
       aria-label={title}
-      className={`${overlayClass} z-50`}
+      className={`${overlayClass} ${zConfirm}`}
       onClick={(e) => {
         // Mounted inside the drawer tree, a bubbling click would reach the
         // app's panel backdrop and close every open panel.

@@ -77,3 +77,19 @@ it("pins already-selected features above the rest", () => {
   const alpha = screen.getByLabelText("Alpha"); // unselected → below
   expect(beta.compareDocumentPosition(alpha) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
+
+it("Escape closes the modal", async () => {
+  const onClose = vi.fn();
+  render(
+    <ObjectiveEditor
+      teamId={1}
+      teamName="Network"
+      planningInterval="PI1-Q3"
+      features={[]}
+      onClose={onClose}
+      onSaved={() => {}}
+    />,
+  );
+  await userEvent.keyboard("{Escape}");
+  expect(onClose).toHaveBeenCalled();
+});

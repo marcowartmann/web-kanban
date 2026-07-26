@@ -80,3 +80,14 @@ it("drag handler patches the dropped story's status then reloads", async () => {
   expect(update).toHaveBeenCalledWith(6, { status: "New", version: 1 });
   expect(reload).toHaveBeenCalled();
 });
+
+it("Escape closes the modal", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(feature as never);
+  const onClose = vi.fn();
+  render(
+    <StoryBoardModal featureId={5} onClose={onClose} onOpenItem={() => {}} onChanged={() => {}} />,
+  );
+  await screen.findByText("Story Six");
+  await userEvent.keyboard("{Escape}");
+  expect(onClose).toHaveBeenCalled();
+});

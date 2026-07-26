@@ -136,3 +136,12 @@ it("create: a password without a username keeps Save disabled", async () => {
   await userEvent.type(screen.getByLabelText(/username/i), "cleo");
   expect(screen.getByRole("button", { name: /^save$/i })).not.toBeDisabled();
 });
+
+it("Escape closes the modal", async () => {
+  const onClose = vi.fn();
+  render(
+    <UserModal mode="create" teams={teams} departments={departments} currentUserId={1} onSaved={() => {}} onClose={onClose} />,
+  );
+  await userEvent.keyboard("{Escape}");
+  expect(onClose).toHaveBeenCalled();
+});

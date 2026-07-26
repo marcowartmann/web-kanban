@@ -41,3 +41,9 @@ export const popoverClass =
 
 export const closeButtonClass =
   "rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700";
+
+/** Z ladder: content popovers < drawer overlays < modals < ConfirmDialog. */
+export const zPopover = "z-20";
+export const zDrawer = "z-40";
+export const zModal = "z-50";
+export const zConfirm = "z-[60]";

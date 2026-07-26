@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPIObjective, setObjectiveFeatures, updatePIObjective } from "../api/client";
 import type { Item, ObjectiveState, PIObjective } from "../types";
 import PlainSelect from "./PlainSelect";
-import { btnGhost, inputClass, modalPanelClass, overlayClass } from "./ui";
+import { btnGhost, inputClass, modalPanelClass, overlayClass, zModal } from "./ui";
 
 const STATES: { value: ObjectiveState; label: string }[] = [
   { value: "committed", label: "Committed" },
@@ -50,6 +50,12 @@ export default function ObjectiveEditor({
   const toggleFeature = (id: number) =>
     setFeatureIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const save = async () => {
     setSaving(true);
     try {
@@ -82,7 +88,7 @@ export default function ObjectiveEditor({
   };
 
   return (
-    <div className={`${overlayClass} z-30`} onClick={onClose}>
+    <div className={`${overlayClass} ${zModal}`} onClick={onClose}>
       <div className={`${modalPanelClass} max-w-lg`} onClick={(e) => e.stopPropagation()}>
         <h2 className="mb-4 text-sm font-semibold text-gray-900">
           {existing ? "Edit" : "New"} PI Objective · {teamName} · {planningInterval}

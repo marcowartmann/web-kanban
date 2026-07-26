@@ -8,6 +8,7 @@ import { useBoard } from "../hooks/useBoard";
 import { getContainers, getDepartments, getObjectiveLinkedFeatures, getPersonOptions, getTeams } from "../api/client";
 import { ObjectiveLinksContext } from "../objectives/links";
 import { statusOptionsByKind } from "../lib/boardLanes";
+import { zDrawer } from "../components/ui";
 import type { AuthUser, Container, Department, PersonOption, Team } from "../types";
 
 export type WorkContext = ReturnType<typeof useBoard> & {
@@ -150,7 +151,7 @@ export default function WorkLayout() {
         />
       )}
       {panels.length > 0 && (
-        <div className="fixed inset-0 z-30 flex justify-end bg-black/30" onClick={closePanels}>
+        <div className={`fixed inset-0 ${zDrawer} flex justify-end bg-black/30`} onClick={closePanels}>
           {panels.map((id) => (
             <ItemDrawer
               key={id}

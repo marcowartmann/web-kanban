@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ConflictError, importCsv, previewImport } from "../api/client";
 import type { ImportPreview, ImportResult } from "../types";
 import Banner from "./Banner";
-import { btnDanger, btnGhost, btnSecondary, modalPanelClass, overlayClass } from "./ui";
+import { btnDanger, btnGhost, btnSecondary, modalPanelClass, overlayClass, zModal } from "./ui";
 
 export default function ImportButton({
   onImported,
@@ -65,6 +65,13 @@ export default function ImportButton({
   const titleLine = (list: string[], more: number) =>
     list.length ? list.join(", ") + (more > 0 ? ` … and ${more} more` : "") : null;
 
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && close();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [preview, busy]);
+
   return (
     <div className="flex items-center gap-3">
       <label
@@ -83,7 +90,7 @@ export default function ImportButton({
       {status && <span className="text-xs text-gray-500">{status}</span>}
       {preview && (
         <div
-          className={`${overlayClass} z-50`}
+          className={`${overlayClass} ${zModal}`}
           role="dialog"
           aria-label="Import preview"
           onClick={() => !busy && close()}

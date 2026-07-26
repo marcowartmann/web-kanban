@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConflictError, convertUserProvider, createUser, setUserDepartments, updateUser } from "../../api/client";
 import type { AuthUser, Department, Team } from "../../types";
 import Banner from "../Banner";
 import PlainSelect from "../PlainSelect";
-import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass } from "../ui";
+import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass, zModal } from "../ui";
 
 /** Extracts the server's `detail` message from a thrown request error. */
 function errorDetail(e: unknown): string {
@@ -116,8 +116,14 @@ export default function UserModal({
   const canConvert =
     mode === "edit" && !isSelf && user && (user.auth_provider === "local" || user.auth_provider === "ldap");
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className={`${overlayClass} z-30`} onClick={onClose}>
+    <div className={`${overlayClass} ${zModal}`} onClick={onClose}>
       <div className={`${modalPanelClass} max-w-md`} onClick={(e) => e.stopPropagation()}>
         <h2 className="mb-4 text-sm font-semibold text-gray-900">
           {mode === "create" ? "Add user" : `Edit ${user?.display_name}`}
