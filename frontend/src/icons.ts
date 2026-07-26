@@ -33,4 +33,19 @@ export {
   faChartColumn,
   faCloudArrowUp,
   faSitemap,
+  // sidebar navigation
+  faTableColumns,
+  faListCheck,
+  faTimeline,
+  faRankingStar,
+  faBoxesStacked,
+  faArrowsSpin,
+  faFileContract,
+  faMapLocationDot,
+  faGear,
+  faAnglesLeft,
+  faAnglesRight,
+  // roadmap stream actions (Task 8)
+  faEllipsisVertical,
+  faPlus,
 } from "@fortawesome/pro-duotone-svg-icons";

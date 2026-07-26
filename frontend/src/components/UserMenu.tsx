@@ -9,9 +9,13 @@ import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass, popo
 export default function UserMenu({
   user,
   onLoggedOut,
+  compact = false,
+  dropUp = false,
 }: {
   user: AuthUser;
   onLoggedOut: () => void;
+  compact?: boolean;
+  dropUp?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [changing, setChanging] = useState(false);
@@ -59,24 +63,32 @@ export default function UserMenu({
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label={compact ? user.display_name : undefined}
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 rounded-full border border-gray-200 bg-surface py-1 pl-1 pr-2.5 text-sm shadow-xs transition hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
       >
         <Avatar name={user.display_name} />
-        <span className="font-medium text-gray-700">{user.display_name}</span>
-        {user.role === "admin" && (
-          <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-700">
-            admin
-          </span>
+        {!compact && (
+          <>
+            <span className="font-medium text-gray-700">{user.display_name}</span>
+            {user.role === "admin" && (
+              <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-700">
+                admin
+              </span>
+            )}
+            <FontAwesomeIcon
+              icon={faChevronDown}
+              className={`text-xs text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </>
         )}
-        <FontAwesomeIcon
-          icon={faChevronDown}
-          className={`text-xs text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
-        />
       </button>
 
       {open && (
-        <div role="menu" className={`absolute right-0 z-30 mt-2 w-52 ${popoverClass}`}>
+        <div
+          role="menu"
+          className={`absolute z-30 w-52 ${dropUp ? "bottom-full left-0 mb-2" : "right-0 mt-2"} ${popoverClass}`}
+        >
           <div className="border-b border-gray-100 px-3 py-2">
             <p className="truncate text-sm font-medium text-gray-900">{user.display_name}</p>
             {user.email && <p className="truncate text-xs text-gray-400">{user.email}</p>}
