@@ -97,8 +97,13 @@ export default function RoadmapView() {
       const current = streams[index];
       const other = streams[index + direction];
       if (!current || !other) return;
-      await updateStream(current.id, { position: other.position });
-      await updateStream(other.id, { position: current.position });
+      // Write positions derived from display index (not the stored values
+      // being swapped) so the two calls are always distinct — even from an
+      // already-corrupted state where a prior partial swap left two streams
+      // sharing a position — and a failure of the second call can't wedge
+      // the order permanently.
+      await updateStream(current.id, { position: index + direction });
+      await updateStream(other.id, { position: index });
     });
 
   const commitRename = () =>

@@ -2,7 +2,11 @@
 
 Snapshots capture the three tables a CSV import destroys (items, comments,
 item_links) as raw persisted row values, so a restore can re-insert them
-byte-for-byte with their original ids.
+byte-for-byte with their original ids. Roadmap-item <-> feature links
+(roadmap_item_features) and PI-objective <-> feature links
+(pi_objective_features) are NOT captured here — they CASCADE-delete when the
+items wipe runs, and neither an import nor a restore re-creates them, so both
+paths only warn about the loss.
 """
 
 import hashlib
@@ -181,7 +185,7 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
     """
     from sqlalchemy import insert, text, update
 
-    from app.models import User
+    from app.models import User, pi_objective_features, roadmap_item_features
     from app.timeutil import DateTime
 
     def _revive(model, row: dict) -> dict:
@@ -194,6 +198,16 @@ def restore_from_snapshot(db: Session, data: dict) -> tuple[int, int, int, list[
         return out
 
     warnings: list[str] = []
+    roadmap_links = db.scalar(select(func.count()).select_from(roadmap_item_features)) or 0
+    if roadmap_links:
+        warnings.append(
+            f"{roadmap_links} roadmap feature link(s) removed — imported items are new records"
+        )
+    pi_links = db.scalar(select(func.count()).select_from(pi_objective_features)) or 0
+    if pi_links:
+        warnings.append(
+            f"{pi_links} PI objective feature link(s) removed — imported items are new records"
+        )
     db.query(Comment).delete()
     db.query(ItemLink).delete()
     db.query(Item).delete()

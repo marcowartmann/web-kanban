@@ -276,10 +276,20 @@ def _seed_planning_intervals(db, parsed) -> None:
 
 
 def replace_all(db, parsed):
-    from app.models import Item
+    from app.models import Item, pi_objective_features, roadmap_item_features
     from app.schemas import ImportResult
 
     stories = 0
+    roadmap_links = db.scalar(select(func.count()).select_from(roadmap_item_features)) or 0
+    if roadmap_links:
+        parsed.warnings.append(
+            f"{roadmap_links} roadmap feature link(s) removed — imported items are new records"
+        )
+    pi_links = db.scalar(select(func.count()).select_from(pi_objective_features)) or 0
+    if pi_links:
+        parsed.warnings.append(
+            f"{pi_links} PI objective feature link(s) removed — imported items are new records"
+        )
     db.query(Item).delete()
     assignee_ids = _resolve_people(db, parsed)
     for f_index, feature in enumerate(parsed.features):

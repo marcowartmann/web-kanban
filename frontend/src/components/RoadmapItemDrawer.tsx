@@ -198,6 +198,7 @@ export default function RoadmapItemDrawer({
           value={streamName}
           options={streams.map((s) => s.name)}
           onChange={setStreamName}
+          clearable={false}
         />
       </div>
 

@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from sqlalchemy import select
@@ -279,6 +279,69 @@ def test_restore_clears_dangling_departments_with_warning(client, db_session):
     assert "Cleared department for 1 item(s) whose department no longer exists" in body["warnings"]
     db_session.expire_all()
     assert db_session.query(Item).filter_by(title="Deptd").one().department_id is None
+
+
+def test_restore_warns_on_destroyed_roadmap_and_pi_objective_links(client, db_session):
+    """The items wipe CASCADE-deletes roadmap_item_features and
+    pi_objective_features rows in Postgres; neither table is captured by the
+    snapshot, so restore can only warn about the loss, not undo it."""
+    from app.models import (
+        Art,
+        PIObjective,
+        PlanningInterval,
+        Product,
+        RoadmapItem,
+        Stream,
+        Team,
+        pi_objective_features,
+        roadmap_item_features,
+    )
+
+    feature = Item(kind=ItemKind.FEATURE, title="Doomed feature", position=0)
+    db_session.add(feature)
+    db_session.flush()
+
+    art = Art(name="A")
+    db_session.add(art)
+    db_session.flush()
+    product = Product(name="Network", art_id=art.id)
+    db_session.add(product)
+    db_session.flush()
+    stream = Stream(name="Campus", product_id=product.id)
+    db_session.add(stream)
+    db_session.flush()
+    roadmap_item = RoadmapItem(
+        title="Rollout", stream_id=stream.id,
+        start_date=date(2026, 1, 1), end_date=date(2026, 6, 30),
+    )
+    db_session.add(roadmap_item)
+    db_session.flush()
+    db_session.execute(roadmap_item_features.insert().values(
+        roadmap_item_id=roadmap_item.id, feature_id=feature.id))
+
+    team = Team(name="Network")
+    pi = PlanningInterval(name="PI1-Q3", position=1)
+    db_session.add_all([team, pi])
+    db_session.flush()
+    objective = PIObjective(team_id=team.id, planning_interval_id=pi.id, title="Ship it")
+    db_session.add(objective)
+    db_session.flush()
+    db_session.execute(pi_objective_features.insert().values(
+        pi_objective_id=objective.id, item_id=feature.id))
+    db_session.commit()
+
+    name = write_snapshot(db_session, actor="a@x.local")
+    _wipe(db_session)
+
+    body = client.post(f"/api/v1/import/snapshots/{name}/restore").json()
+    assert (
+        "1 roadmap feature link(s) removed — imported items are new records"
+        in body["warnings"]
+    )
+    assert (
+        "1 PI objective feature link(s) removed — imported items are new records"
+        in body["warnings"]
+    )
 
 
 def test_restore_legacy_snapshot_warns_and_unassigns(client, db_session):
