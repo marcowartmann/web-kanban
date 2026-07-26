@@ -152,10 +152,13 @@ class Component:
     end_of_sale: date | None = None
     end_of_support: date | None = None
     end_of_life: date | None = None
+    yearly_run_cost: float | None = None
+    replacement_budget: float | None = None
     # read-side enrichments filled by adapters
     vendor_name: str | None = None
     product_name: str | None = None
     risk: RiskLevel = RiskLevel.OK
+    contracts: list["ContractSummary"] = field(default_factory=list)
 
 
 @dataclass
@@ -197,3 +200,60 @@ def component_risk(*, end_of_support: date | None, end_of_life: date | None,
 
 def worst_risk(levels: Iterable[RiskLevel]) -> RiskLevel:
     return max(levels, key=lambda lv: _RISK_ORDER[lv], default=RiskLevel.OK)
+
+
+class ContractStatus(str, enum.Enum):
+    ACTIVE = "active"
+    EXPIRING = "expiring"
+    EXPIRED = "expired"
+
+
+DEFAULT_NOTICE_DAYS = 90
+
+
+@dataclass
+class ContractComponentSummary:
+    id: int
+    name: str
+    product_name: str | None = None
+
+
+@dataclass
+class ContractSummary:
+    id: int
+    name: str
+    status: ContractStatus = ContractStatus.ACTIVE
+    end_date: date | None = None
+
+
+@dataclass
+class SupportContract:
+    id: int | None
+    name: str
+    product_id: int
+    contract_no: str | None = None
+    vendor_id: int | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    yearly_cost: float | None = None
+    notice_period_days: int | None = None
+    notes: str | None = None
+    # read-side enrichments filled by adapters
+    vendor_name: str | None = None
+    product_name: str | None = None
+    status: ContractStatus = ContractStatus.ACTIVE
+    components: list[ContractComponentSummary] = field(default_factory=list)
+
+
+def contract_status(*, end_date: date | None, notice_period_days: int | None,
+                    today: date) -> ContractStatus:
+    """expired once the end date passes; expiring inside the notice window
+    (90 days when none is set); evergreen contracts are always active."""
+    if end_date is None:
+        return ContractStatus.ACTIVE
+    if end_date <= today:
+        return ContractStatus.EXPIRED
+    window = notice_period_days if notice_period_days is not None else DEFAULT_NOTICE_DAYS
+    if end_date <= today + timedelta(days=window):
+        return ContractStatus.EXPIRING
+    return ContractStatus.ACTIVE
