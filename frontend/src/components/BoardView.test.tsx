@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import type { ComponentProps } from "react";
 import type { DragEndEvent } from "@dnd-kit/core";
 import * as client from "../api/client";
 import { ConflictError } from "../api/client";
@@ -35,8 +36,24 @@ const items: Item[] = [
     cost_of_delay: null, job_size: null, definition_of_done: null },
 ];
 
+function renderBoard(overrides: Partial<ComponentProps<typeof BoardView>> = {}) {
+  render(
+    <BoardView
+      board={board}
+      items={items}
+      links={[]}
+      filters={{}}
+      onOpenCard={() => {}}
+      onOpenStories={() => {}}
+      onChanged={() => {}}
+      laneEditing={false}
+      {...overrides}
+    />,
+  );
+}
+
 it("renders the board's lanes + Unscheduled and only the board's kinds", () => {
-  render(<BoardView board={board} items={items} links={[]} filters={{}} onOpenCard={() => {}} onOpenStories={() => {}} onChanged={() => {}} />);
+  renderBoard();
   expect(screen.getByText("Funnel")).toBeInTheDocument();
   expect(screen.getByText("Analyzing")).toBeInTheDocument();
   expect(screen.getByText("Unscheduled")).toBeInTheDocument();
@@ -54,18 +71,7 @@ it("container filter matches cards by their container's name", () => {
     { ...items[0], id: 1, title: "Feat A", container_id: 7 },
     { ...items[0], id: 3, title: "Feat C", container_id: null },
   ];
-  render(
-    <BoardView
-      board={board}
-      items={boxed}
-      links={[]}
-      filters={{ container: "Operations" }}
-      containers={containers}
-      onOpenCard={() => {}}
-      onOpenStories={() => {}}
-      onChanged={() => {}}
-    />,
-  );
+  renderBoard({ items: boxed, filters: { container: "Operations" }, containers });
   expect(screen.getByText("Feat A")).toBeInTheDocument();
   expect(screen.queryByText("Feat C")).toBeNull();
 });
@@ -76,20 +82,15 @@ it("department filter matches cards by their department name", () => {
     { ...items[0], id: 3, title: "Feat C", department_name: "Backend" },
     { ...items[0], id: 4, title: "Feat D", department_name: null },
   ];
-  render(
-    <BoardView
-      board={board}
-      items={carded}
-      links={[]}
-      filters={{ department: "Frontend" }}
-      onOpenCard={() => {}}
-      onOpenStories={() => {}}
-      onChanged={() => {}}
-    />,
-  );
+  renderBoard({ items: carded, filters: { department: "Frontend" } });
   expect(screen.getByText("Feat A")).toBeInTheDocument();
   expect(screen.queryByText("Feat C")).toBeNull();
   expect(screen.queryByText("Feat D")).toBeNull();
+});
+
+it("shows the lane editor only when laneEditing is set", () => {
+  renderBoard({ laneEditing: true });
+  expect(screen.getByRole("button", { name: "Add lane" })).toBeInTheDocument();
 });
 
 it("drag handler sets status to the lane (and '' for Unscheduled) then reloads", async () => {

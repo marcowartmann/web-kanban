@@ -5,14 +5,13 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ConflictError, updateItem } from "../api/client";
 import { UNSCHEDULED, buildBoardCards, groupIntoLanes } from "../lib/boardLanes";
 import type { Board, BoardCard, Container, Item, LinkRow } from "../types";
 import type { BoardFilters } from "./Toolbar";
 import Column from "./Column";
 import LaneEditor from "./LaneEditor";
-import { btnSecondary } from "./ui";
 
 export async function handleCardDragEnd(
   event: DragEndEvent,
@@ -73,6 +72,7 @@ export default function BoardView({
   onOpenStories,
   onChanged,
   canEditLanes = true,
+  laneEditing,
 }: {
   board: Board;
   items: Item[];
@@ -83,6 +83,7 @@ export default function BoardView({
   onOpenStories: (featureId: number) => void;
   onChanged: () => void | Promise<void>;
   canEditLanes?: boolean;
+  laneEditing: boolean;
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -92,18 +93,9 @@ export default function BoardView({
     return groupIntoLanes(visible(cards, board, filters, containers), board.lanes);
   }, [items, links, board, filters, containers]);
 
-  const [editing, setEditing] = useState(false);
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {canEditLanes && (
-        <div className="flex shrink-0 justify-end px-6 pt-3">
-          <button onClick={() => setEditing((v) => !v)} className={btnSecondary}>
-            {editing ? "Done" : "Edit lanes"}
-          </button>
-        </div>
-      )}
-      {canEditLanes && editing && <LaneEditor board={board} onChanged={onChanged} />}
+      {canEditLanes && laneEditing && <LaneEditor board={board} onChanged={onChanged} />}
       <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
         <DndContext
           sensors={sensors}

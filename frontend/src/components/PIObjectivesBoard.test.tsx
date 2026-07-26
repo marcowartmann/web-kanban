@@ -19,7 +19,18 @@ it("renders objectives in state columns with feature count and Key Delivery badg
     obj({ id: 1, title: "Committed KD", state: "committed", is_key_delivery: true }),
     obj({ id: 2, title: "Plan B", state: "uncommitted", is_key_delivery: false, feature_ids: [], feature_count: 0 }),
   ]);
-  render(<PIObjectivesBoard teams={teams} planningIntervals={["PI1-Q3"]} user={user} features={[]} onChanged={() => {}} />);
+  render(
+    <PIObjectivesBoard
+      teams={teams}
+      planningIntervals={["PI1-Q3"]}
+      user={user}
+      features={[]}
+      onChanged={() => {}}
+      team={null}
+      onTeamChange={() => {}}
+      addSignal={0}
+    />,
+  );
   expect(await screen.findByText("Committed KD")).toBeInTheDocument();
   expect(screen.getByText("Plan B")).toBeInTheDocument();
   expect(screen.getByText("Uncommitted")).toBeInTheDocument(); // column header (unique)

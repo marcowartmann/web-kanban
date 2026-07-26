@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from "react-router";
+import { BrowserRouter, Navigate, NavLink, Route, Routes } from "react-router";
 import BoardTabs from "./components/BoardTabs";
 import BoardView from "./components/BoardView";
-import PIObjectivesBoard from "./components/PIObjectivesBoard";
+import PIObjectivesBoard, { canAddObjective } from "./components/PIObjectivesBoard";
 import ContractsView from "./components/ContractsView";
 import ItemDrawer from "./components/ItemDrawer";
 import LifecycleView from "./components/LifecycleView";
@@ -18,6 +18,8 @@ import RoadmapView from "./components/RoadmapView";
 import TimelineView from "./components/TimelineView";
 import ThemeToggle from "./components/ThemeToggle";
 import UserMenu from "./components/UserMenu";
+import { btnPrimary, btnSecondary } from "./components/ui";
+import PageHeader from "./shell/PageHeader";
 import { useAuth } from "./auth/AuthContext";
 import { useBoard } from "./hooks/useBoard";
 import { getContainers, getDepartments, getObjectiveLinkedFeatures, getPersonOptions, getTeams } from "./api/client";
@@ -56,6 +58,9 @@ export function AppShell() {
   const closePanels = () => setPanels([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<BoardFilters>({});
+  const [objTeam, setObjTeam] = useState<string | null>(null);
+  const [addObjectiveSignal, setAddObjectiveSignal] = useState(0);
+  const [laneEditing, setLaneEditing] = useState(false);
   const [people, setPeople] = useState<PersonOption[]>([]);
   const [teamOptions, setTeamOptions] = useState<Team[]>([]);
   const [containers, setContainers] = useState<Container[]>([]);
@@ -110,8 +115,6 @@ export function AppShell() {
     void reload();
   };
 
-  const { pathname } = useLocation();
-
   const navLink = (target: string, label: string) => (
     <NavLink
       to={target}
@@ -125,55 +128,84 @@ export function AppShell() {
     </NavLink>
   );
 
-  const boardElement =
-    loading && !activeBoard ? (
-      <div className="p-8 text-gray-500">Loading board…</div>
-    ) : error ? (
-      <div className="p-8 text-red-600">{error}</div>
-    ) : activeBoard ? (
-      <>
-        <BoardTabs
-          boards={boards}
-          activeId={objectivesTab ? null : activeBoardId}
-          onSelect={selectBoard}
-          objectivesActive={objectivesTab}
-          onSelectObjectives={() => setObjectivesTab(true)}
-        />
-        {objectivesTab ? (
-          <PIObjectivesBoard
-            teams={teamOptions}
-            planningIntervals={planningIntervals}
-            user={user}
-            features={items.filter((i) => i.kind === "feature")}
-            onChanged={handleChanged}
+  const objTeamObj = objTeam ? teamOptions.find((t) => t.name === objTeam) ?? null : null;
+  const boardActions = objectivesTab ? (
+    <button
+      onClick={() => setAddObjectiveSignal((s) => s + 1)}
+      disabled={!canAddObjective(user, objTeamObj)}
+      title={canAddObjective(user, objTeamObj) ? undefined : "Select your team first"}
+      className={btnPrimary}
+    >
+      + New objective
+    </button>
+  ) : (
+    <>
+      <NewItemBar onCreated={handleChanged} />
+      {isAdmin && activeBoard && (
+        <button onClick={() => setLaneEditing((v) => !v)} className={btnSecondary}>
+          {laneEditing ? "Done" : "Edit lanes"}
+        </button>
+      )}
+    </>
+  );
+
+  const boardElement = (
+    <>
+      <PageHeader title="Board" actions={boardActions} />
+      {loading && !activeBoard ? (
+        <div className="p-8 text-gray-500">Loading board…</div>
+      ) : error ? (
+        <div className="p-8 text-red-600">{error}</div>
+      ) : activeBoard ? (
+        <>
+          <BoardTabs
+            boards={boards}
+            activeId={objectivesTab ? null : activeBoardId}
+            onSelect={selectBoard}
+            objectivesActive={objectivesTab}
+            onSelectObjectives={() => setObjectivesTab(true)}
           />
-        ) : (
-          <>
-            <Toolbar
-              filters={filters}
-              onChange={setFilters}
+          {objectivesTab ? (
+            <PIObjectivesBoard
+              teams={teamOptions}
               planningIntervals={planningIntervals}
-              teams={teams}
-              assignees={assignees}
-              containerNames={containerNames}
-              departmentNames={departmentNames}
-              kindOptions={activeBoard.kinds}
-            />
-            <BoardView
-              board={activeBoard}
-              items={items}
-              links={links}
-              filters={filters}
-              containers={containers}
-              onOpenCard={openItem}
-              onOpenStories={setOpenStoriesFeatureId}
+              user={user}
+              features={items.filter((i) => i.kind === "feature")}
               onChanged={handleChanged}
-              canEditLanes={isAdmin}
+              team={objTeam}
+              onTeamChange={setObjTeam}
+              addSignal={addObjectiveSignal}
             />
-          </>
-        )}
-      </>
-    ) : null;
+          ) : (
+            <>
+              <Toolbar
+                filters={filters}
+                onChange={setFilters}
+                planningIntervals={planningIntervals}
+                teams={teams}
+                assignees={assignees}
+                containerNames={containerNames}
+                departmentNames={departmentNames}
+                kindOptions={activeBoard.kinds}
+              />
+              <BoardView
+                board={activeBoard}
+                items={items}
+                links={links}
+                filters={filters}
+                containers={containers}
+                onOpenCard={openItem}
+                onOpenStories={setOpenStoriesFeatureId}
+                onChanged={handleChanged}
+                canEditLanes={isAdmin}
+                laneEditing={laneEditing}
+              />
+            </>
+          )}
+        </>
+      ) : null}
+    </>
+  );
 
   return (
     <ObjectiveLinksContext.Provider value={objectiveLinks}>
@@ -194,7 +226,6 @@ export function AppShell() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          {pathname === "/board" && <NewItemBar onCreated={handleChanged} />}
           <ThemeToggle />
           <UserMenu user={user} onLoggedOut={() => setUser(null)} />
         </div>

@@ -24,6 +24,13 @@ export function computeStateChange(from: ObjectiveState, to: ObjectiveState) {
   return { changed: from !== to, state: to };
 }
 
+/** Whether the user may add a new objective for the given team — requires a
+ *  selected team plus admin or membership on that team. Used by the page
+ *  header (to enable/disable "+ New objective") and internally here. */
+export function canAddObjective(user: AuthUser, team: Team | null): boolean {
+  return team != null && (user.role === "admin" || user.team_id === team.id);
+}
+
 function Column({ col, children }: { col: ObjectiveState; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id: col });
   return (
@@ -39,15 +46,20 @@ export default function PIObjectivesBoard({
   user,
   features,
   onChanged,
+  team,
+  onTeamChange,
+  addSignal,
 }: {
   teams: Team[];
   planningIntervals: string[];
   user: AuthUser;
   features: Item[];
   onChanged: () => void;
+  team: string | null;
+  onTeamChange: (t: string | null) => void;
+  addSignal: number;
 }) {
   const [pi, setPi] = useState<string>(planningIntervals[0] ?? "");
-  const [team, setTeam] = useState<string | null>(null);
   const [objectives, setObjectives] = useState<PIObjective[]>([]);
   const [editing, setEditing] = useState<PIObjective | "new" | null>(null);
 
@@ -57,6 +69,13 @@ export default function PIObjectivesBoard({
   }, [pi, team]);
 
   useEffect(reload, [reload]);
+
+  // The page header owns the "+ New objective" button; each increment of
+  // addSignal is one click. Guarded upstream by the disabled state.
+  useEffect(() => {
+    if (addSignal > 0) setEditing("new");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addSignal]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -83,7 +102,6 @@ export default function PIObjectivesBoard({
 
   const selectedTeam = team ? teams.find((t) => t.name === team) ?? null : null;
   const canEditTeam = (tid: number | undefined) => user.role === "admin" || (tid != null && user.team_id === tid);
-  const canAdd = selectedTeam != null && canEditTeam(selectedTeam.id);
   const editorTeam = editing === "new" ? selectedTeam : editing ? { id: editing.team_id, name: editing.team_name } : null;
 
   return (
@@ -100,19 +118,9 @@ export default function PIObjectivesBoard({
           label="Team"
           value={team ?? undefined}
           options={teams.map((t) => t.name)}
-          onChange={(v) => setTeam(v ?? null)}
+          onChange={(v) => onTeamChange(v ?? null)}
           allLabel="All teams"
         />
-        {canAdd ? (
-          <button
-            onClick={() => setEditing("new")}
-            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700"
-          >
-            + New objective
-          </button>
-        ) : (
-          <span className="text-xs text-gray-400">Select your team to add objectives</span>
-        )}
       </div>
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         <div className="grid min-h-0 flex-1 grid-cols-3 gap-4 overflow-auto p-6">

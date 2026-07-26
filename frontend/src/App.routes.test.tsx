@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
 import * as client from "./api/client";
@@ -75,4 +76,53 @@ it("/admin/import deep-links to the Import section", async () => {
 it("unknown admin sections fall back to Users", async () => {
   renderAt("/admin/bogus");
   expect(await screen.findByRole("link", { name: "Users" })).toHaveAttribute("aria-current", "page");
+});
+
+const BOARD = {
+  id: 1,
+  name: "Features & Stories",
+  kinds: ["feature", "story"],
+  lanes: [],
+} as never;
+
+it("the Board page header holds New Feature / New Risk and Edit lanes", async () => {
+  mockAppData("admin");
+  vi.spyOn(client, "getBoards").mockResolvedValue([BOARD] as never);
+  render(
+    <ThemeProvider>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/board"]}>
+          <AppShell />
+        </MemoryRouter>
+      </AuthProvider>
+    </ThemeProvider>,
+  );
+  expect(await screen.findByRole("button", { name: /new feature/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /new risk/i })).toBeInTheDocument();
+  // Edit lanes only renders once the board list has loaded and an active
+  // board is selected — the New Feature/Risk buttons mount immediately
+  // (they don't depend on board data), so this needs its own wait.
+  expect(await screen.findByRole("button", { name: "Edit lanes" })).toBeInTheDocument();
+});
+
+it("the New objective action is disabled until a team is chosen", async () => {
+  mockAppData("admin");
+  vi.spyOn(client, "getBoards").mockResolvedValue([BOARD] as never);
+  vi.spyOn(client, "getTeams").mockResolvedValue([{ id: 1, name: "Network" }] as never);
+  vi.spyOn(client, "getPIObjectives").mockResolvedValue([] as never);
+  render(
+    <ThemeProvider>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/board"]}>
+          <AppShell />
+        </MemoryRouter>
+      </AuthProvider>
+    </ThemeProvider>,
+  );
+  await userEvent.click(await screen.findByRole("button", { name: /pi objectives/i }));
+  const btn = await screen.findByRole("button", { name: /new objective/i });
+  expect(btn).toBeDisabled();
+  await userEvent.click(screen.getByRole("button", { name: /team/i }));
+  await userEvent.click(await screen.findByRole("option", { name: "Network" }));
+  expect(screen.getByRole("button", { name: /new objective/i })).toBeEnabled();
 });
