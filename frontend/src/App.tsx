@@ -3,6 +3,7 @@ import BoardTabs from "./components/BoardTabs";
 import BoardView from "./components/BoardView";
 import PIObjectivesBoard from "./components/PIObjectivesBoard";
 import ItemDrawer from "./components/ItemDrawer";
+import LifecycleView from "./components/LifecycleView";
 import NewItemBar from "./components/NewItemBar";
 import StoryBoardModal from "./components/StoryBoardModal";
 import Toolbar, { type BoardFilters } from "./components/Toolbar";
@@ -20,7 +21,7 @@ import { ObjectiveLinksContext } from "./objectives/links";
 import { statusOptionsByKind } from "./lib/boardLanes";
 import type { Container, Department, PersonOption, Team } from "./types";
 
-type View = "board" | "admin" | "planning" | "timeline" | "ranking" | "products";
+type View = "board" | "admin" | "planning" | "timeline" | "ranking" | "products" | "lifecycle";
 
 export default function App() {
   const { user, setUser } = useAuth();
@@ -132,6 +133,7 @@ export default function App() {
             {navButton("timeline", "Timeline")}
             {navButton("ranking", "Ranking")}
             {navButton("products", "Products")}
+            {navButton("lifecycle", "Lifecycle")}
             {isAdmin && navButton("admin", "Admin")}
           </nav>
         </div>
@@ -177,6 +179,8 @@ export default function App() {
         />
       ) : view === "products" ? (
         <ProductsView />
+      ) : view === "lifecycle" ? (
+        <LifecycleView />
       ) : loading && !activeBoard ? (
         <div className="p-8 text-gray-500">Loading board…</div>
       ) : error ? (
