@@ -165,14 +165,14 @@ export default function ItemDrawer({
 
   if (error)
     return (
-      <Drawer compact={compact}>
+      <Drawer compact={compact} onClose={onClose}>
         <CloseBar onClose={onClose} />
         <p className="p-6 text-sm text-red-600">{error}</p>
       </Drawer>
     );
   if (!item)
     return (
-      <Drawer compact={compact}>
+      <Drawer compact={compact} onClose={onClose}>
         <CloseBar onClose={onClose} />
         <div className="p-6">
           <SkeletonRows rows={6} />
@@ -607,21 +607,23 @@ export default function ItemDrawer({
   return (
     <Drawer
       compact={compact}
+      dirty={dirty}
+      onClose={onClose}
       footer={
         <div className="flex items-center gap-3">
-          {dirty && <span className="text-xs text-gray-400">Unsaved changes</span>}
-          <button
-            onClick={save}
-            disabled={!dirty}
-            className="ml-auto rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:cursor-default disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
-          >
-            Save
-          </button>
           <button
             onClick={() => setConfirmingDelete(true)}
             className="rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
           >
             Delete
+          </button>
+          {dirty && <span className="ml-auto text-xs text-gray-400">Unsaved changes</span>}
+          <button
+            onClick={save}
+            disabled={!dirty}
+            className={`${dirty ? "" : "ml-auto"} rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:cursor-default disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none`}
+          >
+            Save
           </button>
         </div>
       }
@@ -854,11 +856,23 @@ function Drawer({
   children,
   footer,
   compact = false,
+  dirty = false,
+  onClose,
 }: {
   children: React.ReactNode;
   footer?: React.ReactNode;
   compact?: boolean;
+  dirty?: boolean;
+  onClose: () => void;
 }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !dirty) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [dirty, onClose]);
+
   return (
     <aside
       data-testid="item-panel"

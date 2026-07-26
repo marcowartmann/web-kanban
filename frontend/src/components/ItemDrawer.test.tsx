@@ -132,6 +132,33 @@ it("cancelling the delete dialog keeps the item", async () => {
   expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 });
 
+it("footer renders Delete on the far left and Save on the right", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  render(<ItemDrawer itemId={5} onClose={() => {}} onChanged={() => {}} />);
+  const footer = (await screen.findByRole("button", { name: "Delete" })).closest("div")!;
+  const labels = within(footer).getAllByRole("button").map((b) => b.textContent);
+  expect(labels[0]).toBe("Delete");
+  expect(labels[labels.length - 1]).toBe("Save");
+});
+
+it("Escape closes a clean drawer", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  const onClose = vi.fn();
+  render(<ItemDrawer itemId={5} onClose={onClose} onChanged={() => {}} />);
+  await screen.findByDisplayValue("Teton Isolierung");
+  await userEvent.keyboard("{Escape}");
+  expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+it("Escape is ignored while there are unsaved changes", async () => {
+  vi.spyOn(client, "getItem").mockResolvedValue(item as never);
+  const onClose = vi.fn();
+  render(<ItemDrawer itemId={5} onClose={onClose} onChanged={() => {}} />);
+  await userEvent.type(await screen.findByLabelText("Title"), " more");
+  await userEvent.keyboard("{Escape}");
+  expect(onClose).not.toHaveBeenCalled();
+});
+
 it("shows the conflict notice and reloads on 409", async () => {
   vi.spyOn(client, "getItem").mockResolvedValue(item as never);
   vi.spyOn(client, "updateItem").mockRejectedValue(
