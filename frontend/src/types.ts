@@ -440,3 +440,32 @@ export interface ServiceTech {
   systems: CatalogSystem[];
   risk: RiskLevel;
 }
+
+// --- Roadmap -----------------------------------------------------------
+
+export type RoadmapStatus = "idea" | "planned" | "committed" | "done" | "cancelled";
+
+export interface LinkedFeature {
+  id: number;
+  title: string;
+  status: string | null;
+}
+
+export interface RoadmapItem {
+  id: number;
+  title: string;
+  description: string | null;
+  stream_id: number;
+  status: RoadmapStatus;
+  start_date: string;
+  end_date: string;
+  features: LinkedFeature[];
+}
+
+export interface Stream {
+  id: number;
+  name: string;
+  product_id: number;
+  position: number;
+  items: RoadmapItem[];
+}

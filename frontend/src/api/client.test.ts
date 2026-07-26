@@ -50,6 +50,17 @@ import {
   unlinkContractComponent,
   updateContract,
 } from "./client";
+import {
+  createRoadmapItem,
+  createStream,
+  deleteRoadmapItem,
+  deleteStream,
+  getProductRoadmap,
+  linkRoadmapFeature,
+  unlinkRoadmapFeature,
+  updateRoadmapItem,
+  updateStream,
+} from "./client";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -564,6 +575,93 @@ describe("api client", () => {
     const spy = mockFetch(200, { id: 1, components: [] });
     await unlinkContractComponent(1, 8);
     expect(spy.mock.calls[0][0]).toBe("/api/v1/contracts/1/components/8");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("getProductRoadmap GETs the nested roadmap route", async () => {
+    const spy = mockFetch(200, []);
+    await getProductRoadmap(4);
+    expect(spy).toHaveBeenCalledWith("/api/v1/products/4/roadmap", undefined);
+  });
+
+  it("createStream POSTs name + product_id", async () => {
+    const spy = mockFetch(201, { id: 1, name: "Stream A", product_id: 4, position: 0, items: [] });
+    await createStream("Stream A", 4);
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/streams");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "Stream A", product_id: 4 });
+  });
+
+  it("updateStream PATCHes changes", async () => {
+    const spy = mockFetch(200, { id: 1, name: "Stream B", product_id: 4, position: 1, items: [] });
+    await updateStream(1, { name: "Stream B", position: 1 });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/streams/1");
+    expect(init?.method).toBe("PATCH");
+    expect(JSON.parse(init?.body as string)).toEqual({ name: "Stream B", position: 1 });
+  });
+
+  it("deleteStream sends DELETE", async () => {
+    const spy = mockFetch(204, null);
+    await deleteStream(1);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/streams/1");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("createRoadmapItem POSTs the payload", async () => {
+    const spy = mockFetch(201, {
+      id: 1, title: "Item A", description: null, stream_id: 1,
+      status: "idea", start_date: "2026-01-01", end_date: "2026-03-31", features: [],
+    });
+    await createRoadmapItem({ title: "Item A", stream_id: 1, start_date: "2026-01-01", end_date: "2026-03-31" });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/roadmap-items");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({
+      title: "Item A", stream_id: 1, start_date: "2026-01-01", end_date: "2026-03-31",
+    });
+  });
+
+  it("updateRoadmapItem PATCHes changes", async () => {
+    const spy = mockFetch(200, {
+      id: 1, title: "Item B", description: null, stream_id: 1,
+      status: "planned", start_date: "2026-01-01", end_date: "2026-03-31", features: [],
+    });
+    await updateRoadmapItem(1, { status: "planned" });
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/roadmap-items/1");
+    expect(init?.method).toBe("PATCH");
+    expect(JSON.parse(init?.body as string)).toEqual({ status: "planned" });
+  });
+
+  it("deleteRoadmapItem sends DELETE", async () => {
+    const spy = mockFetch(204, null);
+    await deleteRoadmapItem(1);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/roadmap-items/1");
+    expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
+  });
+
+  it("linkRoadmapFeature POSTs feature_id", async () => {
+    const spy = mockFetch(201, {
+      id: 1, title: "Item A", description: null, stream_id: 1,
+      status: "idea", start_date: "2026-01-01", end_date: "2026-03-31",
+      features: [{ id: 9, title: "Feat", status: "New" }],
+    });
+    await linkRoadmapFeature(1, 9);
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toBe("/api/v1/roadmap-items/1/features");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ feature_id: 9 });
+  });
+
+  it("unlinkRoadmapFeature DELETEs the linked feature", async () => {
+    const spy = mockFetch(200, {
+      id: 1, title: "Item A", description: null, stream_id: 1,
+      status: "idea", start_date: "2026-01-01", end_date: "2026-03-31", features: [],
+    });
+    await unlinkRoadmapFeature(1, 9);
+    expect(spy.mock.calls[0][0]).toBe("/api/v1/roadmap-items/1/features/9");
     expect(spy.mock.calls[0][1]?.method).toBe("DELETE");
   });
 });

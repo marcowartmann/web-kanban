@@ -31,11 +31,14 @@ import type {
   Product,
   RelationOption,
   RestoreResult,
+  RoadmapItem,
+  RoadmapStatus,
   ServiceDependencies,
   ServiceDependencyRead,
   ServiceOption,
   ServiceTech,
   SnapshotInfo,
+  Stream,
   SupportContract,
   Team,
   Vendor,
@@ -743,6 +746,66 @@ export function linkContractComponent(contractId: number, componentId: number): 
 
 export function unlinkContractComponent(contractId: number, componentId: number): Promise<SupportContract> {
   return request<SupportContract>(`${API}/contracts/${contractId}/components/${componentId}`, {
+    method: "DELETE",
+  });
+}
+
+// --- Roadmap -----------------------------------------------------------
+
+export function getProductRoadmap(productId: number): Promise<Stream[]> {
+  return request<Stream[]>(`${API}/products/${productId}/roadmap`);
+}
+
+export function createStream(name: string, productId: number): Promise<Stream> {
+  return request<Stream>(`${API}/streams`, json({ name, product_id: productId }));
+}
+
+export function updateStream(
+  id: number,
+  changes: Partial<{ name: string; position: number }>,
+): Promise<Stream> {
+  return request<Stream>(`${API}/streams/${id}`, { ...json(changes), method: "PATCH" });
+}
+
+export function deleteStream(id: number): Promise<void> {
+  return request<void>(`${API}/streams/${id}`, { method: "DELETE" });
+}
+
+export function createRoadmapItem(payload: {
+  title: string;
+  stream_id: number;
+  start_date: string;
+  end_date: string;
+  description?: string | null;
+  status?: RoadmapStatus;
+}): Promise<RoadmapItem> {
+  return request<RoadmapItem>(`${API}/roadmap-items`, json(payload));
+}
+
+export function updateRoadmapItem(
+  id: number,
+  changes: Partial<{
+    title: string;
+    description: string | null;
+    stream_id: number;
+    status: RoadmapStatus;
+    start_date: string;
+    end_date: string;
+  }>,
+): Promise<RoadmapItem> {
+  return request<RoadmapItem>(`${API}/roadmap-items/${id}`, { ...json(changes), method: "PATCH" });
+}
+
+export function deleteRoadmapItem(id: number): Promise<void> {
+  return request<void>(`${API}/roadmap-items/${id}`, { method: "DELETE" });
+}
+
+export function linkRoadmapFeature(id: number, featureId: number): Promise<RoadmapItem> {
+  return request<RoadmapItem>(`${API}/roadmap-items/${id}/features`, json({ feature_id: featureId }));
+}
+
+export function unlinkRoadmapFeature(id: number, featureId: number): Promise<RoadmapItem> {
+  return request<RoadmapItem>(`${API}/roadmap-items/${id}/features/${featureId}`, {
     method: "DELETE",
   });
 }
