@@ -176,7 +176,7 @@ export default function RankingView({
         <FilterSelect label="Container" value={container} options={[...new Set(containers.map((c) => c.name))]} onChange={setContainer} />
         <FilterSelect label="Department" value={department} options={departmentNames} onChange={setDepartment} />
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-auto p-6 lg:grid-cols-2">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-auto px-6 py-4 lg:grid-cols-2">
         <section>
           <h2 className="mb-2 text-sm font-semibold text-gray-700">WSJF ranking</h2>
           <div data-testid="wsjf-list" className="space-y-1">

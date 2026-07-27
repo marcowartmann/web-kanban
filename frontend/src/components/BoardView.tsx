@@ -96,7 +96,7 @@ export default function BoardView({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {canEditLanes && laneEditing && <LaneEditor board={board} onChanged={onChanged} />}
-      <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
         <DndContext
           sensors={sensors}
           onDragEnd={(event) => void handleCardDragEnd(event, items, onChanged)}

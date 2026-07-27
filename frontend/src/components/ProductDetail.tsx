@@ -272,7 +272,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           </>
         }
       />
-      <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
         {product.description && (
           <p className="mb-4 max-w-2xl text-sm text-gray-600">{product.description}</p>
         )}

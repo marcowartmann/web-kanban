@@ -34,7 +34,7 @@ export default function ProductsView() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Products" />
-      <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
         {loading ? (
           <SkeletonCards />
         ) : products.length === 0 ? (

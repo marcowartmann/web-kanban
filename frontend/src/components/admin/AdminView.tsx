@@ -54,7 +54,7 @@ export default function AdminView({
     <div className="flex min-h-0 flex-1 flex-col">
       <PageHeader title="Administration" subtitle="Manage teams, people, planning intervals, and capacity." />
       <div className="min-h-0 flex-1 overflow-auto">
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-start gap-6">
             <nav aria-label="Admin sections" className="sticky top-8 w-52 shrink-0">
               <ul className="flex flex-col gap-0.5">

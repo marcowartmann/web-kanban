@@ -128,7 +128,7 @@ export default function PIObjectivesBoard({
         />
       </div>
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="grid min-h-0 flex-1 grid-cols-3 gap-4 overflow-auto p-6">
+        <div className="grid min-h-0 flex-1 grid-cols-3 gap-4 overflow-auto px-6 py-4">
           {COLUMNS.map((col) => {
             const inColumn = objectives.filter((o) => o.state === col.key);
             return (
