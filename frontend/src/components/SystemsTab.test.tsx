@@ -127,6 +127,18 @@ describe("ProductDetail Systems tab", () => {
     expect(vi.mocked(getProductSystems).mock.calls.length).toBeGreaterThan(callsBefore);
   });
 
+  it("shows an error banner (not the empty state) when systems fail to load", async () => {
+    vi.mocked(getProductSystems).mockRejectedValue(new Error("Network down"));
+    render(
+      <MemoryRouter>
+        <ProductDetail product={product} />
+      </MemoryRouter>,
+    );
+    await userEvent.click(await screen.findByRole("tab", { name: "Systems" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Network down");
+    expect(screen.queryByText(/no systems yet/i)).not.toBeInTheDocument();
+  });
+
   it("shows a fresh empty quantity after removing then re-adding a member", async () => {
     vi.mocked(getProductSystems).mockResolvedValue([system]);
     vi.mocked(getProductComponents).mockResolvedValue([comp, comp2]);

@@ -59,3 +59,18 @@ it("renames a department inline (Enter commits, Escape cancels)", async () => {
   await userEvent.type(input, "Network Ops{Enter}");
   expect(client.renameDepartment).toHaveBeenCalledWith(expect.any(Number), "Network Ops");
 });
+
+it("cancels an inline rename on Escape without saving", async () => {
+  mockData();
+  const rename = vi.spyOn(client, "renameDepartment").mockResolvedValue(
+    { id: 3, name: "Network Ops", team_id: 1, team_name: "Net", member_ids: [] } as never,
+  );
+  render(<DepartmentsSection onChanged={vi.fn()} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Rename" }));
+  const input = screen.getByLabelText(/rename department/i);
+  await userEvent.clear(input);
+  await userEvent.type(input, "Discarded{Escape}");
+  expect(rename).not.toHaveBeenCalledWith(expect.any(Number), "Discarded");
+  expect(screen.queryByLabelText(/rename department/i)).not.toBeInTheDocument();
+  expect(screen.getByText("Frontend")).toBeInTheDocument();
+});

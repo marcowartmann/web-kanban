@@ -169,52 +169,48 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [editingContract, setEditingContract] = useState<SupportContract | null>(null);
   const [contractsLoaded, setContractsLoaded] = useState(false);
 
-  const load = useCallback(
-    () =>
-      getProductServices(product.id)
-        .then(setTree)
-        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
-        .finally(() => setServicesLoaded(true)),
-    [product.id],
-  );
+  const load = useCallback(() => {
+    setError(null);
+    return getProductServices(product.id)
+      .then(setTree)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setServicesLoaded(true));
+  }, [product.id]);
   useEffect(() => {
     void load();
   }, [load]);
 
-  const loadComponents = useCallback(
-    () =>
-      getProductComponents(product.id)
-        .then(setComponents)
-        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
-        .finally(() => setComponentsLoaded(true)),
-    [product.id],
-  );
+  const loadComponents = useCallback(() => {
+    setError(null);
+    return getProductComponents(product.id)
+      .then(setComponents)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setComponentsLoaded(true));
+  }, [product.id]);
   // The Systems tab's drawer needs the product's components too (member
   // picker), and the Contracts tab's totals footer sums their run costs.
   useEffect(() => {
     if (tab === "components" || tab === "systems" || tab === "contracts") void loadComponents();
   }, [tab, loadComponents]);
 
-  const loadSystems = useCallback(
-    () =>
-      getProductSystems(product.id)
-        .then(setSystems)
-        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
-        .finally(() => setSystemsLoaded(true)),
-    [product.id],
-  );
+  const loadSystems = useCallback(() => {
+    setError(null);
+    return getProductSystems(product.id)
+      .then(setSystems)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setSystemsLoaded(true));
+  }, [product.id]);
   useEffect(() => {
     if (tab === "systems") void loadSystems();
   }, [tab, loadSystems]);
 
-  const loadContracts = useCallback(
-    () =>
-      getProductContracts(product.id)
-        .then(setContracts)
-        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
-        .finally(() => setContractsLoaded(true)),
-    [product.id],
-  );
+  const loadContracts = useCallback(() => {
+    setError(null);
+    return getProductContracts(product.id)
+      .then(setContracts)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setContractsLoaded(true));
+  }, [product.id]);
   useEffect(() => {
     if (tab === "contracts") void loadContracts();
   }, [tab, loadContracts]);
@@ -306,6 +302,12 @@ export default function ProductDetail({ product }: { product: Product }) {
           />
         </div>
 
+        {error && (
+          <div className="mb-4">
+            <Banner tone="error">{error}</Banner>
+          </div>
+        )}
+
         {tab === "services" && (
           <>
             {addTarget && (
@@ -328,14 +330,9 @@ export default function ProductDetail({ product }: { product: Product }) {
                 </button>
               </div>
             )}
-            {error && (
-              <div className="mb-4">
-                <Banner tone="error">{error}</Banner>
-              </div>
-            )}
             {!servicesLoaded ? (
               <SkeletonRows />
-            ) : tree.length === 0 ? (
+            ) : tree.length === 0 && !error ? (
               <EmptyState>No services yet.</EmptyState>
             ) : (
               tree.map((s) => (
@@ -355,7 +352,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           <>
             {!systemsLoaded ? (
               <SkeletonRows />
-            ) : systems.length === 0 ? (
+            ) : systems.length === 0 && !error ? (
               <EmptyState>No systems yet.</EmptyState>
             ) : (
               systems.map((s) => (
@@ -376,7 +373,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           <>
             {!componentsLoaded ? (
               <SkeletonRows />
-            ) : components.length === 0 ? (
+            ) : components.length === 0 && !error ? (
               <EmptyState>No components yet.</EmptyState>
             ) : (
               components.map((c) => (
@@ -397,7 +394,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           <>
             {!contractsLoaded ? (
               <SkeletonRows />
-            ) : contracts.length === 0 ? (
+            ) : contracts.length === 0 && !error ? (
               <EmptyState>No contracts yet.</EmptyState>
             ) : (
               contracts.map((c) => (
