@@ -1,5 +1,7 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { createSystem, deleteSystem, removeSystemMember, setSystemMember, updateSystem } from "../api/client";
+import { faXmark } from "../icons";
 import type { CatalogSystem, Component, LifecycleStage } from "../types";
 import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
@@ -193,7 +195,7 @@ export default function SystemDrawer({
                   onClick={() => void removeMember(m.component.id)}
                   className="text-xs text-gray-400 hover:text-red-600"
                 >
-                  ✕
+                  <FontAwesomeIcon icon={faXmark} aria-hidden />
                 </button>
               </li>
             ))}

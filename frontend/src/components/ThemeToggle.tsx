@@ -1,5 +1,5 @@
-import { faMoon, faSun } from "@fortawesome/pro-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMoon, faSun } from "../icons";
 import { useTheme } from "../theme/ThemeContext";
 import { btnGhost } from "./ui";
 

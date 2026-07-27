@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import {
   createContract,
@@ -8,6 +9,7 @@ import {
   unlinkContractComponent,
   updateContract,
 } from "../api/client";
+import { faXmark } from "../icons";
 import type { Component, ContractComponentRef, SupportContract } from "../types";
 import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
@@ -238,7 +240,7 @@ export default function ContractDrawer({
                   onClick={() => void unlinkComponent(c.id)}
                   className="text-xs text-gray-400 hover:text-red-600"
                 >
-                  ✕
+                  <FontAwesomeIcon icon={faXmark} aria-hidden />
                 </button>
               </li>
             ))}

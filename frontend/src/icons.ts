@@ -48,4 +48,8 @@ export {
   // roadmap stream actions (Task 8)
   faEllipsisVertical,
   faPlus,
+  // page chrome
+  faChevronLeft,
+  faMoon,
+  faSun,
 } from "@fortawesome/pro-duotone-svg-icons";

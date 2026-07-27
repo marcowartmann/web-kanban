@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import {
   createRoadmapItem,
@@ -7,6 +8,7 @@ import {
   unlinkRoadmapFeature,
   updateRoadmapItem,
 } from "../api/client";
+import { faXmark } from "../icons";
 import type { LinkedFeature, RoadmapItem, RoadmapStatus, Stream } from "../types";
 import Banner from "./Banner";
 import ConfirmDialog from "./ConfirmDialog";
@@ -221,7 +223,7 @@ export default function RoadmapItemDrawer({
                   onClick={() => void unlinkFeature(f.id)}
                   className="text-xs text-gray-400 hover:text-red-600"
                 >
-                  ✕
+                  <FontAwesomeIcon icon={faXmark} aria-hidden />
                 </button>
               </li>
             ))}

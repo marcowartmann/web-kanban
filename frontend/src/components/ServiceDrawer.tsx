@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useCallback, useEffect, useState } from "react";
 import {
   addServiceDependency,
@@ -15,6 +16,7 @@ import {
   removeServiceTechSystem,
   updateService,
 } from "../api/client";
+import { faXmark } from "../icons";
 import type {
   CatalogService,
   CatalogSystem,
@@ -268,7 +270,7 @@ export default function ServiceDrawer({
               onClick={() => void removeDep(d.id)}
               className="text-xs text-gray-400 hover:text-red-600"
             >
-              ✕
+              <FontAwesomeIcon icon={faXmark} aria-hidden />
             </button>
           </li>
         ))}
@@ -327,7 +329,7 @@ export default function ServiceDrawer({
               onClick={() => void removeSystem(s.id)}
               className="text-xs text-gray-400 hover:text-red-600"
             >
-              ✕
+              <FontAwesomeIcon icon={faXmark} aria-hidden />
             </button>
           </li>
         ))}
@@ -340,7 +342,7 @@ export default function ServiceDrawer({
               onClick={() => void removeComponent(c.id)}
               className="text-xs text-gray-400 hover:text-red-600"
             >
-              ✕
+              <FontAwesomeIcon icon={faXmark} aria-hidden />
             </button>
           </li>
         ))}

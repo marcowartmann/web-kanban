@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useCallback, useEffect, useState } from "react";
 import {
   createService,
@@ -6,6 +7,7 @@ import {
   getProductServices,
   getProductSystems,
 } from "../api/client";
+import { faChevronDown, faChevronRight, faPlus } from "../icons";
 import PageHeader from "../shell/PageHeader";
 import type { CatalogService, CatalogSystem, Component, LifecycleState, Product, SupportContract } from "../types";
 import Badge, { type BadgeTone } from "./Badge";
@@ -67,7 +69,7 @@ function ServiceNode({
             onClick={() => setOpen((v) => !v)}
             className="text-xs text-gray-400 hover:text-gray-600"
           >
-            {open ? "▾" : "▸"}
+            <FontAwesomeIcon icon={open ? faChevronDown : faChevronRight} aria-hidden className="text-xs" />
           </button>
         )}
         <button onClick={() => onOpen(service)} className="flex-1 text-left text-sm font-medium text-gray-800">
@@ -79,7 +81,7 @@ function ServiceNode({
           onClick={() => onAddChild(service)}
           className="rounded-sm px-1 text-xs text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
         >
-          +
+          <FontAwesomeIcon icon={faPlus} aria-hidden className="text-xs" />
         </button>
         {service.owner_name && <span className="text-xs text-gray-400">{service.owner_name}</span>}
         <Badge tone={SERVICE_TONE[service.lifecycle_state]}>{service.lifecycle_state}</Badge>
