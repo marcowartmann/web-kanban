@@ -27,7 +27,7 @@ export default function ProductDetailPage() {
 
   if (error) {
     return (
-      <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
         <div className="mb-4">
           <Banner tone="error">{error}</Banner>
         </div>
@@ -40,7 +40,7 @@ export default function ProductDetailPage() {
   }
   if (!product)
     return (
-      <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
         <SkeletonRows rows={6} />
       </div>
     );

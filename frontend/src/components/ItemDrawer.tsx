@@ -656,7 +656,7 @@ export default function ItemDrawer({
               onClick={() => onOpenParent!(item.parent_id!)}
               className="group mx-5 mt-1.5 flex max-w-full items-center gap-1.5 text-xs"
             >
-              <span className="shrink-0 font-semibold uppercase tracking-wide text-gray-400">
+              <span className={`shrink-0 ${captionClass}`}>
                 Parent feature
               </span>
               <span aria-hidden className="text-xs text-gray-300">
