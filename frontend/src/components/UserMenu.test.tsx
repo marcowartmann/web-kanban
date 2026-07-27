@@ -59,3 +59,12 @@ it("Escape closes the menu and returns focus to the trigger", async () => {
   expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   expect(trigger).toHaveFocus();
 });
+
+it("Escape closes the password modal", async () => {
+  render(<UserMenu user={admin} onLoggedOut={() => {}} />);
+  await userEvent.click(screen.getByRole("button", { name: /anna/i }));
+  await userEvent.click(screen.getByRole("menuitem", { name: /change password/i }));
+  expect(screen.getByRole("heading", { name: "Change password" })).toBeInTheDocument();
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("heading", { name: "Change password" })).not.toBeInTheDocument();
+});

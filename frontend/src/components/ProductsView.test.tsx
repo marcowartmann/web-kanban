@@ -68,4 +68,14 @@ describe("ProductsView", () => {
     await userEvent.click(await screen.findByText("Network"));
     expect(await screen.findByText("DETAIL PROBE")).toBeInTheDocument();
   });
+
+  it("shows skeleton cards while products load", () => {
+    vi.spyOn(client, "getProducts").mockReturnValue(new Promise(() => {}));
+    render(
+      <MemoryRouter>
+        <ProductsView />
+      </MemoryRouter>,
+    );
+    expect(screen.getByLabelText("Loading")).toBeInTheDocument();
+  });
 });

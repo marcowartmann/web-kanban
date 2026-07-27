@@ -167,7 +167,7 @@ export default function StoryBoardModal({
           {feature && isEmpty ? (
             <div className="flex flex-col items-center justify-center gap-1 p-12 text-center">
               <p className="text-sm font-medium text-gray-600">No stories yet</p>
-              <p className="text-sm text-gray-400">Use "Add story" to add the first one.</p>
+              <p className="text-sm text-gray-400">Use “Add story” to add the first one.</p>
             </div>
           ) : (
             <DndContext sensors={sensors} onDragEnd={(e) => void onDragEnd(e)}>

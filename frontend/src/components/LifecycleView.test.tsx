@@ -32,7 +32,7 @@ describe("LifecycleView", () => {
     render(<LifecycleView />);
     expect(screen.getByRole("heading", { name: "Lifecycle" })).toBeInTheDocument();
     expect(screen.getByLabelText("Loading")).toBeInTheDocument();
-    expect(screen.queryByText("No components yet")).not.toBeInTheDocument();
+    expect(screen.queryByText(/no components yet/i)).not.toBeInTheDocument();
   });
 
   it("renders the component table", async () => {
