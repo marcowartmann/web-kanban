@@ -19,6 +19,7 @@ import FilterSelect from "./FilterSelect";
 import SegmentedToggle from "./SegmentedToggle";
 import TimelineLane, { type TimelineColumn } from "./TimelineLane";
 import TogglePill from "./TogglePill";
+import { captionClass } from "./ui";
 
 export async function handleTimelineDragEnd(
   event: DragEndEvent,
@@ -164,7 +165,7 @@ export default function TimelineView({
           allowAll={false}
         />
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Mode</span>
+          <span className={captionClass}>Mode</span>
           <SegmentedToggle
             ariaLabel="Mode"
             value={mode}
@@ -183,7 +184,7 @@ export default function TimelineView({
         {mode === "feature" && (
           <>
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Lanes</span>
+              <span className={captionClass}>Lanes</span>
               <SegmentedToggle
                 ariaLabel="Lanes"
                 value={showAll ? "all" : "planned"}

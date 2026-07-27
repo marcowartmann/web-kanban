@@ -200,9 +200,7 @@ export default function ContainersSection({
             options={teams.map((t) => t.name)}
             onChange={setTeamFilter}
           />
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-            Planning Interval
-          </span>
+          <span className={captionClass}>Planning Interval</span>
           <SegmentedToggle
             ariaLabel="Planning Interval"
             value={pi ?? ""}

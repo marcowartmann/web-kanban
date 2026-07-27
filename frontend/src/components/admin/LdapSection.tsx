@@ -4,7 +4,7 @@ import { getLdapConfig, saveLdapConfig, testLdap } from "../../api/client";
 import { faLock } from "../../icons";
 import type { LdapConfig } from "../../types";
 import Banner from "../Banner";
-import { btnPrimary, btnSecondary } from "../ui";
+import { btnPrimary, btnSecondary, captionClass } from "../ui";
 import { adminCardClass, adminInputClass } from "./AdminCard";
 
 const PRESETS = {
@@ -38,7 +38,7 @@ export default function LdapSection() {
   const patch = (p: Partial<LdapConfig>) => setCfg({ ...cfg, ...p });
   const field = (label: string, node: React.ReactNode) => (
     <label className="mb-3 block">
-      <span className="mb-1 block text-xs font-medium text-gray-500">{label}</span>
+      <span className={`mb-1 block ${captionClass}`}>{label}</span>
       {node}
     </label>
   );
@@ -97,14 +97,14 @@ export default function LdapSection() {
       </label>
 
       <div className="mb-2 flex items-center gap-1.5">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Preset</span>
+        <span className={captionClass}>Preset</span>
         <button type="button" onClick={() => patch(PRESETS.openldap)} className={btnSecondary}>OpenLDAP</button>
         <button type="button" onClick={() => patch(PRESETS.ad)} className={btnSecondary}>Active Directory</button>
       </div>
 
       <div className="grid gap-x-6 md:grid-cols-2">
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Server</h3>
+          <h3 className={`mb-2 ${captionClass}`}>Server</h3>
           {field("Server URI", <input aria-label="Server URI" value={cfg.server_uri} onChange={(e) => patch({ server_uri: e.target.value })} placeholder="ldaps://dc.corp.example.com:636" className={`w-full ${adminInputClass}`} />)}
           <label className="mb-3 flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={cfg.start_tls} onChange={(e) => patch({ start_tls: e.target.checked })} /> Use StartTLS (for ldap:// on port 389)
@@ -120,13 +120,13 @@ export default function LdapSection() {
         </div>
 
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Directory mapping</h3>
+          <h3 className={`mb-2 ${captionClass}`}>Directory mapping</h3>
           {field("Base DN", <input aria-label="Base DN" value={cfg.base_dn} onChange={(e) => patch({ base_dn: e.target.value })} placeholder="DC=corp,DC=example,DC=com" className={`w-full ${adminInputClass}`} />)}
           {field("User filter ({uid} = login name)", <input aria-label="User filter" value={cfg.user_filter} onChange={(e) => patch({ user_filter: e.target.value })} className={`w-full font-mono text-xs ${adminInputClass}`} />)}
           {field("Email attribute", <input aria-label="Email attribute" value={cfg.attr_email} onChange={(e) => patch({ attr_email: e.target.value })} className={`w-full ${adminInputClass}`} />)}
           {field("Display-name attribute", <input aria-label="Display-name attribute" value={cfg.attr_display_name} onChange={(e) => patch({ attr_display_name: e.target.value })} className={`w-full ${adminInputClass}`} />)}
 
-          <h3 className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-gray-400">Test a login (optional)</h3>
+          <h3 className={`mb-2 mt-4 ${captionClass}`}>Test a login (optional)</h3>
           {field("Test username", <input aria-label="Test username" value={testUser} onChange={(e) => setTestUser(e.target.value)} className={`w-full ${adminInputClass}`} />)}
           {field("Test password", <input aria-label="Test password" type="password" value={testPass} onChange={(e) => setTestPass(e.target.value)} className={`w-full ${adminInputClass}`} />)}
         </div>

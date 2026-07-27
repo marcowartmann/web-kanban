@@ -6,6 +6,7 @@ import { ITERATION_SLOTS, iterationLabel } from "../../lib/iterations";
 import type { Capacity, PersonOption, Team } from "../../types";
 import FilterSelect from "../FilterSelect";
 import SegmentedToggle from "../SegmentedToggle";
+import { captionClass } from "../ui";
 import { adminCardClass } from "./AdminCard";
 
 export default function CapacitySection({
@@ -102,9 +103,7 @@ export default function CapacitySection({
             options={teams.map((t) => t.name)}
             onChange={setTeamFilter}
           />
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-            Planning Interval
-          </span>
+          <span className={captionClass}>Planning Interval</span>
           <SegmentedToggle
             ariaLabel="Planning Interval"
             value={pi ?? ""}

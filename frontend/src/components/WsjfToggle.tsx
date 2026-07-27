@@ -1,3 +1,5 @@
+import { captionClass } from "./ui";
+
 /** The only permitted WSJF estimation values (a modified Fibonacci scale). */
 export const WSJF_VALUES = [1, 2, 3, 5, 8, 13, 20] as const;
 
@@ -27,9 +29,7 @@ export default function WsjfToggle({
   const current = value == null || value === "" ? null : Number(value);
   return (
     <div>
-      <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-        {label}
-      </span>
+      <span className={`mb-1 block ${captionClass}`}>{label}</span>
       <div role="group" aria-label={label} className="flex gap-1">
         {WSJF_VALUES.map((v, i) => {
           const active = current === v;

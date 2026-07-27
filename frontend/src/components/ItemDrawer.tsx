@@ -23,6 +23,7 @@ import ItemActivity from "./ItemActivity";
 import ItemComments from "./ItemComments";
 import PlainSelect from "./PlainSelect";
 import { SkeletonRows } from "./Skeleton";
+import { captionClass } from "./ui";
 import WsjfToggle from "./WsjfToggle";
 
 const NUMERIC_FIELDS = new Set([
@@ -381,9 +382,7 @@ export default function ItemDrawer({
       {/* col-span-2 lets the block take the full width of the compact grid;
           it is inert in the wide mode's block-layout rail. */}
       <div className="col-span-2 border-t border-gray-200 pt-4">
-        <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          Estimation
-        </h3>
+        <h3 className={`mb-3 ${captionClass}`}>Estimation</h3>
         {item.kind === "feature" ? (
           <div className="flex flex-col gap-3">
             <WsjfToggle
@@ -528,9 +527,7 @@ export default function ItemDrawer({
                 onClick={() => onOpenItem?.(link.item.id)}
                 className="min-w-0 flex-1 truncate text-left"
               >
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                  {link.label}
-                </span>{" "}
+                <span className={captionClass}>{link.label}</span>{" "}
                 <span className="font-medium text-gray-800 hover:text-blue-700 hover:underline">
                   {link.item.title}
                 </span>
@@ -736,9 +733,7 @@ function NarrativeText({
 }) {
   return (
     <section>
-      <h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-        {label}
-      </h3>
+      <h3 className={`mb-1.5 ${captionClass}`}>{label}</h3>
       <GrowingTextarea
         ariaLabel={label}
         value={value}
@@ -827,7 +822,7 @@ function Section({
   return (
     <section>
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{label}</h3>
+        <h3 className={captionClass}>{label}</h3>
         {action}
       </div>
       <div className="space-y-3">{children}</div>

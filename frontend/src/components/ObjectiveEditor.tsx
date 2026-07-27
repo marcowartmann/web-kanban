@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createPIObjective, setObjectiveFeatures, updatePIObjective } from "../api/client";
 import type { Item, ObjectiveState, PIObjective } from "../types";
 import PlainSelect from "./PlainSelect";
-import { btnGhost, inputClass, modalPanelClass, overlayClass, zModal } from "./ui";
+import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass, zModal } from "./ui";
 
 const STATES: { value: ObjectiveState; label: string }[] = [
   { value: "committed", label: "Committed" },
@@ -94,16 +94,16 @@ export default function ObjectiveEditor({
           {existing ? "Edit" : "New"} PI Objective · {teamName} · {planningInterval}
         </h2>
         <label className="mb-3 block">
-          <span className="mb-1 block text-xs font-medium text-gray-500">Title</span>
+          <span className={`mb-1 block ${captionClass}`}>Title</span>
           <input aria-label="Title" value={title} onChange={(e) => setTitle(e.target.value)} className={`w-full ${inputClass}`} />
         </label>
         <label className="mb-3 block">
-          <span className="mb-1 block text-xs font-medium text-gray-500">Description</span>
+          <span className={`mb-1 block ${captionClass}`}>Description</span>
           <textarea aria-label="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={`w-full ${inputClass}`} />
         </label>
         <div className="mb-3 flex items-end gap-4">
           <div className="flex-1">
-            <span className="mb-1 block text-xs font-medium text-gray-500">State</span>
+            <span className={`mb-1 block ${captionClass}`}>State</span>
             <PlainSelect
               ariaLabel="State"
               value={labelFor(state)}
@@ -124,7 +124,7 @@ export default function ObjectiveEditor({
           </label>
         </div>
         <div className="mb-4">
-          <span className="mb-1 block text-xs font-medium text-gray-500">
+          <span className={`mb-1 block ${captionClass}`}>
             Linked features {featureIds.length > 0 && <span className="text-gray-400">({featureIds.length} selected)</span>}
           </span>
           {scoped.length > 0 && (

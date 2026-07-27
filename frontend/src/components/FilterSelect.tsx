@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
 import { faChevronDown, faCheck } from "../icons";
+import { captionClass } from "./ui";
 
 // A clean, non-native single-select dropdown for the filter bar.
 export default function FilterSelect({
@@ -56,9 +57,7 @@ export default function FilterSelect({
             : "border-gray-200 bg-surface text-gray-700 hover:bg-gray-50"
         }`}
       >
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          {label}
-        </span>
+        <span className={captionClass}>{label}</span>
         <span className="font-medium">{value ?? allLabel}</span>
         <FontAwesomeIcon
           icon={faChevronDown}

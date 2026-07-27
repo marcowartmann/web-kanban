@@ -4,6 +4,7 @@ import { faMagnifyingGlass, faXmark } from "../icons";
 import type { ItemKind } from "../types";
 import FilterSelect from "./FilterSelect";
 import TogglePill from "./TogglePill";
+import { captionClass } from "./ui";
 
 export interface BoardFilters {
   planning_interval?: string;
@@ -113,9 +114,7 @@ export default function Toolbar({
       />
 
       <div className="flex items-center gap-1.5">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          Kind
-        </span>
+        <span className={captionClass}>Kind</span>
         {kindOptions.map((kind) => {
           const active = (filters.kinds ?? []).includes(kind);
           return (

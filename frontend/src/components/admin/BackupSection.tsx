@@ -12,7 +12,7 @@ import type { BackupConfig, BackupRun } from "../../types";
 import Banner from "../Banner";
 import EmptyState from "../EmptyState";
 import PlainSelect from "../PlainSelect";
-import { btnPrimary, btnSecondary, thClass } from "../ui";
+import { btnPrimary, btnSecondary, captionClass, thClass } from "../ui";
 import { adminCardClass, adminInputClass } from "./AdminCard";
 
 const FREQ = [
@@ -42,7 +42,7 @@ export default function BackupSection() {
   const patch = (p: Partial<BackupConfig>) => setCfg({ ...cfg, ...p });
   const field = (label: string, node: React.ReactNode) => (
     <label className="mb-3 block">
-      <span className="mb-1 block text-xs font-medium text-gray-500">{label}</span>
+      <span className={`mb-1 block ${captionClass}`}>{label}</span>
       {node}
     </label>
   );
@@ -104,7 +104,7 @@ export default function BackupSection() {
 
       <div className="grid gap-x-6 md:grid-cols-2">
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">SFTP server</h3>
+          <h3 className={`mb-2 ${captionClass}`}>SFTP server</h3>
           {field("Host", <input aria-label="SFTP host" value={cfg.sftp_host ?? ""} onChange={(e) => patch({ sftp_host: e.target.value })} className={`w-full ${adminInputClass}`} />)}
           {field("Port", <input aria-label="SFTP port" type="number" value={cfg.sftp_port} onChange={(e) => patch({ sftp_port: Number(e.target.value) })} className={`w-full ${adminInputClass}`} />)}
           {field("Username", <input aria-label="SFTP username" value={cfg.sftp_username ?? ""} onChange={(e) => patch({ sftp_username: e.target.value })} className={`w-full ${adminInputClass}`} />)}
@@ -118,7 +118,7 @@ export default function BackupSection() {
         </div>
 
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Contents & schedule</h3>
+          <h3 className={`mb-2 ${captionClass}`}>Contents & schedule</h3>
           <label className="mb-2 flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={cfg.include_db} onChange={(e) => patch({ include_db: e.target.checked })} /> Include database dump
           </label>
@@ -160,7 +160,7 @@ export default function BackupSection() {
         {error && <Banner tone="error">{error}</Banner>}
       </div>
 
-      <h3 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wide text-gray-400">Recent runs</h3>
+      <h3 className={`mb-2 mt-6 ${captionClass}`}>Recent runs</h3>
       {runs.length === 0 ? (
         <EmptyState>No backups have run yet.</EmptyState>
       ) : (
