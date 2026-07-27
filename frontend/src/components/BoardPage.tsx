@@ -56,7 +56,7 @@ export default function BoardPage() {
       title={canAddObjective(user, objTeamObj) ? undefined : "Select your team first"}
       className={btnPrimary}
     >
-      + New objective
+      New objective
     </button>
   ) : (
     <>

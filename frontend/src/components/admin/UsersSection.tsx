@@ -89,7 +89,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
           onClick={() => setAdding(true)}
           className={`ml-auto ${btnPrimary}`}
         >
-          + Add person
+          Add person
         </button>
       </header>
 

@@ -94,9 +94,9 @@ describe("RoadmapView", () => {
   it("adds a stream", async () => {
     render(<RoadmapView />);
     await screen.findByText("Campus");
-    await userEvent.click(screen.getByRole("button", { name: "+ Add stream" }));
-    await userEvent.type(screen.getByPlaceholderText("New stream name"), "Datacenter");
     await userEvent.click(screen.getByRole("button", { name: "Add stream" }));
+    await userEvent.type(screen.getByPlaceholderText("New stream name"), "Datacenter");
+    await userEvent.click(screen.getAllByRole("button", { name: "Add stream" })[1]);
     expect(createStream).toHaveBeenCalledWith("Datacenter", 1);
   });
 

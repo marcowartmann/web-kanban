@@ -176,7 +176,7 @@ export default function RoadmapView() {
         actions={
           product && (
             <button className={btnSecondary} onClick={() => setAddingStream((v) => !v)}>
-              + Add stream
+              Add stream
             </button>
           )
         }

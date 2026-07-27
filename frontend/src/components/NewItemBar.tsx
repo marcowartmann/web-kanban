@@ -17,10 +17,10 @@ export default function NewItemBar({ onCreated }: { onCreated: () => void }) {
   return (
     <div className="flex gap-2">
       <button onClick={() => setDialogKind("feature")} className={btnPrimary}>
-        + New Feature
+        New Feature
       </button>
       <button onClick={() => setDialogKind("risk")} className={btnDanger}>
-        + New Risk
+        New Risk
       </button>
       {dialogKind && (
         <NewItemDialog

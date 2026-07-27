@@ -448,7 +448,7 @@ export default function ItemDrawer({
                 onClick={() => setAddingStory(true)}
                 className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
               >
-                + Add story
+                Add story
               </button>
             )
           }
@@ -513,7 +513,7 @@ export default function ItemDrawer({
             onClick={() => setAdding((v) => !v)}
             className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
           >
-            {adding ? "Cancel" : "+ Add dependency"}
+            {adding ? "Cancel" : "Add dependency"}
           </button>
         }
       >
