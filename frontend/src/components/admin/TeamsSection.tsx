@@ -93,7 +93,7 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
           placeholder="New team name"
           className={`${adminInputClass} flex-1`}
         />
-        <button onClick={add} className={btnPrimary}>
+        <button onClick={add} className={`shrink-0 ${btnPrimary}`}>
           Add
         </button>
       </div>

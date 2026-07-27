@@ -129,7 +129,7 @@ export default function Toolbar({
         <button
           type="button"
           onClick={() => onChange({})}
-          className={`${btnGhost} ml-auto inline-flex items-center gap-1`}
+          className={`${btnGhost} ml-auto inline-flex items-center gap-1 font-medium hover:text-gray-700`}
         >
           <FontAwesomeIcon icon={faXmark} className="text-xs" />
           Clear all

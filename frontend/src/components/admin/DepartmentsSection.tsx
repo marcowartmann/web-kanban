@@ -144,7 +144,7 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
                     aria-label={`new department for ${team.name}`}
                     className={`flex-1 ${adminInputClass}`}
                   />
-                  <button onClick={() => void add(team.id)} aria-label={`add department to ${team.name}`} className={btnPrimary}>
+                  <button onClick={() => void add(team.id)} aria-label={`add department to ${team.name}`} className={`shrink-0 ${btnPrimary}`}>
                     Add
                   </button>
                 </div>

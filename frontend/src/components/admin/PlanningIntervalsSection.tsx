@@ -104,7 +104,7 @@ export default function PlanningIntervalsSection({ onChanged }: { onChanged: () 
           placeholder="New planning interval"
           className={`${adminInputClass} flex-1`}
         />
-        <button onClick={add} className={btnPrimary}>
+        <button onClick={add} className={`shrink-0 ${btnPrimary}`}>
           Add
         </button>
       </div>
