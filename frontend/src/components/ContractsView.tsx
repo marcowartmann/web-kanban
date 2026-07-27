@@ -66,9 +66,9 @@ export default function ContractsView() {
         )}
         {loading ? (
           <SkeletonRows />
-        ) : filtered.length === 0 ? (
+        ) : filtered.length === 0 && !error ? (
           <EmptyState>No contracts yet. Add them on a product's Contracts tab.</EmptyState>
-        ) : (
+        ) : !error ? (
           <table className="w-full text-left text-sm">
             <thead>
               <tr>
@@ -107,7 +107,7 @@ export default function ContractsView() {
               ))}
             </tbody>
           </table>
-        )}
+        ) : null}
       </div>
       {editing && (
         <ContractDrawer

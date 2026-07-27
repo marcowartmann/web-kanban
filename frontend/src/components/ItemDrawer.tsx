@@ -168,7 +168,9 @@ export default function ItemDrawer({
     return (
       <Drawer compact={compact} onClose={onClose}>
         <CloseBar onClose={onClose} />
-        <p className="p-6 text-sm text-red-600">{error}</p>
+        <div className="p-6">
+          <Banner tone="error">{error}</Banner>
+        </div>
       </Drawer>
     );
   if (!item)

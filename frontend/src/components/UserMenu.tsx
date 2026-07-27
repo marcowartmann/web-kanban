@@ -104,8 +104,9 @@ export default function UserMenu({
         onKeyDown={(e) => {
           if (open && e.key === "Escape") { e.stopPropagation(); close(true); return; }
           // Click-open leaves focus on the trigger, so the menu's own
-          // onKeyDown never sees this ArrowDown — handle it here too.
+          // onKeyDown never sees this ArrowDown/ArrowUp — handle it here too.
           if (open && e.key === "ArrowDown") { e.preventDefault(); focusAt(0); }
+          if (open && e.key === "ArrowUp") { e.preventDefault(); focusAt(itemRefs.current.length - 1); }
         }}
         className="flex items-center gap-2 rounded-full border border-gray-200 bg-surface py-1 pl-1 pr-2.5 text-sm shadow-xs transition hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
       >

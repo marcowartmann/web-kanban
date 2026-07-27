@@ -61,6 +61,13 @@ describe("ContractsView", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Network down");
   });
 
+  it("shows only the error banner when loading fails", async () => {
+    vi.mocked(getContracts).mockRejectedValue(new Error("boom"));
+    render(<ContractsView />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("boom");
+    expect(screen.queryByText(/no contracts yet/i)).not.toBeInTheDocument();
+  });
+
   it("clicking a row opens the contract drawer for editing", async () => {
     vi.mocked(getContracts).mockResolvedValue(rows);
     render(<ContractsView />);

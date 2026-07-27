@@ -46,3 +46,16 @@ it("toggling a member calls setDepartmentMembers", async () => {
   await userEvent.click(ann);
   await waitFor(() => expect(setMembers).toHaveBeenCalledWith(3, [7]));
 });
+
+it("renames a department inline (Enter commits, Escape cancels)", async () => {
+  mockData();
+  vi.spyOn(client, "renameDepartment").mockResolvedValue(
+    { id: 3, name: "Network Ops", team_id: 1, team_name: "Net", member_ids: [] } as never,
+  );
+  render(<DepartmentsSection onChanged={vi.fn()} />);
+  await userEvent.click(await screen.findByRole("button", { name: "Rename" }));
+  const input = screen.getByLabelText(/rename department/i);
+  await userEvent.clear(input);
+  await userEvent.type(input, "Network Ops{Enter}");
+  expect(client.renameDepartment).toHaveBeenCalledWith(expect.any(Number), "Network Ops");
+});

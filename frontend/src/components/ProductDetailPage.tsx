@@ -1,7 +1,10 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { getProduct } from "../api/client";
+import { faChevronLeft } from "../icons";
 import type { Product } from "../types";
+import Banner from "./Banner";
 import ProductDetail from "./ProductDetail";
 import { SkeletonRows } from "./Skeleton";
 
@@ -25,9 +28,12 @@ export default function ProductDetailPage() {
   if (error) {
     return (
       <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
-        <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
-        <Link to="/products" className="text-sm text-blue-600 hover:underline">
-          ← Back to products
+        <div className="mb-4">
+          <Banner tone="error">{error}</Banner>
+        </div>
+        <Link to="/products" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+          <FontAwesomeIcon icon={faChevronLeft} aria-hidden className="text-[10px]" />
+          Back to products
         </Link>
       </div>
     );

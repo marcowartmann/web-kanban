@@ -62,6 +62,13 @@ it("ArrowUp/Home/End move focus and wrap once inside the menu", async () => {
   expect(screen.getByRole("menuitem", { name: "Rename" })).toHaveFocus();
 });
 
+it("ArrowUp on the open trigger focuses the last enabled item", async () => {
+  renderMenu();
+  await userEvent.click(screen.getByRole("button", { name: "Stream actions" }));
+  await userEvent.keyboard("{ArrowUp}");
+  expect(screen.getByRole("menuitem", { name: "Delete" })).toHaveFocus();
+});
+
 it("outside mousedown closes the menu", async () => {
   renderMenu();
   await userEvent.click(screen.getByRole("button", { name: "Stream actions" }));

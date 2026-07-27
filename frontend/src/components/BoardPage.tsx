@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Banner from "./Banner";
 import BoardTabs from "./BoardTabs";
 import BoardView from "./BoardView";
 import PIObjectivesBoard, { canAddObjective } from "./PIObjectivesBoard";
@@ -75,7 +76,9 @@ export default function BoardPage() {
       {loading && !activeBoard ? (
         <SkeletonBoard />
       ) : error ? (
-        <div className="p-8 text-red-600">{error}</div>
+        <div className="px-6 py-4">
+          <Banner tone="error">{error}</Banner>
+        </div>
       ) : activeBoard ? (
         <>
           <BoardTabs

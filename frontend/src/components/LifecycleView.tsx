@@ -67,9 +67,9 @@ export default function LifecycleView() {
         )}
         {loading ? (
           <SkeletonRows />
-        ) : filtered.length === 0 ? (
+        ) : filtered.length === 0 && !error ? (
           <EmptyState>No components yet. Add them on a product's Components tab.</EmptyState>
-        ) : (
+        ) : !error ? (
           <table className="w-full text-left text-sm">
             <thead>
               <tr>
@@ -111,7 +111,7 @@ export default function LifecycleView() {
               ))}
             </tbody>
           </table>
-        )}
+        ) : null}
       </div>
       {editing && (
         <ComponentDrawer

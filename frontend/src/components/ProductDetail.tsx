@@ -170,7 +170,11 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [contractsLoaded, setContractsLoaded] = useState(false);
 
   const load = useCallback(
-    () => getProductServices(product.id).then(setTree).finally(() => setServicesLoaded(true)),
+    () =>
+      getProductServices(product.id)
+        .then(setTree)
+        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+        .finally(() => setServicesLoaded(true)),
     [product.id],
   );
   useEffect(() => {
@@ -178,7 +182,11 @@ export default function ProductDetail({ product }: { product: Product }) {
   }, [load]);
 
   const loadComponents = useCallback(
-    () => getProductComponents(product.id).then(setComponents).finally(() => setComponentsLoaded(true)),
+    () =>
+      getProductComponents(product.id)
+        .then(setComponents)
+        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+        .finally(() => setComponentsLoaded(true)),
     [product.id],
   );
   // The Systems tab's drawer needs the product's components too (member
@@ -188,7 +196,11 @@ export default function ProductDetail({ product }: { product: Product }) {
   }, [tab, loadComponents]);
 
   const loadSystems = useCallback(
-    () => getProductSystems(product.id).then(setSystems).finally(() => setSystemsLoaded(true)),
+    () =>
+      getProductSystems(product.id)
+        .then(setSystems)
+        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+        .finally(() => setSystemsLoaded(true)),
     [product.id],
   );
   useEffect(() => {
@@ -196,7 +208,11 @@ export default function ProductDetail({ product }: { product: Product }) {
   }, [tab, loadSystems]);
 
   const loadContracts = useCallback(
-    () => getProductContracts(product.id).then(setContracts).finally(() => setContractsLoaded(true)),
+    () =>
+      getProductContracts(product.id)
+        .then(setContracts)
+        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+        .finally(() => setContractsLoaded(true)),
     [product.id],
   );
   useEffect(() => {

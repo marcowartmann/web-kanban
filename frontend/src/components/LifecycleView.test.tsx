@@ -59,6 +59,13 @@ describe("LifecycleView", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Network down");
   });
 
+  it("shows only the error banner when loading fails", async () => {
+    vi.mocked(getLifecycle).mockRejectedValue(new Error("boom"));
+    render(<LifecycleView />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("boom");
+    expect(screen.queryByText(/no components yet/i)).not.toBeInTheDocument();
+  });
+
   it("clicking a row opens the component drawer for editing", async () => {
     vi.mocked(getLifecycle).mockResolvedValue(rows);
     render(<LifecycleView />);

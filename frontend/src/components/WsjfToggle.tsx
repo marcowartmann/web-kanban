@@ -4,11 +4,13 @@ import { captionClass } from "./ui";
 export const WSJF_VALUES = [1, 2, 3, 5, 8, 13, 20] as const;
 
 // Selected-state colors, one per value position: low (green) → high (red).
+// zinc-900 (not gray-900): the gray ramp inverts in dark mode, but these
+// bright fills need stable dark text in both themes.
 const ACTIVE_CLASS = [
   "border-emerald-500 bg-emerald-500 text-white", // 1
   "border-green-500 bg-green-500 text-white", // 2
-  "border-lime-500 bg-lime-500 text-gray-900", // 3
-  "border-yellow-400 bg-yellow-400 text-gray-900", // 5
+  "border-lime-500 bg-lime-500 text-zinc-900", // 3
+  "border-yellow-400 bg-yellow-400 text-zinc-900", // 5
   "border-amber-500 bg-amber-500 text-white", // 8
   "border-orange-500 bg-orange-500 text-white", // 13
   "border-red-500 bg-red-500 text-white", // 20

@@ -62,8 +62,9 @@ export default function Menu({
           if (open && e.key === "Escape") { e.stopPropagation(); close(true); return; }
           if (!open && e.key === "ArrowDown") { e.preventDefault(); setOpen(true); return; }
           // Click-open leaves focus on the trigger (not the menu div), so the
-          // menu's own onKeyDown never sees this ArrowDown — handle it here too.
+          // menu's own onKeyDown never sees this ArrowDown/ArrowUp — handle it here too.
           if (open && e.key === "ArrowDown") { e.preventDefault(); focusAt(0); }
+          if (open && e.key === "ArrowUp") { e.preventDefault(); focusAt(enabled.length - 1); }
         }}
         className="rounded-lg px-1.5 py-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
       >

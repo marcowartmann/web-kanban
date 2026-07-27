@@ -27,6 +27,7 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
   const [drafts, setDrafts] = useState<Record<number, string>>({});
   const [expanded, setExpanded] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<{ id: number; name: string } | null>(null);
 
   const reload = () => void getDepartments().then(setDepartments);
   useEffect(() => {
@@ -49,9 +50,12 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
     }
   };
 
-  const rename = async (dep: Department) => {
-    const name = prompt("Rename department", dep.name)?.trim();
-    if (!name || name === dep.name) return;
+  const commitRename = async () => {
+    if (!renaming) return;
+    const name = renaming.name.trim();
+    const dep = departments.find((d) => d.id === renaming.id);
+    setRenaming(null);
+    if (!name || !dep || name === dep.name) return;
     try {
       await renameDepartment(dep.id, name);
       reload();
@@ -104,15 +108,32 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
                 {deps.map((dep) => (
                   <div key={dep.id}>
                     <div className={adminRowClass}>
+                      {renaming?.id === dep.id ? (
+                        <input
+                          autoFocus
+                          aria-label={`Rename department ${dep.name}`}
+                          value={renaming.name}
+                          onChange={(e) => setRenaming({ id: dep.id, name: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") void commitRename();
+                            if (e.key === "Escape") setRenaming(null);
+                          }}
+                          className={`flex-1 ${adminInputClass}`}
+                        />
+                      ) : (
+                        <button
+                          onClick={() => setExpanded((e) => (e === dep.id ? null : dep.id))}
+                          aria-label={`members of ${dep.name}`}
+                          className="flex-1 text-left"
+                        >
+                          {dep.name}{" "}
+                          <span className="text-xs text-gray-400">({dep.member_ids.length})</span>
+                        </button>
+                      )}
                       <button
-                        onClick={() => setExpanded((e) => (e === dep.id ? null : dep.id))}
-                        aria-label={`members of ${dep.name}`}
-                        className="flex-1 text-left"
+                        onClick={() => setRenaming({ id: dep.id, name: dep.name })}
+                        className="text-xs text-gray-400 hover:text-gray-700"
                       >
-                        {dep.name}{" "}
-                        <span className="text-xs text-gray-400">({dep.member_ids.length})</span>
-                      </button>
-                      <button onClick={() => void rename(dep)} className="text-xs text-gray-400 hover:text-gray-700">
                         Rename
                       </button>
                       <button onClick={() => void remove(dep)} aria-label={`delete ${dep.name}`} className={adminRemoveButtonClass}>
