@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
+import DrawerShell from "./DrawerShell";
 import PlainSelect from "./PlainSelect";
 
 it("opens a styled option list and reports the picked value", async () => {
@@ -64,4 +65,24 @@ it("shows the placeholder when there is no value", () => {
     />,
   );
   expect(screen.getByRole("combobox", { name: "Status" })).toHaveTextContent("Select status…");
+});
+
+it("Escape closes only the open popover, not a containing DrawerShell", async () => {
+  const onClose = vi.fn();
+  render(
+    <DrawerShell title="Widget" onClose={onClose} footer={{ onCancel: vi.fn(), onSave: vi.fn() }}>
+      <PlainSelect
+        ariaLabel="Status"
+        value={null}
+        options={["Funnel", "Ready"]}
+        onChange={vi.fn()}
+      />
+    </DrawerShell>,
+  );
+  await userEvent.click(screen.getByRole("combobox", { name: "Status" }));
+  expect(screen.getAllByRole("option").length).toBeGreaterThan(0);
+
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("option")).toBeNull();
+  expect(onClose).not.toHaveBeenCalled();
 });

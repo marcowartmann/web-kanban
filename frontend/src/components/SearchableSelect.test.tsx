@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
+import DrawerShell from "./DrawerShell";
 import SearchableSelect from "./SearchableSelect";
 
 const options = ["Marco Wartmann", "Adrian Senn"];
@@ -71,4 +73,22 @@ it("without allowCreate: shows No matches instead of a create row", () => {
   fireEvent.change(input, { target: { value: "NewVendor" } });
   expect(screen.getByText("No matches")).toBeInTheDocument();
   expect(screen.queryByText('Use “NewVendor”')).toBeNull();
+});
+
+it("Escape closes only the open popover, not a containing DrawerShell", async () => {
+  const onClose = vi.fn();
+  render(
+    <DrawerShell title="Widget" onClose={onClose} footer={{ onCancel: vi.fn(), onSave: vi.fn() }}>
+      <SearchableSelect value={null} options={options} onChange={vi.fn()} />
+    </DrawerShell>,
+  );
+  // userEvent (not fireEvent.focus) actually moves DOM focus onto the input,
+  // so the later Escape keypress targets it — required for the root div's
+  // onKeyDown to see (and stop) the event before it reaches the document.
+  await userEvent.click(screen.getByRole("combobox"));
+  expect(screen.getByText("Marco Wartmann")).toBeInTheDocument();
+
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByText("Marco Wartmann")).toBeNull();
+  expect(onClose).not.toHaveBeenCalled();
 });

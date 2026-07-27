@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { popoverClass } from "./ui";
+import { popoverClass, zPopover } from "./ui";
 
 export type MenuItem = { label: string; onSelect: () => void; disabled?: boolean; danger?: boolean };
 
@@ -70,7 +70,7 @@ export default function Menu({
         {trigger({ open })}
       </button>
       {open && (
-        <div role="menu" onKeyDown={onMenuKeyDown} className={`absolute left-0 z-20 mt-1 w-44 ${popoverClass}`}>
+        <div role="menu" onKeyDown={onMenuKeyDown} className={`absolute left-0 ${zPopover} mt-1 w-44 ${popoverClass}`}>
           {items.map((it, i) => (
             <button
               key={it.label}

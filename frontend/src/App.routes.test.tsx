@@ -103,6 +103,45 @@ const BOARD = {
   lanes: [],
 } as never;
 
+const FEATURE_ITEM = {
+  id: 9, kind: "feature", type: "Feature", parent_id: null, position: 0, version: 1,
+  title: "Feat Solo", status: "Analyzing", description: null, kategorie: null, art: null,
+  sdi_prio: null, tshirt_size: null, wsjf_score: null, story_points: null,
+  planning_interval: null, iteration: null, leading_team: null, supporting_team: null,
+  container_id: null, externer_partner: null, assignee: null, assignee_id: null,
+  akzeptanzkriterien: null, bo_stakeholder: null, business_value: null,
+  time_criticality: null, risk_reduction: null, cost_of_delay: null, job_size: null,
+  definition_of_done: null, children: [],
+} as never;
+
+// Regression for the modal-over-drawer z-ladder bug: opening any item panel
+// (here, StoryBoardModal's "Edit feature") must close the Stories modal
+// first — otherwise the panel renders behind it (drawer z-40 < modal z-50)
+// and is invisible even though it's "open".
+it("opening an item panel from the Stories modal closes the modal instead of hiding behind it", async () => {
+  mockAppData("admin");
+  vi.spyOn(client, "getBoards").mockResolvedValue([BOARD] as never);
+  vi.spyOn(client, "listItems").mockResolvedValue([FEATURE_ITEM] as never);
+  vi.spyOn(client, "getItem").mockResolvedValue(FEATURE_ITEM);
+  render(
+    <ThemeProvider>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/board"]}>
+          <AppShell />
+        </MemoryRouter>
+      </AuthProvider>
+    </ThemeProvider>,
+  );
+
+  await userEvent.click(await screen.findByRole("button", { name: /stories \(0\)/i }));
+  expect(await screen.findByRole("button", { name: "Edit feature" })).toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: "Edit feature" }));
+
+  expect(await screen.findByTestId("item-panel")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Edit feature" })).not.toBeInTheDocument();
+});
+
 it("the Board page header holds New Feature / New Risk and Edit lanes", async () => {
   mockAppData("admin");
   vi.spyOn(client, "getBoards").mockResolvedValue([BOARD] as never);

@@ -5,7 +5,16 @@ import { faArrowRightFromBracket, faChevronDown, faLock } from "../icons";
 import type { AuthUser } from "../types";
 import Avatar from "./Avatar";
 import Banner from "./Banner";
-import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass, popoverClass } from "./ui";
+import {
+  btnGhost,
+  captionClass,
+  inputClass,
+  modalPanelClass,
+  overlayClass,
+  popoverClass,
+  zModal,
+  zPopover,
+} from "./ui";
 
 export default function UserMenu({
   user,
@@ -120,7 +129,7 @@ export default function UserMenu({
         <div
           role="menu"
           onKeyDown={onMenuKeyDown}
-          className={`absolute z-30 w-52 ${dropUp ? "bottom-full left-0 mb-2" : "right-0 mt-2"} ${popoverClass}`}
+          className={`absolute ${zPopover} w-52 ${dropUp ? "bottom-full left-0 mb-2" : "right-0 mt-2"} ${popoverClass}`}
         >
           <div className="border-b border-gray-100 px-3 py-2">
             <p className="truncate text-sm font-medium text-gray-900">{user.display_name}</p>
@@ -154,7 +163,7 @@ export default function UserMenu({
       )}
 
       {changing && (
-        <div className={`${overlayClass} z-30`} onClick={() => setChanging(false)}>
+        <div className={`${overlayClass} ${zModal}`} onClick={() => setChanging(false)}>
           <div className={`${modalPanelClass} max-w-sm`} onClick={(e) => e.stopPropagation()}>
             <h2 className="mb-4 text-sm font-semibold text-gray-900">Change password</h2>
             <label className="mb-3 block">

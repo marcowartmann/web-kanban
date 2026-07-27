@@ -43,8 +43,17 @@ export default function PlainSelect({
     setOpen(false);
   };
 
+  // While the popover is open, Escape closes it and must not bubble to a
+  // containing DrawerShell (its document-level Escape listener would close
+  // the whole drawer). When closed, do nothing — let Escape reach the drawer.
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (!open || e.key !== "Escape") return;
+    e.stopPropagation();
+    setOpen(false);
+  };
+
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" onKeyDown={onKeyDown}>
       <button
         type="button"
         role="combobox"

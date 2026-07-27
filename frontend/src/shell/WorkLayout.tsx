@@ -56,7 +56,13 @@ export default function WorkLayout() {
   const [objectivesTab, setObjectivesTab] = useState(false);
   const [filters, setFilters] = useState<BoardFilters>({});
 
-  const openItem = (id: number) => setPanels([id]);
+  // Closing the Stories modal here keeps the z-ladder coherent: any panel
+  // opening (from the modal's "Edit feature"/story-card clicks, or anywhere
+  // else) always wins over the modal rather than rendering invisibly behind it.
+  const openItem = (id: number) => {
+    setOpenStoriesFeatureId(null);
+    setPanels([id]);
+  };
   // A child story docks to the LEFT of the feature (the rightmost panel).
   const openChild = (storyId: number) =>
     setPanels((p) => {

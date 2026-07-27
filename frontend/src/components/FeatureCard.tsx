@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink } from "../icons";
 import type { CardLinkInfo } from "../lib/planningLinks";
 import type { Item } from "../types";
+import Badge from "./Badge";
 import CardLinkBadges from "./CardLinkBadges";
 import ObjectiveLinkBadge from "./ObjectiveLinkBadge";
 
@@ -30,9 +31,7 @@ export default function FeatureCard({
       className={`w-full rounded-lg border bg-surface p-3 text-left shadow-xs transition-opacity hover:shadow-sm ${ring} ${dimmed ? "opacity-30" : ""}`}
     >
       <div className="mb-1 flex items-center gap-1.5">
-        <span className="rounded-sm bg-blue-100 px-1.5 py-0.5 text-xs text-blue-800">
-          {feature.type ?? feature.kind}
-        </span>
+        <Badge tone="blue">{feature.type ?? feature.kind}</Badge>
         <span className="text-xs text-gray-400">#{feature.id}</span>
         <ObjectiveLinkBadge kind="feature" id={feature.id} />
       </div>
