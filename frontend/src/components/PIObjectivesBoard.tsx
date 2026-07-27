@@ -26,7 +26,7 @@ export function computeStateChange(from: ObjectiveState, to: ObjectiveState) {
 
 /** Whether the user may add a new objective for the given team — requires a
  *  selected team plus admin or membership on that team. Used by the page
- *  header (to enable/disable "+ New objective") and internally here. */
+ *  header (to enable/disable "New objective") and internally here. */
 export function canAddObjective(user: AuthUser, team: Team | null): boolean {
   return team != null && (user.role === "admin" || user.team_id === team.id);
 }
@@ -70,7 +70,7 @@ export default function PIObjectivesBoard({
 
   useEffect(reload, [reload]);
 
-  // The page header owns the "+ New objective" button; each increment of
+  // The page header owns the "New objective" button; each increment of
   // addSignal is one click. Guarded upstream by the disabled state. Track the
   // last-consumed signal so a fresh mount (e.g. switching tabs and back)
   // never replays a click from a previous mount of this component.

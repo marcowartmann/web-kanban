@@ -209,7 +209,7 @@ export default function RoadmapView() {
               className={inputClass}
             />
             <button onClick={() => void addStream()} className={btnSecondary}>
-              Add stream
+              Create
             </button>
           </div>
         )}
