@@ -40,6 +40,19 @@ it("Escape and backdrop click close; panel clicks do not", async () => {
   expect(onClose).toHaveBeenCalledTimes(2);
 });
 
+it("the body wrapper is a flex column so bare label+input bodies stack full-width", () => {
+  renderShell();
+  // Primitive-contract class assertion: drawer bodies rely on column-stretch
+  // for block flow; losing flex-col regresses every catalog drawer's layout.
+  expect(screen.getByTestId("drawer-body")).toHaveClass(
+    "flex",
+    "flex-col",
+    "flex-1",
+    "overflow-y-auto",
+    "[&>*]:shrink-0",
+  );
+});
+
 it("create mode (no onDelete) renders no Delete button", () => {
   renderShell({ onDelete: undefined });
   expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();

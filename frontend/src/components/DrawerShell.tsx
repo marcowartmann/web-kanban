@@ -50,7 +50,17 @@ export default function DrawerShell({
             <FontAwesomeIcon icon={faXmark} aria-hidden />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-2">{children}</div>
+        {/* flex-col is load-bearing: drawer bodies are bare label+input
+            sequences that rely on column-stretch for block flow and full
+            width (the pre-shell <aside> was the flex column). The child
+            shrink guard keeps textareas/selects at natural height when the
+            body overflows — scroll, don't squeeze. */}
+        <div
+          data-testid="drawer-body"
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 py-2 [&>*]:shrink-0"
+        >
+          {children}
+        </div>
         <div className="flex shrink-0 items-center justify-between gap-2 border-t border-gray-100 px-5 py-3">
           {footer.onDelete ? (
             <button onClick={footer.onDelete} className={btnDangerGhost}>
