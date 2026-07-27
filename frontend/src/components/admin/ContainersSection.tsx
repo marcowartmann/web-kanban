@@ -16,9 +16,8 @@ import EmptyState from "../EmptyState";
 import FilterSelect from "../FilterSelect";
 import PlainSelect from "../PlainSelect";
 import SegmentedToggle from "../SegmentedToggle";
-import { captionClass } from "../ui";
+import { btnPrimary, captionClass } from "../ui";
 import {
-  adminAddButtonClass,
   adminCardClass,
   adminInputClass,
   adminRemoveButtonClass,
@@ -227,7 +226,7 @@ export default function ContainersSection({
           placeholder="New container name"
           className={`${adminInputClass} flex-1`}
         />
-        <button onClick={add} className={adminAddButtonClass}>
+        <button onClick={add} className={btnPrimary}>
           Add
         </button>
       </div>

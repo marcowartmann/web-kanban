@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ItemKind } from "../types";
-import { btnGhost, inputClass, modalPanelClass, overlayClass, zModal } from "./ui";
+import { btnGhost, btnPrimary, inputClass, modalPanelClass, overlayClass, zModal } from "./ui";
 
 const KIND_LABEL: Record<ItemKind, string> = {
   feature: "feature",
@@ -54,7 +54,7 @@ export default function NewItemDialog({
           <button
             onClick={submit}
             disabled={!valid}
-            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
+            className={btnPrimary}
           >
             Create
           </button>

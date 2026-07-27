@@ -7,6 +7,8 @@ import Badge, { type BadgeTone } from "../Badge";
 import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
 import { SkeletonRows } from "../Skeleton";
+import { btnPrimary } from "../ui";
+import { adminCardClass } from "./AdminCard";
 import UserModal from "./UserModal";
 
 const STATUS_TONE: Record<"active" | "inactive", BadgeTone> = { active: "emerald", inactive: "amber" };
@@ -71,7 +73,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
   };
 
   return (
-    <section className="rounded-2xl border border-gray-200 bg-surface p-5 shadow-xs ring-1 ring-black/5">
+    <section className={adminCardClass}>
       <header className="mb-4 flex items-center gap-2.5">
         <span
           className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-base text-rose-600"
@@ -85,7 +87,7 @@ export default function UsersSection({ currentUserId }: { currentUserId: number 
         </span>
         <button
           onClick={() => setAdding(true)}
-          className="ml-auto rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700"
+          className={`ml-auto ${btnPrimary}`}
         >
           + Add person
         </button>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getAuthConfig, login } from "../api/client";
 import type { AuthUser } from "../types";
 import Banner from "./Banner";
-import { captionClass, inputClass } from "./ui";
+import { btnPrimary, captionClass, inputClass } from "./ui";
 
 type Method = "ldap" | "local";
 
@@ -95,7 +95,7 @@ export default function LoginPage({ onLoggedIn }: { onLoggedIn: (user: AuthUser)
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
+          className={`w-full ${btnPrimary}`}
         >
           Sign in
         </button>

@@ -3,7 +3,7 @@ import { ConflictError, convertUserProvider, createUser, setUserDepartments, upd
 import type { AuthUser, Department, Team } from "../../types";
 import Banner from "../Banner";
 import PlainSelect from "../PlainSelect";
-import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass, zModal } from "../ui";
+import { btnGhost, btnPrimary, captionClass, inputClass, modalPanelClass, overlayClass, zModal } from "../ui";
 
 /** Extracts the server's `detail` message from a thrown request error. */
 function errorDetail(e: unknown): string {
@@ -252,7 +252,7 @@ export default function UserModal({
           <button
             onClick={() => void save()}
             disabled={!valid || busy}
-            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200 disabled:opacity-60"
+            className={btnPrimary}
           >
             Save
           </button>

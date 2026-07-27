@@ -23,7 +23,7 @@ import ItemActivity from "./ItemActivity";
 import ItemComments from "./ItemComments";
 import PlainSelect from "./PlainSelect";
 import { SkeletonRows } from "./Skeleton";
-import { captionClass } from "./ui";
+import { captionClass, popoverClass } from "./ui";
 import WsjfToggle from "./WsjfToggle";
 
 const NUMERIC_FIELDS = new Set([
@@ -712,9 +712,7 @@ export default function ItemDrawer({
 function PropLabel({ text, children }: { text: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-        {text}
-      </span>
+      <span className={`mb-1 block ${captionClass}`}>{text}</span>
       {children}
     </label>
   );
@@ -908,7 +906,7 @@ function ItemPicker({
         Choose item…
       </button>
       {open && !disabled && (
-        <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-surface p-1 shadow-lg">
+        <div className={`${popoverClass} absolute z-20 mt-1 w-full`}>
           <input
             autoFocus
             value={query}

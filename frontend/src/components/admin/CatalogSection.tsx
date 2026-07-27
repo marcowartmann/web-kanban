@@ -15,6 +15,7 @@ import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
 import PlainSelect from "../PlainSelect";
 import { btnDangerGhost, btnGhost, btnSecondary, captionClass, inputClass } from "../ui";
+import { adminCardClass } from "./AdminCard";
 
 export default function CatalogSection() {
   const [arts, setArts] = useState<Art[]>([]);
@@ -111,7 +112,7 @@ export default function CatalogSection() {
     <div className="flex flex-col gap-6">
       {error && <Banner tone="error">{error}</Banner>}
 
-      <section className="rounded-xl border border-gray-200 bg-surface p-4">
+      <section className={adminCardClass}>
         <h2 className="mb-3 text-sm font-semibold text-gray-900">ARTs</h2>
         <ul className="mb-3 flex flex-col gap-1.5">
           {arts.map((a) => (
@@ -153,7 +154,7 @@ export default function CatalogSection() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-surface p-4">
+      <section className={adminCardClass}>
         <h2 className="mb-3 text-sm font-semibold text-gray-900">Products</h2>
         <ul className="mb-3 flex flex-col gap-2">
           {products.map((p) => (

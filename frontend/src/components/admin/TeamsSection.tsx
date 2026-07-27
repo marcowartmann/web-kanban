@@ -6,8 +6,8 @@ import type { Team } from "../../types";
 import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
 import EmptyState from "../EmptyState";
+import { btnPrimary } from "../ui";
 import AdminCard, {
-  adminAddButtonClass,
   adminInputClass,
   adminRemoveButtonClass,
   adminRowClass,
@@ -93,7 +93,7 @@ export default function TeamsSection({ onChanged }: { onChanged: () => void }) {
           placeholder="New team name"
           className={`${adminInputClass} flex-1`}
         />
-        <button onClick={add} className={adminAddButtonClass}>
+        <button onClick={add} className={btnPrimary}>
           Add
         </button>
       </div>

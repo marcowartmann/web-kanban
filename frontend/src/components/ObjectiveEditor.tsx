@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createPIObjective, setObjectiveFeatures, updatePIObjective } from "../api/client";
 import type { Item, ObjectiveState, PIObjective } from "../types";
 import PlainSelect from "./PlainSelect";
-import { btnGhost, captionClass, inputClass, modalPanelClass, overlayClass, zModal } from "./ui";
+import { btnGhost, btnPrimary, captionClass, inputClass, modalPanelClass, overlayClass, zModal } from "./ui";
 
 const STATES: { value: ObjectiveState; label: string }[] = [
   { value: "committed", label: "Committed" },
@@ -176,7 +176,7 @@ export default function ObjectiveEditor({
           <button
             onClick={() => void save()}
             disabled={!title.trim() || saving}
-            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 disabled:opacity-50"
+            className={btnPrimary}
           >
             Save
           </button>

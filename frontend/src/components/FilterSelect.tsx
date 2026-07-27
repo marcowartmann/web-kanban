@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useRef, useState } from "react";
 import { faChevronDown, faCheck } from "../icons";
-import { captionClass } from "./ui";
+import { captionClass, popoverClass } from "./ui";
 
 // A clean, non-native single-select dropdown for the filter bar.
 export default function FilterSelect({
@@ -68,7 +68,7 @@ export default function FilterSelect({
       {open && (
         <ul
           role="listbox"
-          className="absolute left-0 z-20 mt-2 max-h-60 min-w-44 overflow-auto rounded-xl border border-gray-200 bg-surface p-1 shadow-lg ring-1 ring-black/5"
+          className={`${popoverClass} absolute left-0 z-20 mt-2 max-h-60 min-w-44 overflow-auto`}
         >
           {allowAll && (
             <Option selected={value === undefined} onSelect={() => select(undefined)}>

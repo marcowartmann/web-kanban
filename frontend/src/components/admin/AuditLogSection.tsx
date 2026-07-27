@@ -5,6 +5,8 @@ import { faScroll } from "../../icons";
 import type { AuditEvent } from "../../types";
 import PlainSelect from "../PlainSelect";
 import { SkeletonRows } from "../Skeleton";
+import { btnSecondary } from "../ui";
+import { adminCardClass } from "./AdminCard";
 
 const PAGE = 50;
 
@@ -47,7 +49,7 @@ export default function AuditLogSection() {
   }, [q, entityType]);
 
   return (
-    <section className="rounded-2xl border border-gray-200 bg-surface p-5 shadow-xs ring-1 ring-black/5">
+    <section className={adminCardClass}>
       <header className="mb-4 flex flex-wrap items-center gap-2.5">
         <span
           className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-base text-indigo-600"
@@ -123,7 +125,7 @@ export default function AuditLogSection() {
         <div className="mt-3 flex justify-center">
           <button
             onClick={() => fetchPage(events.length, true)}
-            className="rounded-lg border border-gray-200 px-4 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+            className={btnSecondary}
           >
             Load more
           </button>

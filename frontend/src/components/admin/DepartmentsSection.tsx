@@ -13,8 +13,8 @@ import {
 import type { Department, PersonOption, Team } from "../../types";
 import Banner from "../Banner";
 import EmptyState from "../EmptyState";
+import { btnPrimary } from "../ui";
 import AdminCard, {
-  adminAddButtonClass,
   adminInputClass,
   adminRemoveButtonClass,
   adminRowClass,
@@ -144,7 +144,7 @@ export default function DepartmentsSection({ onChanged }: { onChanged: () => voi
                     aria-label={`new department for ${team.name}`}
                     className={`flex-1 ${adminInputClass}`}
                   />
-                  <button onClick={() => void add(team.id)} aria-label={`add department to ${team.name}`} className={adminAddButtonClass}>
+                  <button onClick={() => void add(team.id)} aria-label={`add department to ${team.name}`} className={btnPrimary}>
                     Add
                   </button>
                 </div>

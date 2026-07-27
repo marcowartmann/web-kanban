@@ -1,3 +1,5 @@
+import { captionClass } from "./ui";
+
 export default function Field({
   label,
   value,
@@ -11,9 +13,7 @@ export default function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">
-        {label}
-      </span>
+      <span className={`mb-1 block ${captionClass}`}>{label}</span>
       <input
         type={type}
         value={value ?? ""}

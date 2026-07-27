@@ -4,7 +4,7 @@ import { faMagnifyingGlass, faXmark } from "../icons";
 import type { ItemKind } from "../types";
 import FilterSelect from "./FilterSelect";
 import TogglePill from "./TogglePill";
-import { captionClass } from "./ui";
+import { btnGhost, captionClass } from "./ui";
 
 export interface BoardFilters {
   planning_interval?: string;
@@ -129,7 +129,7 @@ export default function Toolbar({
         <button
           type="button"
           onClick={() => onChange({})}
-          className="ml-auto inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+          className={`${btnGhost} ml-auto inline-flex items-center gap-1`}
         >
           <FontAwesomeIcon icon={faXmark} className="text-xs" />
           Clear all

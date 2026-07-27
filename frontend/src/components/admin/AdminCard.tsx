@@ -10,9 +10,6 @@ export const adminCardClass =
 
 export const adminInputClass = inputClass;
 
-export const adminAddButtonClass =
-  "shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-200";
-
 export const adminRowClass =
   "group flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2 text-sm text-gray-700 transition hover:border-gray-200 hover:bg-gray-50";
 

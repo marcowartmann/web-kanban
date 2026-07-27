@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ConflictError, createItem, getItem, updateItem } from "../api/client";
 import { groupByStatus } from "../lib/groupByStatus";
 import type { Item } from "../types";
-import { zModal } from "./ui";
+import { btnPrimary, btnSecondary, overlayClass, zModal } from "./ui";
 import Badge from "./Badge";
 import Banner from "./Banner";
 import Column from "./Column";
@@ -100,7 +100,7 @@ export default function StoryBoardModal({
 
   return (
     <div
-      className={`fixed inset-0 ${zModal} flex items-center justify-center bg-black/40 p-6 backdrop-blur-xs`}
+      className={`${overlayClass} ${zModal}`}
       onClick={onClose}
     >
       <div
@@ -126,7 +126,7 @@ export default function StoryBoardModal({
           <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={() => onOpenItem(featureId)}
-              className="rounded-lg border border-gray-200 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 shadow-xs transition hover:bg-gray-50"
+              className={btnSecondary}
             >
               Edit feature
             </button>
@@ -142,7 +142,7 @@ export default function StoryBoardModal({
             ) : (
               <button
                 onClick={() => setAddingStory(true)}
-                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-700"
+                className={btnPrimary}
               >
                 + Add story
               </button>

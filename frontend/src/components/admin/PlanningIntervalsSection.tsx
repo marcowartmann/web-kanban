@@ -12,8 +12,8 @@ import type { PlanningInterval } from "../../types";
 import Banner from "../Banner";
 import ConfirmDialog from "../ConfirmDialog";
 import EmptyState from "../EmptyState";
+import { btnPrimary } from "../ui";
 import AdminCard, {
-  adminAddButtonClass,
   adminInputClass,
   adminRemoveButtonClass,
   adminRowClass,
@@ -104,7 +104,7 @@ export default function PlanningIntervalsSection({ onChanged }: { onChanged: () 
           placeholder="New planning interval"
           className={`${adminInputClass} flex-1`}
         />
-        <button onClick={add} className={adminAddButtonClass}>
+        <button onClick={add} className={btnPrimary}>
           Add
         </button>
       </div>
